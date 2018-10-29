@@ -1,0 +1,10 @@
+html, body {
+    /* background-color: rgb(238, 234, 231) !important; */
+    width: 100%;   
+}
+
+#header {
+    background-color: #5b5965;
+    color: white
+    
+}
