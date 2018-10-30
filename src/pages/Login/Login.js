@@ -1,9 +1,12 @@
 import React from 'react';
 import { Button, Form, Grid, Image, Message, Segment } from 'semantic-ui-react';
-import {bindActionCreators} from 'redux';
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import _ from 'lodash';
 
 import logo from '../../assets/logo.png';
+import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from '../../utils/actions'
+import { sendAuthenticationData } from '../../utils/requests'
 
 class Login extends React.Component {
     constructor(props) {
@@ -11,24 +14,73 @@ class Login extends React.Component {
 
         this.state = {
             username: "",
-            password: ""
+            password: "",
+            authExceptionMessage: "",
+            authExceptionResponse: ""
         }
     }
 
+    handleChange = (e, { name, value }) => {
+        this.setState({ [name]: value })
+    }
+
+    auth = () => {
+        this.props.authenticationStartedAction();
+
+        var payload = {
+            username: this.state.username,
+            password: this.state.password
+        }
+
+        sendAuthenticationData(payload)
+            .then(res => {
+                this.props.authenticateAction(res.data)
+                this.props.authenticateEndedAction();
+                this.props.authenticateOKAction();
+
+                this.props.history.push('/orders')
+            })
+            .catch((err) => {
+                if (err.response.status === 403) {
+                    this.setState({ authExceptionMessage: 'Wrong username or password' })
+                } else {
+                    this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
+                }
+
+                this.props.authenticationFailedAction();
+                this.props.authenticateEndedAction();
+            })
+    }
+
     render() {
+
+        var errorMessage
+
+        if (_.isEmpty(this.state.authExceptionMessage) && _.isEmpty(this.state.authExceptionResponse)) {
+            errorMessage = (<div></div>)
+        }
+        else {
+            errorMessage = (<Message error floating>
+                Failed to log in:
+                                <br />
+                {this.state.authExceptionMessage}
+                {this.state.authExceptionResponse}
+            </Message>)
+        }
         return (
             <Grid columns={3} stackable>
                 <Grid.Column width='4'></Grid.Column>
                 <Grid.Column width='8'>
+                    {errorMessage}
                     <Image centered size='large' src={logo} />
                     <Form loading={!(this.props.loginPageStore.loginDone || this.props.loginPageStore.loginInitialDataDone)} size='large'>
                         <Segment raised stacked>
-                            <Form.Input 
-                                fluid 
-                                icon='user' 
-                                iconPosition='left' 
-                                placeholder='Username' 
-                                name='username' 
+                            <Form.Input
+                                fluid
+                                icon='user'
+                                iconPosition='left'
+                                placeholder='Username'
+                                name='username'
                                 onChange={this.handleChange} />
                             <Form.Input
                                 fluid
@@ -58,14 +110,15 @@ function mapStateToProps(state) {
     return {
         loginPageStore: state.LoginReducer
     };
-  }
-  
+}
+
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        // loginStartedAction: loginStartedAction,
-        // loginEndedAction : loginEndedAction,
-        // loginFailedAction : loginFailedAction,
-        // loginSuccessAction : loginSuccessAction
+        authenticateAction: authenticateAction,
+        authenticationStartedAction: authenticationStartedAction,
+        authenticateEndedAction: authenticateEndedAction,
+        authenticateOKAction: authenticateOKAction,
+        authenticationFailedAction: authenticationFailedAction
     }, dispatch);
 }
 
