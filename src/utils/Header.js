@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sidebar, Menu, Segment, Icon, Input, Header as HeaderSemantic, Dropdown, Container } from 'semantic-ui-react'
+import { Sidebar, Menu, Segment, Icon, Input, Header as HeaderSemantic, Dropdown, Container, Button } from 'semantic-ui-react'
 import { withRouter } from 'react-router-dom';
 
 // import {browserHistory} from 'react-router';
@@ -8,7 +8,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
-import {validateToken} from './requests'
+import { validateToken } from './requests'
+import { localStorageName } from '../appConfig';
 
 class Header extends React.Component {
     constructor(props) {
@@ -21,14 +22,16 @@ class Header extends React.Component {
         if (currentPath !== 'orders' && currentPath !== 'bank') {
             currentPath = 'orders'
         }
-        this.state = {
-            activeItem: currentPath
-        }
 
         this.state = {
+            activeItem: currentPath,
             authExceptionMessage: "",
-            authExceptionResponse: ""
+            authExceptionResponse: "",
+            width: window.innerWidth,
+            showMobileMenu: false
         }
+
+        window.addEventListener('resize', this.handleWindowSizeChange);
 
         props.authenticationStartedAction();
 
@@ -40,8 +43,7 @@ class Header extends React.Component {
                 this.props.history.push('/orders');
             })
             .catch((err) => {
-                debugger
-                if(err.response.status === 403) {
+                if (err.response.status === 403) {
                     this.props.history.push('/login');
                 }
                 this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
@@ -50,6 +52,10 @@ class Header extends React.Component {
                 this.props.authenticateEndedAction();
             })
     }
+
+    handleWindowSizeChange = () => {
+        this.setState({ width: window.innerWidth });
+    };
 
     // componentDidMount() {
     //     var currentPath = browserHistory.getCurrentLocation().pathname.replace("/","");
@@ -87,76 +93,159 @@ class Header extends React.Component {
         this.props.authenticationFailedAction();
         this.props.authenticateEndedAction();
         this.props.history.push('/login');
+        localStorage.setItem(localStorageName, "")
     }
 
+    toggleMobileMenu = () => {
+        this.setState({
+            showMobileMenu: !this.state.showMobileMenu
+        })
+    }
 
     render() {
+        const { width } = this.state;
+        const isMobile = width <= 766;
+
         const { activeItem } = this.state
 
         var menuItems;
 
         if (this.props.loginPageStore.authenticationFailed && this.props.loginPageStore.authenticationDone) {
             menuItems = (
-                <Menu inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
                     <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
                 </Menu>
             )
         }
         else {
-            menuItems = (
-                <Menu inverted style={{ border: '0px' }} pointing secondary size='tiny'>
-                    <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
-                    <Menu.Item style={{ borderColor: activeItem === 'orders' ? 'white' : 'transparent' }} name='orders' active={activeItem === 'orders'} onClick={this.handleItemClick}>Orders</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Bank</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Costs</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Warehouse</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Summaries</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Archive</Menu.Item>
-                    <Menu.Item
-                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                        name='bank'
-                        active={activeItem === 'bank'}
-                        onClick={this.handleItemClick}
-                    >Scripts</Menu.Item>
+            if (isMobile) {
+                if (this.state.showMobileMenu) {
+                    menuItems = (
+                        <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                            <Menu.Item name='Medpharma VN' onClick={this.handleItemClick}>
+                                Medpharma VN
+                                <Button style={{ position: 'absolute', right: '0px', top: '0.5em' }} icon='content' compact onClick={this.toggleMobileMenu} />
+                            </Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Bank</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Costs</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Warehouse</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Summaries</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Archive</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                                name='bank'
+                                active={activeItem === 'bank'}
+                                onClick={this.handleItemClick}
+                            >Scripts</Menu.Item>
 
-                    <Menu.Menu position='right'>
-                        <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
+                            <Menu.Menu position='right'>
+                                <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
+                                <Menu.Item
+                                    style={{ color: 'black' }}
+                                    className='logout'
+                                    name='logout'
+                                    active={activeItem === 'logout'}
+                                    onClick={() => this.logout()}>
+                                    Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
+                                </Menu.Item>
+                            </Menu.Menu>
+                        </Menu>
+                    )
+                }
+                else {
+                    menuItems = (
+                        <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                            <Menu.Item name='Medpharma VN' onClick={this.handleItemClick}>
+                                Medpharma VN
+                                <Button style={{ position: 'absolute', right: '0px', top: '0.5em' }} icon='content' compact onClick={this.toggleMobileMenu} />
+                            </Menu.Item>
+                        </Menu>
+                    )
+                }
+
+            }
+            else {
+                menuItems = (
+                    <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                        <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
+                        <Menu.Item style={{ borderColor: activeItem === 'orders' ? 'white' : 'transparent' }} name='orders' active={activeItem === 'orders'} onClick={this.handleItemClick}>Orders</Menu.Item>
                         <Menu.Item
-                            style={{ color: 'black' }}
-                            className='logout'
-                            name='logout'
-                            active={activeItem === 'logout'}
-                            onClick={() => this.logout()}>
-                            Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
-                        </Menu.Item>
-                    </Menu.Menu>
-                </Menu>
-            )
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Bank</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Costs</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Warehouse</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Summaries</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Archive</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                            name='bank'
+                            active={activeItem === 'bank'}
+                            onClick={this.handleItemClick}
+                        >Scripts</Menu.Item>
+
+                        <Menu.Menu position='right'>
+                            <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
+                            <Menu.Item
+                                style={{ color: 'black' }}
+                                className='logout'
+                                name='logout'
+                                active={activeItem === 'logout'}
+                                onClick={() => this.logout()}>
+                                Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
+                            </Menu.Item>
+                        </Menu.Menu>
+                    </Menu>
+                )
+            }
+
         }
 
 

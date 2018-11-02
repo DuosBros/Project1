@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch, BrowserRouter } from 'react-router-dom';
+import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import axios from 'axios';
@@ -7,7 +7,6 @@ import axios from 'axios';
 import {Grid} from 'semantic-ui-react'
 
 import Header from './Header';
-import Home from '../pages/Home/Home';
 import Login from '../pages/Login/Login';
 
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
@@ -31,7 +30,7 @@ class Base extends React.Component {
                     <Route path="/:entityType?/:entityId?" component={Header} />
                     <Grid container>
                         <Switch>
-                            <Route exact path='/' component={Home} />
+                            <Redirect exact from='/' to='/orders'/>
                             <Route exact path='/login' component={Login} />
                             {/* both /roster and /roster/:number begin with /roster */}
                             {/* <Route path='/roster' component={Roster}/>
