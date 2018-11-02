@@ -14,14 +14,8 @@ import { localStorageName } from '../appConfig';
 class Header extends React.Component {
     constructor(props) {
         super(props)
-
-        // this.logout = this.logout.bind(this);
-
+debugger;
         var currentPath = props.location.pathname.replace("/", "");
-
-        if (currentPath !== 'orders' && currentPath !== 'bank') {
-            currentPath = 'orders'
-        }
 
         this.state = {
             activeItem: currentPath,
@@ -37,10 +31,8 @@ class Header extends React.Component {
 
         validateToken()
             .then(res => {
-                this.props.authenticateAction(res.data)
                 this.props.authenticateEndedAction();
                 this.props.authenticateOKAction();
-                this.props.history.push('/orders');
             })
             .catch((err) => {
                 if (err.response.status === 403) {
@@ -57,39 +49,17 @@ class Header extends React.Component {
         this.setState({ width: window.innerWidth });
     };
 
-    // componentDidMount() {
-    //     var currentPath = browserHistory.getCurrentLocation().pathname.replace("/","");
-
-    //     if(currentPath !== 'patients' && currentPath !== 'graphs') {
-    //         currentPath = 'patients'
-    //     }
-
-    //     this.setState({ activeItem: currentPath })
-    // }
-
     handleItemClick = (e, { name }) => {
-        if (name !== 'FNO - Urgent') {
-            this.setState({ activeItem: name })
-        }
 
-        if (name === 'FNO - Urgent') {
-            // browserHistory.push('/patients');
+        if (name === 'MedpharmaVN') {
             window.location.reload()
         }
 
-        if (name === 'patients') {
-            // browserHistory.push('/patients');
-        }
-
-        if (name === 'graphs') {
-            // browserHistory.push('/graphs');
-            // window.location.reload()
-        }
-
+        this.props.history.push('/' + name);
     }
 
     logout() {
-        this.props.authenticateAction();
+        this.props.authenticateAction({});
         this.props.authenticationFailedAction();
         this.props.authenticateEndedAction();
         this.props.history.push('/login');
@@ -113,7 +83,7 @@ class Header extends React.Component {
         if (this.props.loginPageStore.authenticationFailed && this.props.loginPageStore.authenticationDone) {
             menuItems = (
                 <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
-                    <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
+                    <Menu.Item name='MedpharmaVN' onClick={this.handleItemClick} />
                 </Menu>
             )
         }
@@ -129,47 +99,39 @@ class Header extends React.Component {
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
                                 name='bank'
-                                active={activeItem === 'bank'}
                                 onClick={this.handleItemClick}
                             >Bank</Menu.Item>
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                                name='bank'
-                                active={activeItem === 'bank'}
+                                name='costs'
                                 onClick={this.handleItemClick}
                             >Costs</Menu.Item>
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                                name='bank'
-                                active={activeItem === 'bank'}
+                                name='warehouse'
                                 onClick={this.handleItemClick}
                             >Warehouse</Menu.Item>
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                                name='bank'
-                                active={activeItem === 'bank'}
+                                name='summaries'
                                 onClick={this.handleItemClick}
                             >Summaries</Menu.Item>
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
                                 name='bank'
-                                active={activeItem === 'bank'}
                                 onClick={this.handleItemClick}
                             >Archive</Menu.Item>
                             <Menu.Item
                                 style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
                                 name='bank'
-                                active={activeItem === 'bank'}
                                 onClick={this.handleItemClick}
                             >Scripts</Menu.Item>
 
                             <Menu.Menu position='right'>
-                                <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
                                 <Menu.Item
                                     style={{ color: 'black' }}
                                     className='logout'
                                     name='logout'
-                                    active={activeItem === 'logout'}
                                     onClick={() => this.logout()}>
                                     Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
                                 </Menu.Item>
@@ -187,7 +149,6 @@ class Header extends React.Component {
                         </Menu>
                     )
                 }
-
             }
             else {
                 menuItems = (
@@ -202,32 +163,32 @@ class Header extends React.Component {
                         >Bank</Menu.Item>
                         <Menu.Item
                             style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
+                            name='costs'
+                            active={activeItem === 'costs'}
                             onClick={this.handleItemClick}
                         >Costs</Menu.Item>
                         <Menu.Item
                             style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
+                            name='warehouse'
+                            active={activeItem === 'warehouse'}
                             onClick={this.handleItemClick}
                         >Warehouse</Menu.Item>
                         <Menu.Item
                             style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
+                            name='summaries'
+                            active={activeItem === 'summaries'}
                             onClick={this.handleItemClick}
                         >Summaries</Menu.Item>
                         <Menu.Item
                             style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
+                            name='archive'
+                            active={activeItem === 'archive'}
                             onClick={this.handleItemClick}
                         >Archive</Menu.Item>
                         <Menu.Item
                             style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
+                            name='scripts'
+                            active={activeItem === 'scripts'}
                             onClick={this.handleItemClick}
                         >Scripts</Menu.Item>
 
@@ -236,8 +197,7 @@ class Header extends React.Component {
                             <Menu.Item
                                 style={{ color: 'black' }}
                                 className='logout'
-                                name='logout'
-                                active={activeItem === 'logout'}
+                                name='login'
                                 onClick={() => this.logout()}>
                                 Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
                             </Menu.Item>
