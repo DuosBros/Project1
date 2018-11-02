@@ -1,7 +1,9 @@
+import { localStorageName } from '../../appConfig';
+
 const loginPageInitialState = {
-    loginDone: true,
-    authenticationDone: false,
-    authenticationFailed: false
+    currentUser: {},
+    authenticationDone: true,
+    authenticationFailed: true
 }
 
 const LoginReducer = (state = loginPageInitialState, action) => {

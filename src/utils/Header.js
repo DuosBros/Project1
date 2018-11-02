@@ -7,7 +7,8 @@ import _ from 'lodash';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-// import {loginFailedAction} from '../pages/login/LoginAction';
+import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
+import {validateToken} from './requests'
 
 class Header extends React.Component {
     constructor(props) {
@@ -23,6 +24,31 @@ class Header extends React.Component {
         this.state = {
             activeItem: currentPath
         }
+
+        this.state = {
+            authExceptionMessage: "",
+            authExceptionResponse: ""
+        }
+
+        props.authenticationStartedAction();
+
+        validateToken()
+            .then(res => {
+                this.props.authenticateAction(res.data)
+                this.props.authenticateEndedAction();
+                this.props.authenticateOKAction();
+                this.props.history.push('/orders');
+            })
+            .catch((err) => {
+                debugger
+                if(err.response.status === 403) {
+                    this.props.history.push('/login');
+                }
+                this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
+
+                this.props.authenticationFailedAction();
+                this.props.authenticateEndedAction();
+            })
     }
 
     // componentDidMount() {
@@ -56,87 +82,109 @@ class Header extends React.Component {
 
     }
 
-    // logout() {
-    //     this.props.loginFailedAction();
-    //     this.setState({ activeItem: "" })
-    //     browserHistory.push('/logout');
-    // }
+    logout() {
+        this.props.authenticateAction();
+        this.props.authenticationFailedAction();
+        this.props.authenticateEndedAction();
+        this.props.history.push('/login');
+    }
 
 
     render() {
         const { activeItem } = this.state
 
+        var menuItems;
+
+        if (this.props.loginPageStore.authenticationFailed && this.props.loginPageStore.authenticationDone) {
+            menuItems = (
+                <Menu inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                    <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
+                </Menu>
+            )
+        }
+        else {
+            menuItems = (
+                <Menu inverted style={{ border: '0px' }} pointing secondary size='tiny'>
+                    <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
+                    <Menu.Item style={{ borderColor: activeItem === 'orders' ? 'white' : 'transparent' }} name='orders' active={activeItem === 'orders'} onClick={this.handleItemClick}>Orders</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Bank</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Costs</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Warehouse</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Summaries</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Archive</Menu.Item>
+                    <Menu.Item
+                        style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick}
+                    >Scripts</Menu.Item>
+
+                    <Menu.Menu position='right'>
+                        <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
+                        <Menu.Item
+                            style={{ color: 'black' }}
+                            className='logout'
+                            name='logout'
+                            active={activeItem === 'logout'}
+                            onClick={() => this.logout()}>
+                            Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
+                        </Menu.Item>
+                    </Menu.Menu>
+                </Menu>
+            )
+        }
+
+
         return (
             <Segment id="header" inverted>
                 <Container>
-                    <Menu inverted style={{ border: '0px' }} pointing secondary size='tiny'>
-                        <Menu.Item name='Medpharma VN' onClick={this.handleItemClick} />
-                        <Menu.Item style={{ borderColor: activeItem === 'orders' ? 'white' : 'transparent' }} name='orders' active={activeItem === 'orders'} onClick={this.handleItemClick}>Orders</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Bank</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Costs</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Warehouse</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Summaries</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Archive</Menu.Item>
-                        <Menu.Item
-                            style={{ color: 'black', borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
-                            name='bank'
-                            active={activeItem === 'bank'}
-                            onClick={this.handleItemClick}
-                        >Scripts</Menu.Item>
-
-                        {/* <Menu.Menu position='right'>
-                            <Menu.Item
-                            style={{color:'black'}}
-                                className='logout'
-                                name='logout'
-                                active={activeItem === 'logout'}
-                                onClick={() => this.logout()}>
-                                Odhlášení <Icon name='log out' style={{marginLeft:'0.5em'}}/>
-                            </Menu.Item>
-                        </Menu.Menu> */}
-                    </Menu>
+                    {menuItems}
                 </Container>
             </Segment>
         );
     }
 }
 
-// function mapStateToProps(state) {
-//     return {
-//         loginPageStore: state.LoginReducer
-//     };
-//   }
+function mapStateToProps(state) {
+    return {
+        loginPageStore: state.LoginReducer
+    };
+}
 
-// function mapDispatchToProps(dispatch) {
-//     return bindActionCreators({
-//         loginFailedAction : loginFailedAction
-//     }, dispatch);
-// }
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({
+        authenticateAction,
+        authenticationFailedAction,
+        authenticateEndedAction,
+        authenticationStartedAction,
+        authenticateOKAction
 
-// export default connect(mapStateToProps, mapDispatchToProps)(Header);
-export default withRouter(Header);
+    }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);

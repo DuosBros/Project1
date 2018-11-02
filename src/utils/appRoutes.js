@@ -11,8 +11,6 @@ export default class AppRoutes extends React.Component {
     constructor() {
         super();
         this.store = createStore(CommonReducer);
-
-        axios.defaults.headers.post['Content-Type'] = 'application/json';
     }
 
     componentWillMount() {

@@ -7,6 +7,7 @@ import _ from 'lodash';
 import logo from '../../assets/logo.png';
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from '../../utils/actions'
 import { sendAuthenticationData } from '../../utils/requests'
+import {localStorageName} from '../../appConfig';
 
 class Login extends React.Component {
     constructor(props) {
@@ -34,6 +35,7 @@ class Login extends React.Component {
 
         sendAuthenticationData(payload)
             .then(res => {
+                localStorage.setItem(localStorageName, res.data.token)
                 this.props.authenticateAction(res.data)
                 this.props.authenticateEndedAction();
                 this.props.authenticateOKAction();
@@ -68,12 +70,12 @@ class Login extends React.Component {
             </Message>)
         }
         return (
-            <Grid columns={3} stackable>
-                <Grid.Column width='4'></Grid.Column>
-                <Grid.Column width='8'>
+            <Grid stackable centered columns={2}>
+                {/* <Grid.Column width='4'></Grid.Column> */}
+                <Grid.Column>
                     {errorMessage}
                     <Image centered size='large' src={logo} />
-                    <Form loading={!(this.props.loginPageStore.loginDone || this.props.loginPageStore.loginInitialDataDone)} size='large'>
+                    <Form loading={!(this.props.loginPageStore.authenticationDone)} size='large'>
                         <Segment raised stacked>
                             <Form.Input
                                 fluid
@@ -100,7 +102,7 @@ class Login extends React.Component {
                         </Segment>
                     </Form>
                 </Grid.Column>
-                <Grid.Column width='4'></Grid.Column>
+                {/* <Grid.Column width='4'></Grid.Column> */}
             </Grid>
         )
     }

@@ -28,3 +28,10 @@ export function authenticationFailedAction() {
         type: 'AUTHENTICATION_FAIL'
     }
 }
+
+export function getOrdersAction(payload) {
+    return {
+        payload,
+        type: 'GET_ORDERS'
+    }
+}
