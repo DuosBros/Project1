@@ -69,11 +69,11 @@ class Login extends React.Component {
             </Message>)
         }
         return (
-            <Grid stackable centered columns={2}>
-                {/* <Grid.Column width='4'></Grid.Column> */}
+            // TODO if is mobile then 1 columns otherwise 2
+            <Grid stackable centered columns={1}>
                 <Grid.Column>
                     {errorMessage}
-                    <Image centered size='large' src={logo} />
+                    <Image centered size='large' src={logo} fluid/>
                     <Form loading={!(this.props.loginPageStore.authenticationDone)} size='large'>
                         <Segment raised stacked>
                             <Form.Input
@@ -101,7 +101,6 @@ class Login extends React.Component {
                         </Segment>
                     </Form>
                 </Grid.Column>
-                {/* <Grid.Column width='4'></Grid.Column> */}
             </Grid>
         )
     }
