@@ -7,7 +7,6 @@ import _ from 'lodash';
 import logo from '../../assets/logo.png';
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from '../../utils/actions'
 import { sendAuthenticationData } from '../../utils/requests'
-import {localStorageName} from '../../appConfig';
 
 class Login extends React.Component {
     constructor(props) {
@@ -35,7 +34,7 @@ class Login extends React.Component {
 
         sendAuthenticationData(payload)
             .then(res => {
-                localStorage.setItem(localStorageName, res.data.token)
+                
                 this.props.authenticateAction(res.data)
                 this.props.authenticateEndedAction();
                 this.props.authenticateOKAction();

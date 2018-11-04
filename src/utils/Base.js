@@ -4,13 +4,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import axios from 'axios';
 
-import {Grid} from 'semantic-ui-react'
+import { Grid } from 'semantic-ui-react'
 
 import Header from './Header';
 import Login from '../pages/Login/Login';
+import Orders from '../pages/Orders/Orders';
 
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
-import {localStorageName} from '../appConfig'
+import { LOCALSTORAGE_NAME } from '../appConfig'
 
 class Base extends React.Component {
 
@@ -18,9 +19,7 @@ class Base extends React.Component {
         super(props)
 
         axios.defaults.headers.post['Content-Type'] = 'application/json';
-        axios.defaults.headers.common['x-access-token'] = localStorage.getItem(localStorageName) ? localStorage.getItem(localStorageName) : '';
-        
-        
+        axios.defaults.headers.common['x-access-token'] = localStorage.getItem(LOCALSTORAGE_NAME) ? localStorage.getItem(LOCALSTORAGE_NAME) : '';
     }
 
     render() {
@@ -28,15 +27,16 @@ class Base extends React.Component {
             <BrowserRouter>
                 <div>
                     <Route path="/:entityType?/:entityId?" component={Header} />
-                    <Grid container>
+                    <div id="bodyWrapper">
                         <Switch>
-                            <Redirect exact from='/' to='/orders'/>
+                            <Redirect exact from='/' to='/orders' />
                             <Route exact path='/login' component={Login} />
+                            <Route exact path='/orders' component={Orders} />
                             {/* both /roster and /roster/:number begin with /roster */}
                             {/* <Route path='/roster' component={Roster}/>
         <Route path='/schedule' component={Schedule}/> */}
                         </Switch>
-                    </Grid>
+                    </div>
                 </div>
             </BrowserRouter>
         )
