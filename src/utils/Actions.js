@@ -35,3 +35,10 @@ export function getOrdersAction(payload) {
         type: 'GET_ORDERS'
     }
 }
+
+export function openOrderDetailsAction(payload) {
+    return {
+        payload,
+        type: 'OPEN_ORDER_DETAILS'
+    }
+}

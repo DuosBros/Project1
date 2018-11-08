@@ -1,7 +1,6 @@
 import React from 'react';
-import { Sidebar, Menu, Segment, Icon, Input, Header as HeaderSemantic, Dropdown, Container, Button } from 'semantic-ui-react'
+import { Menu, Segment, Icon, Container, Button } from 'semantic-ui-react'
 
-import _ from 'lodash';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -12,26 +11,23 @@ import { LOCALSTORAGE_NAME } from '../appConfig';
 class Header extends React.Component {
     constructor(props) {
         super(props)
-        
+
         var currentPath = props.location.pathname.replace("/", "");
 
         this.state = {
             activeItem: currentPath,
             authExceptionMessage: "",
             authExceptionResponse: "",
-            width: window.innerWidth,
-            showMobileMenu: false
+            isMobile: this.props.isMobile
         }
-
-        window.addEventListener('resize', this.handleWindowSizeChange);
 
         props.authenticationStartedAction();
 
         validateToken()
-            .then(res => {
-                this.props.authenticateEndedAction();
-                this.props.authenticateOKAction();
-            })
+            .then(() => {
+                    this.props.authenticateEndedAction();
+                    this.props.authenticateOKAction();
+                })
             .catch((err) => {
                 if (err.response.status >= 400 && err.response.status < 500) {
                     this.props.history.push('/login');
@@ -43,9 +39,13 @@ class Header extends React.Component {
             })
     }
 
-    handleWindowSizeChange = () => {
-        this.setState({ width: window.innerWidth });
-    };
+    componentDidUpdate(prevProps, prevState) {
+        console.log('isMobileprops: ' + this.props.isMobile)
+
+        if (prevProps.isMobile !== this.props.isMobile) {
+            this.setState({ isMobile: this.props.isMobile });
+        }
+    }
 
     handleItemClick = (e, { name }) => {
 
@@ -71,8 +71,6 @@ class Header extends React.Component {
     }
 
     render() {
-        const { width } = this.state;
-        const isMobile = width <= 766;
 
         const { activeItem } = this.state
 
@@ -86,7 +84,7 @@ class Header extends React.Component {
             )
         }
         else {
-            if (isMobile) {
+            if (this.state.isMobile) {
                 if (this.state.showMobileMenu) {
                     menuItems = (
                         <Menu stackable inverted style={{ border: '0px' }} pointing secondary size='tiny'>
@@ -191,7 +189,7 @@ class Header extends React.Component {
                         >Scripts</Menu.Item>
 
                         <Menu.Menu position='right'>
-                            <Menu.Item>{this.props.loginPageStore.currentUser.username}</Menu.Item>
+                            <Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>
                             <Menu.Item
                                 className='logout'
                                 name='login'

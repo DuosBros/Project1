@@ -16,7 +16,14 @@ class Login extends React.Component {
             username: "",
             password: "",
             authExceptionMessage: "",
-            authExceptionResponse: ""
+            authExceptionResponse: "",
+            isMobile : this.props.isMobile
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if(prevProps.isMobile !== this.props.isMobile) {
+            this.setState({ isMobile: this.props.isMobile });
         }
     }
 
@@ -70,7 +77,7 @@ class Login extends React.Component {
         }
         return (
             // TODO if is mobile then 1 columns otherwise 2
-            <Grid stackable centered columns={1}>
+            <Grid stackable centered columns={this.state.isMobile ? 1 : 2}>
                 <Grid.Column>
                     {errorMessage}
                     <Image centered size='large' src={logo} fluid/>

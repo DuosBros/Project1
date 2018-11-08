@@ -1,16 +1,16 @@
 html, body {
-    /* background-color: rgb(238, 234, 231) !important; */
+    /* background-color: rgb(245, 243, 241) !important; */
     width: 100%;   
 }
 
 #header {
-    background-color: #5b5965;
+    background-color: #55535e;
     color: white
     
 }
 
 #bodyWrapper {
-    margin-left: 1em;
-    margin-right: 1em;
+    /* margin-left: 1em;
+    margin-right: 1em; */
     padding-top: 2em;
 }

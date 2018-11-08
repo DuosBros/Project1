@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { LOCALSTORAGE_NAME } from '../../appConfig';
 
 const loginPageInitialState = {
@@ -17,6 +18,7 @@ const LoginReducer = (state = loginPageInitialState, action) => {
         case 'AUTHENTICATION_OK':
             if(!localStorage.getItem(LOCALSTORAGE_NAME)) {
                 localStorage.setItem(LOCALSTORAGE_NAME, state.currentUser.token)
+                axios.defaults.headers.common['x-access-token'] = localStorage.getItem(LOCALSTORAGE_NAME);
             }
             return Object.assign({}, state, { authenticationFailed: false })
         case 'AUTHENTICATION_FAIL':
