@@ -36,7 +36,7 @@ class Orders extends React.Component {
             if (this.props.isMobile) {
                 return (
                     <Table.Row negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid} positive={order.payment.paid} textAlign='center' key={order._id}>
-                        <Table.Cell style={{ color: 'black' }}>{order.address.lastName + " " + order.address.firstName}</Table.Cell>
+                        <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
                             <Button onClick={this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
@@ -53,17 +53,17 @@ class Orders extends React.Component {
                 return (
                     <Table.Row negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid} positive={order.payment.paid} textAlign='center' key={order._id}>
                         <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
-                        <Table.Cell style={{ color: 'black' }}>{order.address.lastName + " " + order.address.firstName}</Table.Cell>
+                        <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}><b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.note}</Table.Cell>
                         <Table.Cell>
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='check' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                            <Button id="buttonIconPadding" size='medium' icon='edit' />
+                            <Button id="buttonIconPadding" size='medium' icon='check' />
+                            <Button id="buttonIconPadding" size='medium' icon='file pdf' />
+                            <Button id="buttonIconPadding" size='medium' icon='shipping fast' />
+                            <Button id="buttonIconPadding" size='medium' icon='close' />
                         </Table.Cell>
                     </Table.Row>
                 )
@@ -153,20 +153,11 @@ class Orders extends React.Component {
                             <Button fluid size='small' compact content='Add Order' style={{ backgroundColor: '#f20056', color: 'white' }} />
                             <Button style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
                         </Grid.Column>
-                        {/* <Grid.Column width={2}>
-                </Grid.Column> */}
                         <Grid.Column width={8}>
                             <Message style={{ textAlign: 'center' }} warning>warning paceholder</Message>
                         </Grid.Column>
                         <Grid.Column width={1} textAlign='right' floated='right'>
                             <Button size="medium" compact style={{ backgroundColor: '#f20056', color: 'white' }} icon='search' />
-                            {/* <Form size="medium">
-                    <Form.Group widths='equal'>
-                        <Form.Input fluid></Form.Input>
-                        <Button compact style={{backgroundColor: '#f20056', color: 'white'}} icon='search' />
-                        </Form.Group>
-                    </Form> */}
-
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

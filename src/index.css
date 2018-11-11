@@ -1,6 +1,7 @@
 html, body {
     /* background-color: rgb(245, 243, 241) !important; */
     width: 100%;   
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
 }
 
 #header {
@@ -13,4 +14,8 @@ html, body {
     /* margin-left: 1em;
     margin-right: 1em; */
     padding-top: 2em;
+}
+
+#buttonIconPadding {
+    padding: 0.3em
 }

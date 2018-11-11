@@ -42,3 +42,10 @@ export function openOrderDetailsAction(payload) {
         type: 'OPEN_ORDER_DETAILS'
     }
 }
+
+export function getBankTransactionsAction(payload) {
+    return {
+        payload,
+        type: 'GET_BANK_TRANSACTIONS'
+    }
+}

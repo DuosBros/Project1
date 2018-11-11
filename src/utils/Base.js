@@ -12,6 +12,11 @@ import Orders from '../pages/Orders/Orders';
 
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
 import { LOCALSTORAGE_NAME } from '../appConfig'
+import Bank from '../pages/Bank/Bank';
+
+import { getCurrentYearOrders } from '../utils/requests';
+import { getOrdersAction } from '../utils/actions';
+
 
 class Base extends React.Component {
 
@@ -26,6 +31,12 @@ class Base extends React.Component {
         this.state = {
             width: window.innerWidth
         }
+
+        getCurrentYearOrders()
+            .then(res => {
+                console.log(res.data)
+                this.props.getOrdersAction(res.data)
+            })
     }
 
     handleWindowSizeChange = () => {
@@ -49,13 +60,14 @@ class Base extends React.Component {
                             render={(props) => <Login {...props} isMobile={isMobile} />}
                         />
                         <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
+                        <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
                     </Switch>
                 </Container>
             )
         }
         else {
             body = (
-                <div style={{ paddingTop: '2em', marginLeft:'1em', marginRight:'1em' }}>
+                <div style={{ paddingTop: '2em', marginLeft: '1em', marginRight: '1em' }}>
                     <Switch>
                         <Redirect exact from='/' to='/orders' />
                         <Route
@@ -63,6 +75,7 @@ class Base extends React.Component {
                             render={(props) => <Login {...props} isMobile={isMobile} />}
                         />
                         <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
+                        <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
                     </Switch>
                 </div>
             )
@@ -94,7 +107,8 @@ function mapDispatchToProps(dispatch) {
         authenticationStartedAction: authenticationStartedAction,
         authenticateEndedAction: authenticateEndedAction,
         authenticateOKAction: authenticateOKAction,
-        authenticationFailedAction: authenticationFailedAction
+        authenticationFailedAction: authenticationFailedAction,
+        getOrdersAction
     }, dispatch);
 }
 

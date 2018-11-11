@@ -30,3 +30,7 @@ export function getCurrentYearOrders() {
 }
 
 // /orders?from=December 31, 2017 23:59:59&to=December%2031,%202018%2023:59:59&limit=100
+
+export function getBankTransactions() {
+    return axios.get(MEDPHARMAVN_API + 'bank/transactions')
+}
