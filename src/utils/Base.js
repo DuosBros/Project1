@@ -32,11 +32,13 @@ class Base extends React.Component {
             width: window.innerWidth
         }
 
-        getCurrentYearOrders()
-            .then(res => {
-                console.log(res.data)
-                this.props.getOrdersAction(res.data)
-            })
+        // getCurrentYearOrders()
+        //     .then(res => {
+        //         console.log("pica")
+        //         console.log(res.data.length)
+        //         console.log(res.data)
+        //         this.props.getOrdersAction(res.data)
+        //     })
     }
 
     handleWindowSizeChange = () => {

@@ -49,3 +49,17 @@ export function getBankTransactionsAction(payload) {
         type: 'GET_BANK_TRANSACTIONS'
     }
 }
+
+export function getNotPaidNotificationsAction(payload) {
+    return {
+        payload,
+        type: 'GET_NOT_PAID_NOTIFICATIONS'
+    }
+}
+
+export function getWarehouseNotificationsAction(payload) {
+    return {
+        payload,
+        type: 'GET_WAREHOUSE_NOTIFICATIONS'
+    }
+}

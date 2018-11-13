@@ -1,6 +1,8 @@
 const ordersPageInitialState = {
     orders: [],
-    ordersDetails: []
+    ordersDetails: [],
+    warehouseNotifications: [],
+    notPaidNotifications: []
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -12,6 +14,10 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
                 ...state,
                 ordersDetails: state.ordersDetails.concat(action.payload)
             }
+        case 'GET_WAREHOUSE_NOTIFICATIONS':
+            return Object.assign({}, state, { warehouseNotifications: action.payload })
+        case 'GET_NOT_PAID_NOTIFICATIONS':
+            return Object.assign({}, state, { notPaidNotifications: action.payload })
         default:
             return state;
     }

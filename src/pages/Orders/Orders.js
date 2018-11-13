@@ -9,7 +9,7 @@ import ReactTable from "react-table";
 import { getCurrentYearOrders } from '../../utils/requests';
 import { getOrdersAction, openOrderDetailsAction } from '../../utils/actions';
 
-import { errorColor, successColor, warningColor } from '../../appConfig'
+import { errorColor, successColor, warningColor, GET_ORDERS_LIMIT } from '../../appConfig'
 
 import Spinner from '../../assets/Spinner.svg'
 
@@ -23,11 +23,12 @@ class Orders extends React.Component {
             mobileShowHeader: false,
             expanded: null,
             showColumnFilters: false,
+            filteredOrders: [],
             showPaidOrders: true,
-            filteredOrders: this.props.ordersPageStore.orders
+            ordersLimit: GET_ORDERS_LIMIT
         }
 
-        getCurrentYearOrders()
+        getCurrentYearOrders(GET_ORDERS_LIMIT)
             .then(res => {
                 this.props.getOrdersAction(res.data)
             })
@@ -37,7 +38,7 @@ class Orders extends React.Component {
         this.props.openOrderDetailsAction(order);
     }
 
-    expand_row = (row) => {
+    expandRow = (row) => {
         var expanded = { ...this.state.expanded };
         if (expanded[row.index]) {
             expanded[row.index] = !expanded[row.index];
@@ -57,15 +58,16 @@ class Orders extends React.Component {
             return {}
         }
 
-        if (_.isEmpty(order.original.fullOrder.zaslatDate)) {
-            backgroundColor = errorColor
+        if(order.original.fullOrder.payment.paid) {
+            backgroundColor = successColor
         }
         else if (!_.isEmpty(order.original.fullOrder.zaslatDate) && !order.original.fullOrder.payment.paid) {
             backgroundColor = warningColor
         }
         else {
-            backgroundColor = successColor
+            backgroundColor = errorColor
         }
+        
 
         return backgroundColor
     }
@@ -75,22 +77,34 @@ class Orders extends React.Component {
     }
 
     handleToggleShowPaidOrders = () => {
-        var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
-            return !order.payment.paid
+        if(this.state.showPaidOrders) {
+            var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
+                return !order.payment.paid
+            })
+            this.setState({ filteredOrders: filteredOrders, showPaidOrders: !this.state.showPaidOrders });
+        }
+        else {
+            this.setState({ filteredOrders: [], showPaidOrders: !this.state.showPaidOrders });
+        }
+    }
+
+    loadMoreOrders = () => {
+        var currentLimit = this.state.ordersLimit + 100
+
+        getCurrentYearOrders(currentLimit)
+        .then(res => {
+            this.props.getOrdersAction(res.data)
+            this.setState({ ordersLimit: currentLimit });
         })
-
-        this.setState({ showPaidOrders: !this.state.showPaidOrders, filteredOrders: filteredOrders });
-
-
     }
 
     render() {
 
-        var { showColumnFilters, showPaidOrders, filteredOrders } = this.state;
+        var { showColumnFilters, filteredOrders, showPaidOrders, ordersLimit } = this.state;
         var counter = 0;
         var sortedOrders;
-        
-        if (!showPaidOrders) {
+
+        if (filteredOrders.length > 0) {
             sortedOrders = _.orderBy(filteredOrders, ['payment.orderDate'], ['desc']);
         }
         else {
@@ -101,7 +115,7 @@ class Orders extends React.Component {
 
             if (this.props.isMobile) {
                 return (
-                    <Table.Row negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid} positive={order.payment.paid} textAlign='center' key={order._id}>
+                    <Table.Row positive={order.payment.paid} negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid}  textAlign='center' key={order._id}>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
@@ -151,6 +165,7 @@ class Orders extends React.Component {
         else {
             table = (
                 <ReactTable
+
                     data={mappedOrders}
                     columns={[
                         {
@@ -189,6 +204,7 @@ class Orders extends React.Component {
                                 {
                                     width: 70,
                                     filterable: showColumnFilters,
+                                    accessor: "vs",
                                     Header: () => <strong>VS</strong>,
                                     Cell: (row) => (
                                         <div
@@ -205,6 +221,7 @@ class Orders extends React.Component {
                                 {
                                     filterable: showColumnFilters,
                                     width: 90,
+                                    accessor: "date",
                                     Header: () => <strong>Order Date</strong>,
                                     Cell: (row) => (
                                         <div
@@ -214,13 +231,14 @@ class Orders extends React.Component {
                                                 height: '100%'
                                             }}
                                         >
-                                            <strong>{row.original.date}</strong>
+                                            {row.original.date}
                                         </div>
                                     )
                                 },
                                 {
                                     filterable: showColumnFilters,
                                     width: 90,
+                                    accessor: "totalPrice",
                                     Header: () => <strong>Price [CZK]</strong>,
                                     Cell: (row) => (
                                         <div
@@ -230,7 +248,7 @@ class Orders extends React.Component {
                                                 height: '100%'
                                             }}
                                         >
-                                            <strong>{row.original.totalPrice}</strong>
+                                            <strong>{row.original.totalPrice + " Kč"}</strong>
                                         </div>
                                     )
                                 },
@@ -261,7 +279,7 @@ class Orders extends React.Component {
                             ]
                         }
                     ]}
-
+                    minRows={0}
                     sortable={false}
                     getTrProps={(state, rowInfo, column) => {
                         return {
@@ -270,18 +288,18 @@ class Orders extends React.Component {
                             }
                         };
                     }}
-                    
+
                     getTheadGroupThProps={() => {
                         return {
                             style: { display: 'none' } // override style for 'myHeaderTitle'.
                         }
                     }}
-                    pageSize={100}
+                    pageSize={ordersLimit}
                     expanded={this.state.expanded}
                     getTdProps={(state, rowInfo, column, instance) => {
                         return {
                             onClick: () => {
-                                this.expand_row(rowInfo);
+                                this.expandRow(rowInfo);
                             }
                         };
                     }}
@@ -292,7 +310,6 @@ class Orders extends React.Component {
         }
 
         var grid;
-
         if (this.props.isMobile) {
             grid = (
                 <Grid stackable>
@@ -373,7 +390,7 @@ class Orders extends React.Component {
                         <div>
                             {grid}
                             {table}
-                            <Button style={{marginTop: '0.5em'}} fluid>Show More</Button>
+                            <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                         </div>
                     ) : (
                             <div className="centered">
@@ -395,7 +412,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getOrdersAction,
-        openOrderDetailsAction
+        openOrderDetailsAction,
     }, dispatch);
 }
 
