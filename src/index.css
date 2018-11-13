@@ -19,3 +19,20 @@ html, body {
 #buttonIconPadding {
     padding: 0.3em
 }
+
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#primaryButton {
+    background-color: #f20056;
+    color: white
+}
+
+#secondaryButton {
+    background-color: #76767691;
+    color: white
+}

@@ -67,7 +67,7 @@ class Base extends React.Component {
         }
         else {
             body = (
-                <div style={{ paddingTop: '2em', marginLeft: '1em', marginRight: '1em' }}>
+                <div style={{ paddingTop: '2em', marginLeft: '1em', marginRight: '1em', marginBottom: '0.5em' }}>
                     <Switch>
                         <Redirect exact from='/' to='/orders' />
                         <Route
