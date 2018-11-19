@@ -1,18 +1,18 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab } from 'semantic-ui-react';
+import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab, Transition } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
 import ReactTable from "react-table";
 
-import { getCurrentYearOrders } from '../../utils/requests';
-import { getOrdersAction, openOrderDetailsAction } from '../../utils/actions';
+import { getCurrentYearOrders, getWarehouseNotification, getNotPaidNotificationsNotification } from '../../utils/requests';
+import { getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction } from '../../utils/actions';
 
 import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
 import SimpleTable from '../../components/SimpleTable';
 import Spinner from '../../assets/Spinner.svg'
-
+import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
 
 class Orders extends React.Component {
 
@@ -20,18 +20,33 @@ class Orders extends React.Component {
         super(props);
 
         this.state = {
+            multiSearchInput: "",
             mobileShowHeader: false,
             expanded: null,
             showColumnFilters: false,
             filteredOrders: [],
             showPaidOrders: true,
             ordersLimit: GET_ORDERS_LIMIT,
-            orderIdsShowingDetails: []
+            orderIdsShowingDetails: [],
+            showFilterInput: false
         }
+
+        this.handleChange = debounce(this.handleChange, 400);
+        this.handleChange = this.handleChange.bind(this)
 
         getCurrentYearOrders(GET_ORDERS_LIMIT)
             .then(res => {
                 this.props.getOrdersAction(res.data)
+            })
+
+        getNotPaidNotificationsNotification()
+            .then(res => {
+                this.props.getNotPaidNotificationsAction(res.data)
+            })
+
+        getWarehouseNotification()
+            .then(res => {
+                this.props.getWarehouseNotificationsAction(res.data)
             })
     }
 
@@ -59,22 +74,18 @@ class Orders extends React.Component {
             return {}
         }
 
-        if (_.isEmpty(order.original.fullOrder)) {
-            return {}
-        }
-        if (order.original.fullOrder.payment.paid) {
+        if (order.payment.paid) {
             backgroundColor = successColor
         }
-        else if (!_.isEmpty(order.original.fullOrder.zaslatDate) && !order.original.fullOrder.payment.paid) {
+        else if (!_.isEmpty(order.zaslatDate) && !order.payment.paid) {
             backgroundColor = warningColor
         }
-        else if (_.isEmpty(order.original.fullOrder.zaslatDate) && order.original.fullOrder.state === "active") {
+        else if (_.isEmpty(order.zaslatDate) && order.state === "active") {
             backgroundColor = errorColor
         }
         else {
             backgroundColor = notActiveColor
         }
-
 
         return backgroundColor
     }
@@ -131,20 +142,37 @@ class Orders extends React.Component {
         }
 
     }
+
+    handleChange(e, { name, value }) {
+        this.setState({ [name]: value })
+    }
+
     render() {
         console.log(this.props.ordersPageStore.orders)
-        var { showColumnFilters, filteredOrders, showPaidOrders, ordersLimit } = this.state;
+        var { showColumnFilters, filteredOrders, showPaidOrders, multiSearchInput } = this.state;
         var counter = 0;
         var sortedOrders;
+        var filteredByMultiSearch;
+
 
         if (filteredOrders.length > 0) {
+
             sortedOrders = _.orderBy(filteredOrders, ['payment.orderDate'], ['desc']);
         }
         else {
             sortedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']);
         }
+
+        if (multiSearchInput !== "" && multiSearchInput.length > 1) {
+            filteredByMultiSearch = filterInArrayOfObjects(multiSearchInput, sortedOrders, [])
+        }
+        else {
+            filteredByMultiSearch = sortedOrders
+        }
+
+
         var mappedOrders = [];
-        mappedOrders = sortedOrders.map(order => {
+        mappedOrders = filteredByMultiSearch.map(order => {
 
 
             if (this.props.isMobile) {
@@ -222,8 +250,8 @@ class Orders extends React.Component {
                 )
 
                 return (
-                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id}
-                        positive={order.payment.paid} negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid} textAlign='center'>
+                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id} style={{backgroundColor: this.getBackgroundColor(order)}}
+                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
@@ -241,9 +269,11 @@ class Orders extends React.Component {
             else {
                 var orderInlineDetails = (
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
-                        <Table.Row style={{ color: 'black' }}>
+                        <Table.Row
+                            onClick={() => { this.toggleInlineOrderDetails(order._id) }}
+                            style={{backgroundColor: this.getBackgroundColor(order)}}>
                             <Table.Cell colSpan={9}>
-                                <Grid>
+                                <Grid style={{ marginTop: '1.5em', marginBottom: '2em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
                                     <Grid.Row style={{ padding: '1em' }}>
                                         <Grid.Column width={4}>
                                             <Header as='h4'>
@@ -301,42 +331,38 @@ class Orders extends React.Component {
                                                     </Table.Row>
                                                 )
                                             })} />
-                                            <Grid.Row style={{ padding: '0px', borderBottom: '0px' }}>
-                                                <Grid.Column width={8}>
-                                                </Grid.Column>
-                                                <Grid.Column width={4}>
-                                                    <b>Delivery price:</b> {order.payment.price} <br />
-                                                    <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                                    <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
-                                                </Grid.Column>
-                                                <Grid.Column width={4}>
-                                                    <b>Total Price:</b> {order.totalPrice} <br />
-                                                </Grid.Column>
-                                            </Grid.Row>
+                                            <Grid>
+                                                <Grid.Row columns='equal' style={{ padding: '0px', borderBottom: '0px' }}>
+                                                    {/* <Grid.Column width={8}>
+                                                </Grid.Column> */}
+                                                    <Grid.Column>
+                                                        <b>Delivery price:</b> {order.payment.price} <br />
+                                                        <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <b>Total Price:</b> {order.totalPrice} <br />
+                                                    </Grid.Column>
+                                                </Grid.Row>
+                                            </Grid>
                                         </Grid.Column>
                                     </Grid.Row>
                                 </Grid>
                             </Table.Cell>
-                            {/* <Table.Cell>
-                                </Table.Cell> */}
                         </Table.Row>
                     ) : (
                             <Table.Row >
                                 <Table.Cell style={{ padding: '0px', borderBottom: '0px' }} colSpan={9}>
                                 </Table.Cell>
-                                {/* <Table.Cell>
-                                </Table.Cell> */}
                             </Table.Row>
                         )
                 )
                 counter++;
                 return (
-                    <React.Fragment>
+                    <React.Fragment key={order._id}>
                         <Table.Row
                             onClick={() => { this.toggleInlineOrderDetails(order._id) }}
-                            negative={_.isEmpty(order.zaslatDate)}
-                            warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid}
-                            positive={order.payment.paid}
+                            style={{backgroundColor: this.getBackgroundColor(order)}}
                             textAlign='center'
                             key={order._id}>
                             <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
@@ -401,6 +427,39 @@ class Orders extends React.Component {
 
         }
 
+        var notPaidNotificationsMessage, warehouseNotificationsMessage;
+
+        if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
+            var message = this.props.ordersPageStore.warehouseNotifications.map(notification => {
+                return (
+                    <React.Fragment key={notification.product}>
+                        <strong>{notification.product}: </strong> {notification.current} <br />
+                    </React.Fragment>
+                )
+            })
+
+            warehouseNotificationsMessage = (
+                <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}</Message>
+            )
+        }
+
+        if (this.props.ordersPageStore.notPaidNotifications.length > 0) {
+            var VSs = this.props.ordersPageStore.notPaidNotifications.map(notification => {
+                return (notification.vs)
+            }).join(",")
+
+            if (this.props.ordersPageStore.notPaidNotifications.length > 1) {
+                notPaidNotificationsMessage = (
+                    <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br /> <strong>{VSs}</strong></Message>
+                )
+            }
+            else {
+                notPaidNotificationsMessage = (
+                    <Message style={{ textAlign: 'center' }} warning>Order is delivered bud not paid: <br /> <strong>{VSs}</strong>  </Message>
+                )
+            }
+        }
+
         var grid;
         if (this.props.isMobile) {
             grid = (
@@ -414,22 +473,25 @@ class Orders extends React.Component {
                         </Grid.Column>
 
                     </Grid.Row>
-                    {this.state.mobileShowHeader ? (
-                        <Grid.Row>
-                            <Grid.Column>
-                                <Button fluid size='small' content='Add Order' id="primaryButton" />
-                                <Button style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
-                            </Grid.Column>
-                            <Grid.Column>
-                                <Message fluid={true} style={{ textAlign: 'center' }} warning>warning paceholder</Message>
-                            </Grid.Column>
-                            <Grid.Column textAlign='right' floated='right'>
-                                <Button size="medium" id="primaryButton" icon='search' />
-                            </Grid.Column>
-                        </Grid.Row>
-                    ) : (
-                            <div></div>
+                    <Transition.Group animation='drop' duration={500}>
+                        {this.state.mobileShowHeader && (
+                            <Grid.Row>
+                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                    <Button fluid size='small' content='Add Order' id="primaryButton" />
+                                    <Button style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
+                                </Grid.Column>
+                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                    {warehouseNotificationsMessage}
+                                </Grid.Column>
+                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                    {notPaidNotificationsMessage}
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Input fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} />
+                                </Grid.Column>
+                            </Grid.Row>
                         )}
+                    </Transition.Group>
                 </Grid>
             )
         }
@@ -444,11 +506,14 @@ class Orders extends React.Component {
                             <Button fluid size='medium' compact content='Add Order' id="primaryButton" />
                             <Button style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small' compact content='Print Labels' />
                         </Grid.Column>
-                        <Grid.Column width={8}>
-                            <Message style={{ textAlign: 'center' }} warning>warning paceholder</Message>
+                        <Grid.Column width={5}>
+                            {warehouseNotificationsMessage}
+                        </Grid.Column>
+                        <Grid.Column width={4}>
+                            {notPaidNotificationsMessage}
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
-                            <Input name="multisearch" icon='search' placeholder='Search...' />
+                            <Input name="multiSearchInput" icon='search' placeholder='Search...' onChange={this.handleChange} />
                             <Button
                                 fluid
                                 size="small"
@@ -505,6 +570,8 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getOrdersAction,
         openOrderDetailsAction,
+        getNotPaidNotificationsAction,
+        getWarehouseNotificationsAction
     }, dispatch);
 }
 
