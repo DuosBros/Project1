@@ -8,3 +8,10 @@ export const GET_ORDERS_LIMIT = 100
 export const warningColor = '#f7ead89c'
 export const successColor = '#f5fbe7'
 export const errorColor = '#f2005614'
+export const notActiveColor = '#bfbfbf'
+
+
+// $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"}
+// $b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b
+
+// 14.11. 1627

@@ -48,10 +48,10 @@ class Base extends React.Component {
     render() {
 
         const { width } = this.state;
-        const isMobile = width <= 766;
+        var isMobile = width <= 766;
 
         var body;
-
+        // isMobile = false;
         if (isMobile) {
             body = (
                 <Container style={{ paddingTop: '0.5em' }}>

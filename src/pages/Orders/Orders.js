@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Table, Message, Image, Icon, Input } from 'semantic-ui-react';
+import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
 import ReactTable from "react-table";
@@ -9,8 +9,8 @@ import ReactTable from "react-table";
 import { getCurrentYearOrders } from '../../utils/requests';
 import { getOrdersAction, openOrderDetailsAction } from '../../utils/actions';
 
-import { errorColor, successColor, warningColor, GET_ORDERS_LIMIT } from '../../appConfig'
-
+import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
+import SimpleTable from '../../components/SimpleTable';
 import Spinner from '../../assets/Spinner.svg'
 
 
@@ -25,7 +25,8 @@ class Orders extends React.Component {
             showColumnFilters: false,
             filteredOrders: [],
             showPaidOrders: true,
-            ordersLimit: GET_ORDERS_LIMIT
+            ordersLimit: GET_ORDERS_LIMIT,
+            orderIdsShowingDetails: []
         }
 
         getCurrentYearOrders(GET_ORDERS_LIMIT)
@@ -58,16 +59,22 @@ class Orders extends React.Component {
             return {}
         }
 
-        if(order.original.fullOrder.payment.paid) {
+        if (_.isEmpty(order.original.fullOrder)) {
+            return {}
+        }
+        if (order.original.fullOrder.payment.paid) {
             backgroundColor = successColor
         }
         else if (!_.isEmpty(order.original.fullOrder.zaslatDate) && !order.original.fullOrder.payment.paid) {
             backgroundColor = warningColor
         }
-        else {
+        else if (_.isEmpty(order.original.fullOrder.zaslatDate) && order.original.fullOrder.state === "active") {
             backgroundColor = errorColor
         }
-        
+        else {
+            backgroundColor = notActiveColor
+        }
+
 
         return backgroundColor
     }
@@ -77,7 +84,7 @@ class Orders extends React.Component {
     }
 
     handleToggleShowPaidOrders = () => {
-        if(this.state.showPaidOrders) {
+        if (this.state.showPaidOrders) {
             var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
                 return !order.payment.paid
             })
@@ -92,14 +99,40 @@ class Orders extends React.Component {
         var currentLimit = this.state.ordersLimit + 100
 
         getCurrentYearOrders(currentLimit)
-        .then(res => {
-            this.props.getOrdersAction(res.data)
-            this.setState({ ordersLimit: currentLimit });
-        })
+            .then(res => {
+                this.props.getOrdersAction(res.data)
+                this.setState({ ordersLimit: currentLimit });
+
+                if (this.state.showPaidOrders) {
+                    this.setState({ filteredOrders: [] });
+                }
+                else {
+                    var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
+                        return !order.payment.paid
+                    })
+                    this.setState({ filteredOrders: filteredOrders });
+
+                }
+            })
     }
 
-    render() {
+    toggleInlineOrderDetails = (orderId) => {
+        if (this.state.orderIdsShowingDetails.indexOf(orderId) > -1) {
+            this.setState({
+                orderIdsShowingDetails: this.state.orderIdsShowingDetails.filter(id => {
+                    return id !== orderId
+                })
+            });
+        }
+        else {
+            this.setState(prevState => ({
+                orderIdsShowingDetails: [...prevState.orderIdsShowingDetails, orderId]
+            }))
+        }
 
+    }
+    render() {
+        console.log(this.props.ordersPageStore.orders)
         var { showColumnFilters, filteredOrders, showPaidOrders, ordersLimit } = this.state;
         var counter = 0;
         var sortedOrders;
@@ -110,12 +143,87 @@ class Orders extends React.Component {
         else {
             sortedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']);
         }
+        var mappedOrders = [];
+        mappedOrders = sortedOrders.map(order => {
 
-        var mappedOrders = sortedOrders.map(order => {
 
             if (this.props.isMobile) {
+                var orderInlineDetails = (
+                    this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
+                        <Table.Cell style={{ color: 'black' }}>
+                            <Grid>
+                                <Grid.Row style={{ padding: '1em' }}>
+                                    <Grid.Column width={4}>
+                                        <Header as='h4'>
+                                            Customer info
+                                </Header>
+                                    </Grid.Column>
+                                    <Grid.Column width={4}>
+                                    </Grid.Column>
+                                    <Grid.Column width={8}>
+                                        <Header as='h4'>
+                                            Order info
+                                </Header>
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row>
+                                    <Grid.Column width={4}>
+                                        <b>First name:</b> {order.address.firstName} <br />
+                                        <b>Last name:</b> {order.address.lastName} <br />
+                                        <b>Phone:</b> {order.address.phone} <br />
+                                        <b>Company:</b> {order.address.company} <br />
+                                    </Grid.Column>
+                                    <Grid.Column width={4}>
+                                        <b>Street:</b> {order.address.street} <br />
+                                        <b>City:</b> {order.address.city} <br />
+                                        <b>Street number:</b> {order.address.streetNumber} <br />
+                                        <b>ZIP:</b> {order.address.psc} <br />
+                                    </Grid.Column>
+                                    <Grid.Column width={8}>
+                                        <SimpleTable columnProperties={
+                                            [
+                                                {
+                                                    name: "Name",
+                                                    width: 4,
+                                                },
+                                                {
+                                                    name: "Count | Price per One",
+                                                    width: 4,
+                                                },
+                                                {
+                                                    name: "Total product price",
+                                                    width: 4,
+                                                }
+                                            ]
+                                        } body={order.products.map((product, index) => {
+                                            return (
+                                                <Table.Row key={index}>
+                                                    <Table.Cell >{product.productName}</Table.Cell>
+                                                    <Table.Cell >{product.count} | {product.pricePerOne}</Table.Cell>
+                                                    <Table.Cell>{product.totalPricePerProduct}</Table.Cell>
+                                                </Table.Row>
+                                            )
+                                        })} />
+                                        <Grid.Column>
+                                            <b>Delivery price:</b> {order.payment.price} <br />
+                                            <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                            <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
+                                        </Grid.Column>
+                                        <Grid.Column>
+                                            <b>Total Price:</b> {order.totalPrice} <br />
+                                        </Grid.Column>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Table.Cell>
+                    ) : (
+                            <Table.Cell style={{ padding: '0px', borderBottom: '0px' }}></Table.Cell>
+                        )
+                )
+
                 return (
-                    <Table.Row positive={order.payment.paid} negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid}  textAlign='center' key={order._id}>
+                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id}
+                        positive={order.payment.paid} negative={_.isEmpty(order.zaslatDate)} warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid} textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
@@ -125,22 +233,131 @@ class Orders extends React.Component {
                             <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
                             <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
                         </Table.Cell>
+                        {orderInlineDetails}
                     </Table.Row>
                 )
+
             }
             else {
+                var orderInlineDetails = (
+                    this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
+                        <Table.Row style={{ color: 'black' }}>
+                            <Table.Cell colSpan={9}>
+                                <Grid>
+                                    <Grid.Row style={{ padding: '1em' }}>
+                                        <Grid.Column width={4}>
+                                            <Header as='h4'>
+                                                Customer info
+                                </Header>
+                                        </Grid.Column>
+                                        <Grid.Column width={4}>
+                                        </Grid.Column>
+                                        <Grid.Column width={8}>
+                                            <Header as='h4'>
+                                                Order info
+                                </Header>
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                    <Grid.Row>
+                                        <Grid.Column width={4}>
+                                            <b>First name:</b> {order.address.firstName} <br />
+                                            <b>Last name:</b> {order.address.lastName} <br />
+                                            <b>Phone:</b> {order.address.phone} <br />
+                                            <b>Company:</b> {order.address.company} <br />
+                                        </Grid.Column>
+                                        <Grid.Column width={4}>
+                                            <b>Street:</b> {order.address.street} <br />
+                                            <b>City:</b> {order.address.city} <br />
+                                            <b>Street number:</b> {order.address.streetNumber} <br />
+                                            <b>ZIP:</b> {order.address.psc} <br />
+                                        </Grid.Column>
+                                        <Grid.Column width={8}>
+                                            <SimpleTable columnProperties={
+                                                [
+                                                    {
+                                                        name: "Name",
+                                                        width: 4,
+                                                    },
+                                                    {
+                                                        name: "Count",
+                                                        width: 4,
+                                                    },
+                                                    {
+                                                        name: "Price per One",
+                                                        width: 4,
+                                                    },
+                                                    {
+                                                        name: "Total product price",
+                                                        width: 4,
+                                                    }
+                                                ]
+                                            } body={order.products.map((product, index) => {
+                                                return (
+                                                    <Table.Row key={index}>
+                                                        <Table.Cell >{product.productName}</Table.Cell>
+                                                        <Table.Cell >{product.count}</Table.Cell>
+                                                        <Table.Cell >{product.pricePerOne}</Table.Cell>
+                                                        <Table.Cell>{product.totalPricePerProduct}</Table.Cell>
+                                                    </Table.Row>
+                                                )
+                                            })} />
+                                            <Grid.Row style={{ padding: '0px', borderBottom: '0px' }}>
+                                                <Grid.Column width={8}>
+                                                </Grid.Column>
+                                                <Grid.Column width={4}>
+                                                    <b>Delivery price:</b> {order.payment.price} <br />
+                                                    <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                                    <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
+                                                </Grid.Column>
+                                                <Grid.Column width={4}>
+                                                    <b>Total Price:</b> {order.totalPrice} <br />
+                                                </Grid.Column>
+                                            </Grid.Row>
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                </Grid>
+                            </Table.Cell>
+                            {/* <Table.Cell>
+                                </Table.Cell> */}
+                        </Table.Row>
+                    ) : (
+                            <Table.Row >
+                                <Table.Cell style={{ padding: '0px', borderBottom: '0px' }} colSpan={9}>
+                                </Table.Cell>
+                                {/* <Table.Cell>
+                                </Table.Cell> */}
+                            </Table.Row>
+                        )
+                )
                 counter++;
                 return (
-                    {
-                        counter: counter,
-                        fullName: (order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : ""),
-                        vs: order.payment.vs,
-                        date: moment(order.payment.orderDate).format("DD.MM"),
-                        totalPrice: order.totalPrice,
-                        note: order.note,
-                        fullOrder: order
-                    }
+                    <React.Fragment>
+                        <Table.Row
+                            onClick={() => { this.toggleInlineOrderDetails(order._id) }}
+                            negative={_.isEmpty(order.zaslatDate)}
+                            warning={!_.isEmpty(order.zaslatDate) && !order.payment.paid}
+                            positive={order.payment.paid}
+                            textAlign='center'
+                            key={order._id}>
+                            <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}>{order.address.lastName + " " + order.address.firstName}</Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}><b>{order.totalPrice} Kč</b></Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}>{order.note}</Table.Cell>
+                            <Table.Cell>
+                                <Button style={{ padding: '0.3em' }} size='medium' icon='edit' />
+                                <Button style={{ padding: '0.3em' }} size='medium' icon='check' />
+                                <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
+                                <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
+                                <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                            </Table.Cell>
+                        </Table.Row>
+                        {orderInlineDetails}
+                    </React.Fragment>
+
                 )
+
             }
         })
 
@@ -164,149 +381,24 @@ class Orders extends React.Component {
         }
         else {
             table = (
-                <ReactTable
-
-                    data={mappedOrders}
-                    columns={[
-                        {
-                            columns: [
-                                {
-                                    width: 45,
-                                    expander: true,
-                                    accessor: "counter",
-                                    Header: "",
-                                    width: 65,
-
-                                    Expander: ({ isExpanded, ...rest }) =>
-                                        <div style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            textAlign: 'center'
-                                        }}>
-                                            {
-                                                isExpanded
-                                                    ? <Button id="buttonIconPadding" size='medium' icon='compress' />
-                                                    : <Button id="buttonIconPadding" size='medium' icon='expand' />
-                                            }
-
-                                        </div>,
-                                },
-                                {
-                                    width: 170,
-                                    filterable: showColumnFilters,
-                                    Header: () =>
-                                        <div>
-                                            <strong>Name</strong>
-                                        </div>,
-                                    accessor: "fullName"
-                                }
-                                ,
-                                {
-                                    width: 70,
-                                    filterable: showColumnFilters,
-                                    accessor: "vs",
-                                    Header: () => <strong>VS</strong>,
-                                    Cell: (row) => (
-                                        <div
-                                            style={{
-                                                textAlign: 'center',
-                                                width: '100%',
-                                                height: '100%'
-                                            }}
-                                        >
-                                            <strong>{row.original.vs}</strong>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    filterable: showColumnFilters,
-                                    width: 90,
-                                    accessor: "date",
-                                    Header: () => <strong>Order Date</strong>,
-                                    Cell: (row) => (
-                                        <div
-                                            style={{
-                                                textAlign: 'center',
-                                                width: '100%',
-                                                height: '100%'
-                                            }}
-                                        >
-                                            {row.original.date}
-                                        </div>
-                                    )
-                                },
-                                {
-                                    filterable: showColumnFilters,
-                                    width: 90,
-                                    accessor: "totalPrice",
-                                    Header: () => <strong>Price [CZK]</strong>,
-                                    Cell: (row) => (
-                                        <div
-                                            style={{
-                                                textAlign: 'center',
-                                                width: '100%',
-                                                height: '100%'
-                                            }}
-                                        >
-                                            <strong>{row.original.totalPrice + " Kč"}</strong>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    filterable: showColumnFilters,
-                                    Header: () => <strong>Notes</strong>,
-                                    accessor: "note"
-                                },
-                                {
-                                    maxWidth: 165,
-                                    Header: () => <strong>Actions</strong>,
-                                    Cell: row => (
-                                        <div
-                                            style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                textAlign: 'center'
-                                            }}
-                                        >
-                                            <Button id="buttonIconPadding" size='medium' icon='edit' />
-                                            <Button id="buttonIconPadding" size='medium' icon='check' />
-                                            <Button id="buttonIconPadding" size='medium' icon='file pdf' />
-                                            <Button id="buttonIconPadding" size='medium' icon='shipping fast' />
-                                            <Button id="buttonIconPadding" size='medium' icon='close' />
-                                        </div>
-                                    ),
-                                }
-                            ]
-                        }
-                    ]}
-                    minRows={0}
-                    sortable={false}
-                    getTrProps={(state, rowInfo, column) => {
-                        return {
-                            style: {
-                                background: this.getBackgroundColor(rowInfo)
-                            }
-                        };
-                    }}
-
-                    getTheadGroupThProps={() => {
-                        return {
-                            style: { display: 'none' } // override style for 'myHeaderTitle'.
-                        }
-                    }}
-                    pageSize={ordersLimit}
-                    expanded={this.state.expanded}
-                    getTdProps={(state, rowInfo, column, instance) => {
-                        return {
-                            onClick: () => {
-                                this.expandRow(rowInfo);
-                            }
-                        };
-                    }}
-                    showPagination={false}
-                    SubComponent={() => <div style={{ padding: '10px' }}>Hello</div>}
-                />
+                <Table compact padded selectable basic='very'>
+                    <Table.Header>
+                        <Table.Row style={{ textAlign: 'center' }}>
+                            <Table.HeaderCell width={1}>#</Table.HeaderCell>
+                            <Table.HeaderCell width={2}>Name</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>VS</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>Order Date</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>Price</Table.HeaderCell>
+                            <Table.HeaderCell width={4}>Notes</Table.HeaderCell>
+                            <Table.HeaderCell width={3}>Actions</Table.HeaderCell>
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        {mappedOrders}
+                    </Table.Body>
+                </Table>
             )
+
         }
 
         var grid;
@@ -329,7 +421,7 @@ class Orders extends React.Component {
                                 <Button style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
                             </Grid.Column>
                             <Grid.Column>
-                                <Message fluid style={{ textAlign: 'center' }} warning>warning paceholder</Message>
+                                <Message fluid={true} style={{ textAlign: 'center' }} warning>warning paceholder</Message>
                             </Grid.Column>
                             <Grid.Column textAlign='right' floated='right'>
                                 <Button size="medium" id="primaryButton" icon='search' />
@@ -355,7 +447,7 @@ class Orders extends React.Component {
                         <Grid.Column width={8}>
                             <Message style={{ textAlign: 'center' }} warning>warning paceholder</Message>
                         </Grid.Column>
-                        <Grid.Column width={3} textAlign='right' floated='right'>
+                        <Grid.Column width={3} textAlign='left' floated='right'>
                             <Input name="multisearch" icon='search' placeholder='Search...' />
                             <Button
                                 fluid
