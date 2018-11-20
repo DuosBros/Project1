@@ -63,3 +63,17 @@ export function getWarehouseNotificationsAction(payload) {
         type: 'GET_WAREHOUSE_NOTIFICATIONS'
     }
 }
+
+export function isGetWarehouseNotificationsAction(payload) {
+    return {
+        payload,
+        type: 'IS_GET_WAREHOUSE_NOTIFICATIONS'
+    }
+}
+
+export function isGetNotPaidNotificationsAction(payload) {
+    return {
+        payload,
+        type: 'IS_GET_NOT_PAID_NOTIFICATIONS'
+    }
+}

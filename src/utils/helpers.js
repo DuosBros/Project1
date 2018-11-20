@@ -17,23 +17,20 @@ function itemExists(haystack, needle) {
     return false;
 }
 
-export const filterInArrayOfObjects = (toSearch, array, tempResult) => {
-    // var results = [];
+
+export const filterInArrayOfObjects = (toSearch, array) => {
+    var results = [];
     toSearch = trimString(toSearch); // trim it
     for (var i = 0; i < array.length; i++) {
         Object.keys(array[i]).map((key, index) => {
-            if (typeof array[i][key] === 'object') {
-                filterInArrayOfObjects(toSearch, array[i][key], tempResult)
-            }
-            else { // fuken lodash returning isEmpty true for numbers
+            if (array[i][key]) { // fuken lodash returning isEmpty true for numbers
                 if (array[i][key].toString().toLowerCase().indexOf(toSearch.toString().toLowerCase()) !== -1) {
-                    if (!itemExists(tempResult, array[i])) tempResult.push(array[i]);
+                    if (!itemExists(results, array[i])) results.push(array[i]);
                 }
             }
         })
     }
-    console.log(tempResult)
-    return tempResult;
+    return results;
 }
 
 export const debounce = (fn, time) => {

@@ -6,8 +6,11 @@ import _ from 'lodash';
 import moment from 'moment';
 import ReactTable from "react-table";
 
-import { getCurrentYearOrders, getWarehouseNotification, getNotPaidNotificationsNotification } from '../../utils/requests';
-import { getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction } from '../../utils/actions';
+import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications } from '../../utils/requests';
+import {
+    getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
+    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction
+} from '../../utils/actions';
 
 import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
 import SimpleTable from '../../components/SimpleTable';
@@ -28,7 +31,9 @@ class Orders extends React.Component {
             showPaidOrders: true,
             ordersLimit: GET_ORDERS_LIMIT,
             orderIdsShowingDetails: [],
-            showFilterInput: false
+            showFilterInput: false,
+            notPaidNotificationsDone: false,
+            warehouseNotificationsDone: false
         }
 
         this.handleChange = debounce(this.handleChange, 400);
@@ -39,14 +44,18 @@ class Orders extends React.Component {
                 this.props.getOrdersAction(res.data)
             })
 
-        getNotPaidNotificationsNotification()
+        this.props.isGetNotPaidNotificationsAction(false)
+        getNotPaidNotificationsNotifications()
             .then(res => {
                 this.props.getNotPaidNotificationsAction(res.data)
+                this.props.isGetNotPaidNotificationsAction(true)
             })
 
-        getWarehouseNotification()
+        this.props.isGetWarehouseNotificationsAction(false)
+        getWarehouseNotifications()
             .then(res => {
                 this.props.getWarehouseNotificationsAction(res.data)
+                this.props.isGetWarehouseNotificationsAction(true)
             })
     }
 
@@ -156,7 +165,6 @@ class Orders extends React.Component {
 
 
         if (filteredOrders.length > 0) {
-
             sortedOrders = _.orderBy(filteredOrders, ['payment.orderDate'], ['desc']);
         }
         else {
@@ -164,7 +172,26 @@ class Orders extends React.Component {
         }
 
         if (multiSearchInput !== "" && multiSearchInput.length > 1) {
-            filteredByMultiSearch = filterInArrayOfObjects(multiSearchInput, sortedOrders, [])
+            var mappedOrders = sortedOrders.map(order => {
+                var products = order.products.map(product => {
+                    return (product.productName)
+                }).join(" ")
+
+                return (
+                    {
+                        original: order,
+                        fullName: order.address.firstName + " " + order.address.lastName,
+                        fullNameReversed: order.address.lastName + " " + order.address.firstName,
+                        phone: order.address.phone,
+                        street: order.address.street,
+                        vs: order.payment.vs,
+                        totalPrice: order.totalPrice,
+                        products: products
+                    }
+                )
+            })
+
+            filteredByMultiSearch = filterInArrayOfObjects(multiSearchInput, mappedOrders).map(order => order.original)
         }
         else {
             filteredByMultiSearch = sortedOrders
@@ -250,8 +277,8 @@ class Orders extends React.Component {
                 )
 
                 return (
-                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id} style={{backgroundColor: this.getBackgroundColor(order)}}
-                         textAlign='center'>
+                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
+                        textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
@@ -271,7 +298,7 @@ class Orders extends React.Component {
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
                         <Table.Row
                             onClick={() => { this.toggleInlineOrderDetails(order._id) }}
-                            style={{backgroundColor: this.getBackgroundColor(order)}}>
+                            style={{ backgroundColor: this.getBackgroundColor(order) }}>
                             <Table.Cell colSpan={9}>
                                 <Grid style={{ marginTop: '1.5em', marginBottom: '2em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
                                     <Grid.Row style={{ padding: '1em' }}>
@@ -362,7 +389,7 @@ class Orders extends React.Component {
                     <React.Fragment key={order._id}>
                         <Table.Row
                             onClick={() => { this.toggleInlineOrderDetails(order._id) }}
-                            style={{backgroundColor: this.getBackgroundColor(order)}}
+                            style={{ backgroundColor: this.getBackgroundColor(order) }}
                             textAlign='center'
                             key={order._id}>
                             <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
@@ -429,37 +456,50 @@ class Orders extends React.Component {
 
         var notPaidNotificationsMessage, warehouseNotificationsMessage;
 
-        if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
-            var message = this.props.ordersPageStore.warehouseNotifications.map(notification => {
-                return (
-                    <React.Fragment key={notification.product}>
-                        <strong>{notification.product}: </strong> {notification.current} <br />
-                    </React.Fragment>
-                )
-            })
+        if (this.props.ordersPageStore.isWarehouseNotificationsDone) {
+            if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
+                var message = this.props.ordersPageStore.warehouseNotifications.map(notification => {
+                    return (
+                        <React.Fragment key={notification.product}>
+                            <strong>{notification.product}: </strong> {notification.current} <br />
+                        </React.Fragment>
+                    )
+                })
 
+                warehouseNotificationsMessage = (
+                    <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}</Message>
+                )
+            }
+        }
+        else {
             warehouseNotificationsMessage = (
-                <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}</Message>
+                <Image verticalAlign='middle' centered src={Spinner} />
             )
         }
 
-        if (this.props.ordersPageStore.notPaidNotifications.length > 0) {
-            var VSs = this.props.ordersPageStore.notPaidNotifications.map(notification => {
-                return (notification.vs)
-            }).join(",")
+        if (this.props.ordersPageStore.isNotPaidNotificationsDone) {
+            if (this.props.ordersPageStore.notPaidNotifications.length > 0) {
+                var VSs = this.props.ordersPageStore.notPaidNotifications.map(notification => {
+                    return (notification.vs)
+                }).join(",")
 
-            if (this.props.ordersPageStore.notPaidNotifications.length > 1) {
-                notPaidNotificationsMessage = (
-                    <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br /> <strong>{VSs}</strong></Message>
-                )
-            }
-            else {
-                notPaidNotificationsMessage = (
-                    <Message style={{ textAlign: 'center' }} warning>Order is delivered bud not paid: <br /> <strong>{VSs}</strong>  </Message>
-                )
+                if (this.props.ordersPageStore.notPaidNotifications.length > 1) {
+                    notPaidNotificationsMessage = (
+                        <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br /> <strong>{VSs}</strong></Message>
+                    )
+                }
+                else {
+                    notPaidNotificationsMessage = (
+                        <Message style={{ textAlign: 'center' }} warning>Order is delivered bud not paid: <br /> <strong>{VSs}</strong>  </Message>
+                    )
+                }
             }
         }
-
+        else {
+            notPaidNotificationsMessage = (
+                <Image verticalAlign='middle' centered src={Spinner} />
+            )
+        }
         var grid;
         if (this.props.isMobile) {
             grid = (
@@ -571,7 +611,9 @@ function mapDispatchToProps(dispatch) {
         getOrdersAction,
         openOrderDetailsAction,
         getNotPaidNotificationsAction,
-        getWarehouseNotificationsAction
+        getWarehouseNotificationsAction,
+        isGetWarehouseNotificationsAction,
+        isGetNotPaidNotificationsAction
     }, dispatch);
 }
 

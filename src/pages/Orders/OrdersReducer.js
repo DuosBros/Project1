@@ -2,7 +2,9 @@ const ordersPageInitialState = {
     orders: [],
     ordersDetails: [],
     warehouseNotifications: [],
-    notPaidNotifications: []
+    notPaidNotifications: [],
+    isWarehouseNotificationsDone: false,
+    isNotPaidNotificationsDone: false
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -18,6 +20,10 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
             return Object.assign({}, state, { warehouseNotifications: action.payload })
         case 'GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { notPaidNotifications: action.payload })
+        case 'IS_GET_WAREHOUSE_NOTIFICATIONS':
+            return Object.assign({}, state, { isWarehouseNotificationsDone: action.payload })
+        case 'IS_GET_NOT_PAID_NOTIFICATIONS':
+            return Object.assign({}, state, { isNotPaidNotificationsDone: action.payload })
         default:
             return state;
     }

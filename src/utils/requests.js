@@ -35,10 +35,10 @@ export function getBankTransactions() {
     return axios.get(MEDPHARMAVN_API + 'bank/transactions')
 }
 
-export function getWarehouseNotification() {
+export function getWarehouseNotifications() {
     return axios.get(MEDPHARMAVN_API + "warehouseNotifications")
 }
 
-export function getNotPaidNotificationsNotification() {
+export function getNotPaidNotificationsNotifications() {
     return axios.get(MEDPHARMAVN_API + "notPaidNotifications")
 }
