@@ -77,3 +77,10 @@ export function isGetNotPaidNotificationsAction(payload) {
         type: 'IS_GET_NOT_PAID_NOTIFICATIONS'
     }
 }
+
+export function getMoreOrdersAction(payload) {
+    return {
+        payload,
+        type: 'GET_MORE_ORDERS'
+    }
+}

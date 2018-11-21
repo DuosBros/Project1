@@ -4,12 +4,12 @@ import { bindActionCreators } from 'redux';
 import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab, Transition } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
-import ReactTable from "react-table";
+import { Link } from 'react-router-dom';
 
 import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction
+    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction, getMoreOrdersAction
 } from '../../utils/actions';
 
 import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
@@ -24,22 +24,23 @@ class Orders extends React.Component {
 
         this.state = {
             multiSearchInput: "",
+            multiSearchInputValue: "",
             mobileShowHeader: false,
             expanded: null,
-            showColumnFilters: false,
             filteredOrders: [],
             showPaidOrders: true,
             ordersLimit: GET_ORDERS_LIMIT,
             orderIdsShowingDetails: [],
             showFilterInput: false,
             notPaidNotificationsDone: false,
-            warehouseNotificationsDone: false
+            warehouseNotificationsDone: false,
+            orderLabelsToPrint: [],
+            showPrintLabelsIcon: false
         }
 
-        this.handleChange = debounce(this.handleChange, 400);
-        this.handleChange = this.handleChange.bind(this)
+        this.updateFilters = debounce(this.updateFilters, 400);
 
-        getCurrentYearOrders(GET_ORDERS_LIMIT)
+        getCurrentYearOrders(GET_ORDERS_LIMIT, null)
             .then(res => {
                 this.props.getOrdersAction(res.data)
             })
@@ -99,10 +100,6 @@ class Orders extends React.Component {
         return backgroundColor
     }
 
-    handleToggleColumnFilters = () => {
-        this.setState({ showColumnFilters: !this.state.showColumnFilters });
-    }
-
     handleToggleShowPaidOrders = () => {
         if (this.state.showPaidOrders) {
             var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
@@ -116,12 +113,11 @@ class Orders extends React.Component {
     }
 
     loadMoreOrders = () => {
-        var currentLimit = this.state.ordersLimit + 100
 
-        getCurrentYearOrders(currentLimit)
+        var sinceId = this.props.ordersPageStore.orders[this.props.ordersPageStore.orders.length - 1].id
+        getCurrentYearOrders(GET_ORDERS_LIMIT, sinceId)
             .then(res => {
-                this.props.getOrdersAction(res.data)
-                this.setState({ ordersLimit: currentLimit });
+                this.props.getMoreOrdersAction(res.data)
 
                 if (this.state.showPaidOrders) {
                     this.setState({ filteredOrders: [] });
@@ -136,33 +132,74 @@ class Orders extends React.Component {
             })
     }
 
-    toggleInlineOrderDetails = (orderId) => {
-        if (this.state.orderIdsShowingDetails.indexOf(orderId) > -1) {
+    toggleInlineOrderDetails(orderId, e) {
+        e.preventDefault();
+
+        if (e.target.className === "") {
+            if (this.state.orderIdsShowingDetails.indexOf(orderId) > -1) {
+                this.setState({
+                    orderIdsShowingDetails: this.state.orderIdsShowingDetails.filter(id => {
+                        return id !== orderId
+                    })
+                });
+            }
+            else {
+                this.setState(prevState => ({
+                    orderIdsShowingDetails: [...prevState.orderIdsShowingDetails, orderId]
+                }))
+            }
+        }
+    }
+
+    togglePrintLabelIcon(orderId, e) {
+
+
+        if (this.state.orderLabelsToPrint.indexOf(orderId) > -1) {
             this.setState({
-                orderIdsShowingDetails: this.state.orderIdsShowingDetails.filter(id => {
+                orderLabelsToPrint: this.state.orderLabelsToPrint.filter(id => {
                     return id !== orderId
                 })
             });
         }
         else {
             this.setState(prevState => ({
-                orderIdsShowingDetails: [...prevState.orderIdsShowingDetails, orderId]
+                orderLabelsToPrint: [...prevState.orderLabelsToPrint, orderId]
             }))
         }
-
     }
 
-    handleChange(e, { name, value }) {
-        this.setState({ [name]: value })
+    handleChange = (e, { name, value }) => {
+        if (value) {
+            this.setState({ multiSearchInputValue: value });
+            this.updateFilters(value);
+        }
+        else {
+            this.setState({ multiSearchInputValue: "" });
+            this.updateFilters("");
+        }
+    }
+
+    updateFilters = (value) => {
+        this.setState({ multiSearchInput: value });
+    }
+
+    handleNotPaidVs = (vs) => {
+        this.setState({ multiSearchInputValue: vs });
+        this.inputRef.focus()
+        this.updateFilters(vs);
+    }
+
+    handleRef = (c) => {
+        this.inputRef = c
     }
 
     render() {
         console.log(this.props.ordersPageStore.orders)
-        var { showColumnFilters, filteredOrders, showPaidOrders, multiSearchInput } = this.state;
+        var { filteredOrders, showPaidOrders, multiSearchInput, showPrintLabelsIcon, orderLabelsToPrint } = this.state;
+        console.log(showPrintLabelsIcon)
         var counter = 0;
         var sortedOrders;
         var filteredByMultiSearch;
-
 
         if (filteredOrders.length > 0) {
             sortedOrders = _.orderBy(filteredOrders, ['payment.orderDate'], ['desc']);
@@ -197,11 +234,8 @@ class Orders extends React.Component {
             filteredByMultiSearch = sortedOrders
         }
 
-
         var mappedOrders = [];
         mappedOrders = filteredByMultiSearch.map(order => {
-
-
             if (this.props.isMobile) {
                 var orderInlineDetails = (
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
@@ -277,7 +311,7 @@ class Orders extends React.Component {
                 )
 
                 return (
-                    <Table.Row onClick={() => { this.toggleInlineOrderDetails(order._id) }} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
+                    <Table.Row onClick={(e) => { this.toggleInlineOrderDetails(e, order._id) }} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
@@ -287,6 +321,20 @@ class Orders extends React.Component {
                             <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
                             <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
                             <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                            {
+                                this.state.showPrintLabelsIcon ? (
+                                    <Button onClick={() => { this.togglePrintLabelIcon(order.id) }} style={{ padding: '0.3em' }} size='medium'>
+                                        <Icon.Group>
+                                            <Icon name='barcode' />
+                                            {
+                                                orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                            }
+                                        </Icon.Group>
+                                    </Button>
+                                ) : (
+                                        null
+                                    )
+                            }
                         </Table.Cell>
                         {orderInlineDetails}
                     </Table.Row>
@@ -297,7 +345,6 @@ class Orders extends React.Component {
                 var orderInlineDetails = (
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
                         <Table.Row
-                            onClick={() => { this.toggleInlineOrderDetails(order._id) }}
                             style={{ backgroundColor: this.getBackgroundColor(order) }}>
                             <Table.Cell colSpan={9}>
                                 <Grid style={{ marginTop: '1.5em', marginBottom: '2em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
@@ -388,7 +435,7 @@ class Orders extends React.Component {
                 return (
                     <React.Fragment key={order._id}>
                         <Table.Row
-                            onClick={() => { this.toggleInlineOrderDetails(order._id) }}
+                            onClick={this.toggleInlineOrderDetails.bind(this, order._id) }
                             style={{ backgroundColor: this.getBackgroundColor(order) }}
                             textAlign='center'
                             key={order._id}>
@@ -404,6 +451,20 @@ class Orders extends React.Component {
                                 <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
                                 <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
                                 <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                                {
+                                    this.state.showPrintLabelsIcon ? (
+                                        <Button onClick={this.togglePrintLabelIcon.bind(this, order.id)} style={{ padding: '0.3em' }} size='medium'>
+                                            <Icon.Group>
+                                                <Icon name='barcode' />
+                                                {
+                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                }
+                                            </Icon.Group>
+                                        </Button>
+                                    ) : (
+                                            null
+                                        )
+                                }
                             </Table.Cell>
                         </Table.Row>
                         {orderInlineDetails}
@@ -467,7 +528,8 @@ class Orders extends React.Component {
                 })
 
                 warehouseNotificationsMessage = (
-                    <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}</Message>
+                    <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}
+                        <Link to="/warehouse">Go to Warehouse</Link></Message>
                 )
             }
         }
@@ -480,12 +542,18 @@ class Orders extends React.Component {
         if (this.props.ordersPageStore.isNotPaidNotificationsDone) {
             if (this.props.ordersPageStore.notPaidNotifications.length > 0) {
                 var VSs = this.props.ordersPageStore.notPaidNotifications.map(notification => {
-                    return (notification.vs)
-                }).join(",")
+                    return (
+                        <span key={notification.vs} onClick={() => this.handleNotPaidVs(notification.vs.toString())} style={{ padding: '0.2em', cursor: "pointer" }}>
+                            <strong>
+                                {notification.vs}
+                            </strong>
+                        </span>
+                    )
+                })
 
                 if (this.props.ordersPageStore.notPaidNotifications.length > 1) {
                     notPaidNotificationsMessage = (
-                        <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br /> <strong>{VSs}</strong></Message>
+                        <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br />{VSs}</Message>
                     )
                 }
                 else {
@@ -518,7 +586,7 @@ class Orders extends React.Component {
                             <Grid.Row>
                                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     <Button fluid size='small' content='Add Order' id="primaryButton" />
-                                    <Button style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
+                                    <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
                                 </Grid.Column>
                                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     {warehouseNotificationsMessage}
@@ -527,7 +595,14 @@ class Orders extends React.Component {
                                     {notPaidNotificationsMessage}
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Input fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} />
+                                    <Input ref={this.handleRef} fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
+                                    {
+                                        this.state.multiSearchInputValue === "" ? (
+                                            null
+                                        ) : (
+                                                <Button onClick={() => this.handleChange({}, {})} style={{ padding: '0.3em', marginLeft: '0.5em' }} icon="delete" />
+                                            )
+                                    }
                                 </Grid.Column>
                             </Grid.Row>
                         )}
@@ -544,7 +619,7 @@ class Orders extends React.Component {
                         </Grid.Column>
                         <Grid.Column width={2}>
                             <Button fluid size='medium' compact content='Add Order' id="primaryButton" />
-                            <Button style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small' compact content='Print Labels' />
+                            <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small' compact content='Print Labels' />
                         </Grid.Column>
                         <Grid.Column width={5}>
                             {warehouseNotificationsMessage}
@@ -553,17 +628,14 @@ class Orders extends React.Component {
                             {notPaidNotificationsMessage}
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
-                            <Input name="multiSearchInput" icon='search' placeholder='Search...' onChange={this.handleChange} />
-                            <Button
-                                fluid
-                                size="small"
-                                onClick={() => this.handleToggleColumnFilters()}
-                                compact
-                                content={showColumnFilters ? 'Hide Column Filters' : 'Show Column Filters'}
-                                style={{ padding: '0.3em', marginTop: '0.5em' }}
-                                id="secondaryButton"
-                                icon={showColumnFilters ? 'eye slash' : 'eye'}
-                                labelPosition='left' />
+                            <Input ref={this.handleRef} name="multiSearchInput" icon='search' placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
+                            {
+                                this.state.multiSearchInputValue === "" ? (
+                                    null
+                                ) : (
+                                        <Button onClick={() => this.handleChange({}, {})} style={{ padding: '0.3em', marginLeft: '0.5em' }} icon="delete" />
+                                    )
+                            }
                             <Button
                                 fluid
                                 size="small"
@@ -583,7 +655,7 @@ class Orders extends React.Component {
         return (
             <div>
                 {
-                    this.props.ordersPageStore.orders.length > 0 ? (
+                    this.props.ordersPageStore.orders.length > 0 && !_.isEmpty(grid) && !_.isEmpty(table) ? (
                         <div>
                             {grid}
                             {table}
@@ -613,7 +685,8 @@ function mapDispatchToProps(dispatch) {
         getNotPaidNotificationsAction,
         getWarehouseNotificationsAction,
         isGetWarehouseNotificationsAction,
-        isGetNotPaidNotificationsAction
+        isGetNotPaidNotificationsAction,
+        getMoreOrdersAction
     }, dispatch);
 }
 
