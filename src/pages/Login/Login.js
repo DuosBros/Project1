@@ -77,10 +77,10 @@ class Login extends React.Component {
         }
         return (
             // TODO if is mobile then 1 columns otherwise 2
-            <Grid stackable centered columns={this.state.isMobile ? 1 : 2}>
+            <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle' columns={this.state.isMobile ? 1 : 2}>
                 <Grid.Column>
                     {errorMessage}
-                    <Image centered size='large' src={logo} fluid/>
+                    <Image verticalAlign='middle'  size='large' src={logo}/>
                     <Form loading={!(this.props.loginPageStore.authenticationDone)} size='large'>
                         <Segment raised stacked>
                             <Form.Input
