@@ -37,7 +37,8 @@ class Orders extends React.Component {
             warehouseNotificationsDone: false,
             orderLabelsToPrint: [],
             showPrintLabelsIcon: false,
-            showMultiSearchFilter: false
+            showMultiSearchFilter: false,
+            ordersLimit: GET_ORDERS_LIMIT
         }
 
         this.updateFilters = debounce(this.updateFilters, 400);
@@ -117,20 +118,21 @@ class Orders extends React.Component {
     }
 
     loadMoreOrders = () => {
+        var currentLimit = this.state.ordersLimit + 100
 
         var sinceId = this.props.ordersPageStore.orders[this.props.ordersPageStore.orders.length - 1].id
-        getCurrentYearOrders(GET_ORDERS_LIMIT, sinceId)
+        getCurrentYearOrders(currentLimit, sinceId)
             .then(res => {
                 this.props.getMoreOrdersAction(res.data)
 
                 if (this.state.showPaidOrders) {
-                    this.setState({ filteredOrders: [] });
+                    this.setState({ filteredOrders: [], ordersLimit: currentLimit });
                 }
                 else {
                     var filteredOrders = this.props.ordersPageStore.orders.filter(order => {
                         return !order.payment.paid
                     })
-                    this.setState({ filteredOrders: filteredOrders });
+                    this.setState({ filteredOrders: filteredOrders, ordersLimit: currentLimit });
 
                 }
             })
@@ -212,17 +214,17 @@ class Orders extends React.Component {
     render() {
         console.log(this.props.ordersPageStore.orders)
         var { filteredOrders, showPaidOrders, multiSearchInput, showPrintLabelsIcon, orderLabelsToPrint } = this.state;
-        console.log(showPrintLabelsIcon)
+        console.log(this.state.ordersLimit)
         var counter = 0;
         var sortedOrders;
         var filteredByMultiSearch;
 
         if (filteredOrders.length > 0) {
 
-            sortedOrders = _.orderBy(filteredOrders.slice(0, GET_ORDERS_LIMIT), ['payment.orderDate'], ['desc']);
+            sortedOrders = _.orderBy(filteredOrders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         }
         else {
-            sortedOrders = _.orderBy(this.props.ordersPageStore.orders.slice(0, GET_ORDERS_LIMIT), ['payment.orderDate'], ['desc']);
+            sortedOrders = _.orderBy(this.props.ordersPageStore.orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         }
 
         if (multiSearchInput !== "" && multiSearchInput.length > 1) {
@@ -336,8 +338,14 @@ class Orders extends React.Component {
                             <Button onClick={(order) => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
                             <Button style={{ padding: '0.3em' }} size='medium' icon='check' />
                             <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                            {order.payment.paid ? (
+                                null
+                            ) : (
+                                    <>
+                                        <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
+                                        <Button style={{ padding: '0.3em' }} size='medium' color='red' icon='close' />
+                                    </>
+                                )}
                             {
                                 this.state.showPrintLabelsIcon ? (
                                     <Button onClick={() => { this.togglePrintLabelIcon(order.id) }} style={{ padding: '0.3em' }} size='medium'>
@@ -463,11 +471,35 @@ class Orders extends React.Component {
                             <Table.Cell style={{ color: 'black' }}><b>{order.totalPrice} Kč</b></Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{order.note}</Table.Cell>
                             <Table.Cell>
-                                <Button style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                                <Button style={{ padding: '0.3em' }} size='medium' icon='check' />
+                                {
+                                    moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
+                                        null
+                                    ) : (
+                                            <>
+                                                <Button style={{ padding: '0.3em' }} size='medium' icon='edit' />
+                                                <Button style={{ padding: '0.3em' }} size='medium' icon={
+                                                    <>
+                                                        <Icon name='dollar' />
+                                                        {
+                                                            order.payment.paid ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                        }
+                                                    </>
+                                                } />
+                                            </>
+                                        )
+                                }
+
                                 <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
-                                <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                                <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
+                                {
+                                    order.payment.paid ? (
+                                        null
+                                    ) : (
+                                            <>
+                                                <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
+                                                <Button style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
+                                            </>
+                                        )
+                                }
                                 {
                                     this.state.showPrintLabelsIcon ? (
                                         <Button onClick={this.togglePrintLabelIcon.bind(this, order.id)} style={{ padding: '0.3em' }} size='medium'

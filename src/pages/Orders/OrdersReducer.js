@@ -26,7 +26,6 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'IS_GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { isNotPaidNotificationsDone: action.payload })
         case 'GET_MORE_ORDERS':
-        debugger
             return {
                 ...state,
                 orders: [...state.orders, ...action.payload]
