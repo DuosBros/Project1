@@ -21,6 +21,15 @@ export function getCurrentYearOrders(limit, sinceId) {
     var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
     var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
 
+    if (!limit) {
+        return axios.get(MEDPHARMAVN_API +
+            'orders?from=' +
+            from +
+            '&to=' +
+            to
+        )
+    }
+    
     if (sinceId) {
         return axios.get(MEDPHARMAVN_API +
             'orders?from=' +

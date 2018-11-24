@@ -16,6 +16,7 @@ import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMI
 import SimpleTable from '../../components/SimpleTable';
 import Spinner from '../../assets/Spinner.svg'
 import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
+import logo from '../../assets/logo.png';
 
 class Orders extends React.Component {
 
@@ -35,15 +36,18 @@ class Orders extends React.Component {
             notPaidNotificationsDone: false,
             warehouseNotificationsDone: false,
             orderLabelsToPrint: [],
-            showPrintLabelsIcon: false
+            showPrintLabelsIcon: false,
+            showMultiSearchFilter: false
         }
 
         this.updateFilters = debounce(this.updateFilters, 400);
 
-        getCurrentYearOrders(GET_ORDERS_LIMIT, null)
-            .then(res => {
-                this.props.getOrdersAction(res.data)
-            })
+        if (this.state.showMultiSearchFilter === false) {
+            getCurrentYearOrders(GET_ORDERS_LIMIT, null)
+                .then(res => {
+                    this.props.getOrdersAction(res.data)
+                })
+        }
 
         this.props.isGetNotPaidNotificationsAction(false)
         getNotPaidNotificationsNotifications()
@@ -185,12 +189,24 @@ class Orders extends React.Component {
 
     handleNotPaidVs = (vs) => {
         this.setState({ multiSearchInputValue: vs });
-        this.inputRef.focus()
+        this.showFilter()
+        // this.inputRef.focus()
         this.updateFilters(vs);
     }
 
-    handleRef = (c) => {
-        this.inputRef = c
+    // handleRef = (c) => {
+    //     this.inputRef = c
+    // }
+
+    showFilter = () => {
+        this.setState({ showMultiSearchFilter: !this.state.showMultiSearchFilter })
+
+        getCurrentYearOrders(null, null)
+            .then(res => {
+                this.props.getOrdersAction(res.data)
+            })
+
+
     }
 
     render() {
@@ -202,14 +218,15 @@ class Orders extends React.Component {
         var filteredByMultiSearch;
 
         if (filteredOrders.length > 0) {
-            sortedOrders = _.orderBy(filteredOrders, ['payment.orderDate'], ['desc']);
+
+            sortedOrders = _.orderBy(filteredOrders.slice(0, GET_ORDERS_LIMIT), ['payment.orderDate'], ['desc']);
         }
         else {
-            sortedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']);
+            sortedOrders = _.orderBy(this.props.ordersPageStore.orders.slice(0, GET_ORDERS_LIMIT), ['payment.orderDate'], ['desc']);
         }
 
         if (multiSearchInput !== "" && multiSearchInput.length > 1) {
-            var mappedOrders = sortedOrders.map(order => {
+            var mappedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']).map(order => {
                 var products = order.products.map(product => {
                     return (product.productName)
                 }).join(" ")
@@ -327,7 +344,7 @@ class Orders extends React.Component {
                                         <Icon.Group>
                                             <Icon name='barcode' />
                                             {
-                                                orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" name='minus' />) : (<Icon color="green" name='add' />)
                                             }
                                         </Icon.Group>
                                     </Button>
@@ -435,7 +452,7 @@ class Orders extends React.Component {
                 return (
                     <React.Fragment key={order._id}>
                         <Table.Row
-                            onClick={this.toggleInlineOrderDetails.bind(this, order._id) }
+                            onClick={this.toggleInlineOrderDetails.bind(this, order._id)}
                             style={{ backgroundColor: this.getBackgroundColor(order) }}
                             textAlign='center'
                             key={order._id}>
@@ -453,13 +470,15 @@ class Orders extends React.Component {
                                 <Button style={{ padding: '0.3em' }} size='medium' icon='close' />
                                 {
                                     this.state.showPrintLabelsIcon ? (
-                                        <Button onClick={this.togglePrintLabelIcon.bind(this, order.id)} style={{ padding: '0.3em' }} size='medium'>
-                                            <Icon.Group>
-                                                <Icon name='barcode' />
-                                                {
-                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
-                                                }
-                                            </Icon.Group>
+                                        <Button onClick={this.togglePrintLabelIcon.bind(this, order.id)} style={{ padding: '0.3em' }} size='medium'
+                                            icon={
+                                                <>
+                                                    <Icon name='barcode' />
+                                                    {
+                                                        orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                    }
+                                                </>
+                                            } >
                                         </Button>
                                     ) : (
                                             null
@@ -535,7 +554,12 @@ class Orders extends React.Component {
         }
         else {
             warehouseNotificationsMessage = (
-                <Image verticalAlign='middle' centered src={Spinner} />
+                <Message warning icon>
+                    <Icon name='circle notched' loading />
+                    <Message.Content>
+                        <Message.Header>Checking what's wrong in warehouse</Message.Header>
+                    </Message.Content>
+                </Message>
             )
         }
 
@@ -545,7 +569,7 @@ class Orders extends React.Component {
                     return (
                         <span key={notification.vs} onClick={() => this.handleNotPaidVs(notification.vs.toString())} style={{ padding: '0.2em', cursor: "pointer" }}>
                             <strong>
-                                {notification.vs}
+                                {notification.vs} <br />
                             </strong>
                         </span>
                     )
@@ -558,14 +582,22 @@ class Orders extends React.Component {
                 }
                 else {
                     notPaidNotificationsMessage = (
-                        <Message style={{ textAlign: 'center' }} warning>Order is delivered bud not paid: <br /> <strong>{VSs}</strong>  </Message>
+                        <Message style={{ textAlign: 'center' }} warning>
+                            Order is delivered but not paid: <br />
+                            <strong>{VSs}</strong>
+                        </Message>
                     )
                 }
             }
         }
         else {
             notPaidNotificationsMessage = (
-                <Image verticalAlign='middle' centered src={Spinner} />
+                <Message warning icon>
+                    <Icon name='circle notched' loading />
+                    <Message.Content>
+                        <Message.Header>Findind not paid orders</Message.Header>
+                    </Message.Content>
+                </Message>
             )
         }
         var grid;
@@ -586,7 +618,7 @@ class Orders extends React.Component {
                             <Grid.Row>
                                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     <Button fluid size='small' content='Add Order' id="primaryButton" />
-                                    <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} fluid size='small' compact content='Print Labels' />
+                                    <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} fluid size='small' compact content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"} />
                                 </Grid.Column>
                                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     {warehouseNotificationsMessage}
@@ -595,7 +627,8 @@ class Orders extends React.Component {
                                     {notPaidNotificationsMessage}
                                 </Grid.Column>
                                 <Grid.Column>
-                                    <Input ref={this.handleRef} fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
+                                    {/* ref={this.handleRef}  */}
+                                    <Input fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
                                     {
                                         this.state.multiSearchInputValue === "" ? (
                                             null
@@ -619,7 +652,12 @@ class Orders extends React.Component {
                         </Grid.Column>
                         <Grid.Column width={2}>
                             <Button fluid size='medium' compact content='Add Order' id="primaryButton" />
-                            <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small' compact content='Print Labels' />
+                            <Button
+                                onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })}
+                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : "secondaryButton"} fluid size='small'
+                                compact content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
+                                color={this.state.orderLabelsToPrint.length > 0 ? "green" : null}
+                            />
                         </Grid.Column>
                         <Grid.Column width={5}>
                             {warehouseNotificationsMessage}
@@ -628,14 +666,41 @@ class Orders extends React.Component {
                             {notPaidNotificationsMessage}
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
-                            <Input ref={this.handleRef} name="multiSearchInput" icon='search' placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
+                            <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
+                                <Input
+                                    style={{ minWidth: '100px' }}
+                                    ref={this.handleRef}
+                                    fluid
+                                    name="multiSearchInput"
+                                    icon={
+                                        <Icon
+                                            name={this.state.multiSearchInputValue === "" ? 'search' : 'delete'}
+                                            style={{ backgroundColor: '#f20056', color: 'white' }}
+                                            circular
+                                            link
+                                            onClick={this.state.multiSearchInputValue === "" ? () => { } : () => this.handleChange({}, {})} />
+                                    }
+                                    placeholder='Search...'
+                                    onChange={this.handleChange}
+                                    value={this.state.multiSearchInputValue} />
+                            </Transition>
                             {
-                                this.state.multiSearchInputValue === "" ? (
+                                this.state.showMultiSearchFilter ? (
                                     null
                                 ) : (
-                                        <Button onClick={() => this.handleChange({}, {})} style={{ padding: '0.3em', marginLeft: '0.5em' }} icon="delete" />
+                                        <div style={{ textAlign: 'right' }}>
+                                            <Icon
+                                                name='search'
+                                                style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                circular
+                                                link
+                                                onClick={this.showFilter} />
+                                        </div>
+
                                     )
                             }
+
+
                             <Button
                                 fluid
                                 size="small"
@@ -663,7 +728,17 @@ class Orders extends React.Component {
                         </div>
                     ) : (
                             <div className="centered">
-                                <Image src={Spinner} />
+                                <Message positive icon>
+                                    <Icon name='circle notched' loading />
+                                    <Message.Content>
+                                        <Message.Header>
+
+                                            Loading orders
+                                            <Image inline size='tiny' src={logo} />
+                                        </Message.Header>
+
+                                    </Message.Content>
+                                </Message>
                             </div>
                         )
                 }
