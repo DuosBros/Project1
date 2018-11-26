@@ -14,9 +14,8 @@ import { authenticateAction, authenticationStartedAction, authenticateEndedActio
 import { LOCALSTORAGE_NAME } from '../appConfig'
 import Bank from '../pages/Bank/Bank';
 
-import { getCurrentYearOrders } from '../utils/requests';
 import { getOrdersAction } from '../utils/actions';
-
+import OrderDetails from '../pages/Orders/OrderDetails';
 
 class Base extends React.Component {
 
@@ -31,14 +30,6 @@ class Base extends React.Component {
         this.state = {
             width: window.innerWidth
         }
-
-        // getCurrentYearOrders()
-        //     .then(res => {
-        //         console.log("pica")
-        //         console.log(res.data.length)
-        //         console.log(res.data)
-        //         this.props.getOrdersAction(res.data)
-        //     })
     }
 
     handleWindowSizeChange = () => {
@@ -50,47 +41,42 @@ class Base extends React.Component {
         const { width } = this.state;
         var isMobile = width <= 766;
 
-        var body;
-        // isMobile = false;
+        var body, switchBody;
+
+        switchBody = (
+            <Switch>
+                <Redirect exact from='/' to='/orders' />
+                <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
+                <Route path='/orders/new' render={(props) => <OrderDetails {...props} isMobile={isMobile} />} />
+                <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} orderToEdit={this.props.ordersPageStore.orderToEdit} />} />
+                <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
+                <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
+            </Switch>
+        )
+
         if (isMobile) {
             body = (
                 <Container style={{ paddingTop: '0.5em' }}>
-                    <Switch>
-                        <Redirect exact from='/' to='/orders' />
-                        <Route
-                            path='/login'
-                            render={(props) => <Login {...props} isMobile={isMobile} />}
-                        />
-                        <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
-                        <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
-                    </Switch>
+                    {switchBody}
                 </Container>
             )
         }
         else {
             body = (
                 <div style={{ paddingTop: '2em', marginLeft: '1em', marginRight: '1em', marginBottom: '0.5em' }}>
-                    <Switch>
-                        <Redirect exact from='/' to='/orders' />
-                        <Route
-                            path='/login'
-                            render={(props) => <Login {...props} isMobile={isMobile} />}
-                        />
-                        <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
-                        <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
-                    </Switch>
+                    {switchBody}
                 </div>
             )
         }
         return (
             <BrowserRouter>
-                <div>
+                <>
                     <Route
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
                     />
                     {body}
-                </div>
+                </>
             </BrowserRouter>
         )
     }
@@ -99,7 +85,8 @@ class Base extends React.Component {
 function mapStateToProps(state) {
     return {
         baseStore: state.BaseReducer,
-        loginPageStore: state.LoginReducer
+        loginPageStore: state.LoginReducer,
+        ordersPageStore: state.OrdersReducer
     };
 }
 

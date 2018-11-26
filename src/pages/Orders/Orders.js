@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab, Transition } from 'semantic-ui-react';
+import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab, Transition, Segment } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
@@ -67,6 +67,8 @@ class Orders extends React.Component {
 
     openOrderDetails = (order) => {
         this.props.openOrderDetailsAction(order);
+        var route = "/orders/" + order.id;
+        this.props.history.push(route);
     }
 
     expandRow = (row) => {
@@ -259,102 +261,146 @@ class Orders extends React.Component {
                 var orderInlineDetails = (
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
                         <Table.Cell style={{ color: 'black' }}>
-                            <Grid>
-                                <Grid.Row style={{ padding: '1em' }}>
-                                    <Grid.Column width={4}>
+                            <Grid style={{ marginTop: '0.5em' }}>
+                                {/* <Grid.Row style={{ padding: '1em' }}>
+                                    <Grid.Column>
                                         <Header as='h4'>
                                             Customer info
-                                </Header>
+                                        </Header>
                                     </Grid.Column>
-                                    <Grid.Column width={4}>
-                                    </Grid.Column>
-                                    <Grid.Column width={8}>
-                                        <Header as='h4'>
-                                            Order info
-                                </Header>
-                                    </Grid.Column>
-                                </Grid.Row>
-                                <Grid.Row>
-                                    <Grid.Column width={4}>
+                                </Grid.Row> */}
+                                <Grid.Row textAlign='left' columns='equal' style={{paddingTop: '0px'}}>
+                                    <Grid.Column>
                                         <b>First name:</b> {order.address.firstName} <br />
                                         <b>Last name:</b> {order.address.lastName} <br />
                                         <b>Phone:</b> {order.address.phone} <br />
-                                        <b>Company:</b> {order.address.company} <br />
-                                    </Grid.Column>
-                                    <Grid.Column width={4}>
                                         <b>Street:</b> {order.address.street} <br />
                                         <b>City:</b> {order.address.city} <br />
                                         <b>Street number:</b> {order.address.streetNumber} <br />
                                         <b>ZIP:</b> {order.address.psc} <br />
                                     </Grid.Column>
-                                    <Grid.Column width={8}>
-                                        <SimpleTable columnProperties={
-                                            [
-                                                {
-                                                    name: "Name",
-                                                    width: 4,
-                                                },
-                                                {
-                                                    name: "Count | Price per One",
-                                                    width: 4,
-                                                },
-                                                {
-                                                    name: "Total product price",
-                                                    width: 4,
-                                                }
-                                            ]
-                                        } body={order.products.map((product, index) => {
-                                            return (
-                                                <Table.Row key={index}>
-                                                    <Table.Cell >{product.productName}</Table.Cell>
-                                                    <Table.Cell >{product.count} | {product.pricePerOne}</Table.Cell>
-                                                    <Table.Cell>{product.totalPricePerProduct}</Table.Cell>
-                                                </Table.Row>
-                                            )
-                                        })} />
-                                        <Grid.Column>
-                                            <b>Delivery price:</b> {order.payment.price} <br />
-                                            <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                            <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
-                                        </Grid.Column>
-                                        <Grid.Column>
-                                            <b>Total Price:</b> {order.totalPrice} <br />
-                                        </Grid.Column>
+                                    <Grid.Column textAlign='left'>
+                                        <b>Company:</b> {order.address.company} <br />
+                                        {/* <b>Delivery price:</b> {order.payment.price} Kč<br /> */}
+                                        <b>Bank payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
+
+                                    </Grid.Column>
+                                </Grid.Row>
+                                {/* <Grid.Row style={{ paddingBottom: '0px' }}>
+                                    <Grid.Column>
+                                        <Header as='h4'>
+                                            Order info
+                                        </Header>
+                                    </Grid.Column>
+                                </Grid.Row> */}
+                                <Grid.Row style={{ textDecoration: 'underline', fontSize: '0.8em', paddingTop: '0px', paddingBottom: '0px' }}>
+                                    <Grid.Column width={9}>
+                                        Product
+                                    </Grid.Column>
+                                    <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
+                                        Count
+                                    </Grid.Column>
+                                    <Grid.Column width={3}>
+                                        Price/piece [CZK]
+                                    </Grid.Column>
+                                    <Grid.Column width={3}>
+                                        Sum [CZK]
+                                    </Grid.Column>
+                                </Grid.Row>
+                                {/* <Grid.Row style={{ paddingTop: '0px' }} > */}
+
+                                {order.products.map((product, index) => {
+                                    return (
+                                        <Grid.Row key={index} style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                                            <Grid.Column width={9}>
+                                                {product.productName}
+                                            </Grid.Column>
+                                            <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
+                                                {product.count}
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                {product.pricePerOne}
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <b>{product.totalPricePerProduct}</b>
+                                            </Grid.Column>
+
+                                        </Grid.Row>
+                                    )
+                                })}
+
+                                {/* </Grid.Row> */}
+                                <Grid.Row>
+
+                                    <Grid.Column textAlign='left'>
+                                        {
+                                            order.payment.price ? (
+                                                <>
+                                                    <b>Delivery price:</b> {order.payment.price} Kč<br />
+                                                </>
+                                            ) : (
+                                                    null
+                                                )
+                                        }
+                                        {/* <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br /> */}
+                                        <b>Total Price: {order.totalPrice} Kč </b> <br />
                                     </Grid.Column>
                                 </Grid.Row>
                             </Grid>
                         </Table.Cell>
                     ) : (
-                            <Table.Cell style={{ padding: '0px', borderBottom: '0px' }}></Table.Cell>
+                            null
                         )
                 )
-
+                // mobile return
                 return (
-                    <Table.Row onClick={(e) => { this.toggleInlineOrderDetails(e, order._id) }} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
+                    <Table.Row onClick={this.toggleInlineOrderDetails.bind(this, order._id)} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
-                            <Button onClick={(order) => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='check' />
+                            {
+                                moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
+                                    null
+                                ) : (
+                                        <>
+                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
+                                            <Button style={{ padding: '0.3em' }} size='medium' icon={
+                                                <>
+                                                    <Icon name='dollar' />
+                                                    {
+                                                        order.payment.paid ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                    }
+                                                </>
+                                            } />
+                                        </>
+                                    )
+                            }
+
                             <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' />
-                            {order.payment.paid ? (
-                                null
-                            ) : (
-                                    <>
-                                        <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                                        <Button style={{ padding: '0.3em' }} size='medium' color='red' icon='close' />
-                                    </>
-                                )}
+                            {
+                                order.payment.paid ? (
+                                    null
+                                ) : (
+                                        <>
+                                            <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
+                                            <Button style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
+                                        </>
+                                    )
+                            }
                             {
                                 this.state.showPrintLabelsIcon ? (
-                                    <Button onClick={() => { this.togglePrintLabelIcon(order.id) }} style={{ padding: '0.3em' }} size='medium'>
-                                        <Icon.Group>
-                                            <Icon name='barcode' />
-                                            {
-                                                orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" name='minus' />) : (<Icon color="green" name='add' />)
-                                            }
-                                        </Icon.Group>
+                                    <Button onClick={this.togglePrintLabelIcon.bind(this, order.id)} style={{ padding: '0.3em' }} size='medium'
+                                        icon={
+                                            <>
+                                                <Icon name='barcode' />
+                                                {
+                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                }
+                                            </>
+                                        } >
                                     </Button>
                                 ) : (
                                         null
@@ -425,8 +471,8 @@ class Orders extends React.Component {
                                                     <Table.Row key={index}>
                                                         <Table.Cell >{product.productName}</Table.Cell>
                                                         <Table.Cell >{product.count}</Table.Cell>
-                                                        <Table.Cell >{product.pricePerOne}</Table.Cell>
-                                                        <Table.Cell>{product.totalPricePerProduct}</Table.Cell>
+                                                        <Table.Cell >{product.pricePerOne} Kč</Table.Cell>
+                                                        <Table.Cell>{product.totalPricePerProduct} Kč</Table.Cell>
                                                     </Table.Row>
                                                 )
                                             })} />
@@ -435,12 +481,13 @@ class Orders extends React.Component {
                                                     {/* <Grid.Column width={8}>
                                                 </Grid.Column> */}
                                                     <Grid.Column>
-                                                        <b>Delivery price:</b> {order.payment.price} <br />
+                                                        <b>Delivery price:</b> {order.payment.price} Kč<br />
                                                         <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
                                                         <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
                                                     </Grid.Column>
-                                                    <Grid.Column>
-                                                        <b>Total Price:</b> {order.totalPrice} <br />
+                                                    <Grid.Column style={{ paddingLeft: '0px' }}>
+                                                        <Header as='h4'>Total Price: {order.totalPrice} Kč</Header>
+                                                        {/* <b></b><br /> */}
                                                     </Grid.Column>
                                                 </Grid.Row>
                                             </Grid>
@@ -450,18 +497,16 @@ class Orders extends React.Component {
                             </Table.Cell>
                         </Table.Row>
                     ) : (
-                            <Table.Row >
-                                <Table.Cell style={{ padding: '0px', borderBottom: '0px' }} colSpan={9}>
-                                </Table.Cell>
-                            </Table.Row>
+                            null
                         )
                 )
                 counter++;
+                // desktop return
                 return (
                     <React.Fragment key={order._id}>
                         <Table.Row
                             onClick={this.toggleInlineOrderDetails.bind(this, order._id)}
-                            style={{ backgroundColor: this.getBackgroundColor(order) }}
+                            style={{ backgroundColor: this.getBackgroundColor(order), cursor: "pointer" }}
                             textAlign='center'
                             key={order._id}>
                             <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
@@ -476,7 +521,7 @@ class Orders extends React.Component {
                                         null
                                     ) : (
                                             <>
-                                                <Button style={{ padding: '0.3em' }} size='medium' icon='edit' />
+                                                <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
                                                 <Button style={{ padding: '0.3em' }} size='medium' icon={
                                                     <>
                                                         <Icon name='dollar' />
@@ -546,7 +591,7 @@ class Orders extends React.Component {
         }
         else {
             table = (
-                <Table compact padded selectable basic='very'>
+                <Table selectable compact padded basic='very'>
                     <Table.Header>
                         <Table.Row style={{ textAlign: 'center' }}>
                             <Table.HeaderCell width={1}>#</Table.HeaderCell>
@@ -659,15 +704,51 @@ class Orders extends React.Component {
                                     {notPaidNotificationsMessage}
                                 </Grid.Column>
                                 <Grid.Column>
-                                    {/* ref={this.handleRef}  */}
-                                    <Input fluid focus name="multiSearchInput" placeholder='Search...' onChange={this.handleChange} value={this.state.multiSearchInputValue} />
+                                    <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
+                                        <Input
+                                            style={{ minWidth: '100px' }}
+                                            ref={this.handleRef}
+                                            fluid
+                                            name="multiSearchInput"
+                                            icon={
+                                                <Icon
+                                                    name={this.state.multiSearchInputValue === "" ? 'search' : 'delete'}
+                                                    style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                    circular
+                                                    link
+                                                    onClick={this.state.multiSearchInputValue === "" ? () => { } : () => this.handleChange({}, {})} />
+                                            }
+                                            placeholder='Search...'
+                                            onChange={this.handleChange}
+                                            value={this.state.multiSearchInputValue} />
+                                    </Transition>
                                     {
-                                        this.state.multiSearchInputValue === "" ? (
+                                        this.state.showMultiSearchFilter ? (
                                             null
                                         ) : (
-                                                <Button onClick={() => this.handleChange({}, {})} style={{ padding: '0.3em', marginLeft: '0.5em' }} icon="delete" />
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <Icon
+                                                        name='search'
+                                                        style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                        circular
+                                                        link
+                                                        onClick={this.showFilter} />
+                                                </div>
+
                                             )
                                     }
+
+
+                                    <Button
+                                        fluid
+                                        size="small"
+                                        onClick={() => this.handleToggleShowPaidOrders()}
+                                        compact
+                                        content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
+                                        style={{ padding: '0.3em', marginTop: '0.5em' }}
+                                        id="secondaryButton"
+                                        icon={showPaidOrders ? 'eye slash' : 'eye'}
+                                        labelPosition='left' />
                                 </Grid.Column>
                             </Grid.Row>
                         )}
@@ -748,7 +829,7 @@ class Orders extends React.Component {
                 </Grid>
             )
         }
-
+        // desktop return
         return (
             <div>
                 {
@@ -759,17 +840,29 @@ class Orders extends React.Component {
                             <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                         </div>
                     ) : (
+                            // <Grid centered>
+                            //     <Grid.Row>
+                            //         <Grid.Column>
+
+
+                            //         </Grid.Column>
+                            //     </Grid.Row>
+                            // </Grid>
                             <div className="centered">
                                 <Message positive icon>
-                                    <Icon name='circle notched' loading />
+                                    {this.props.isMobile ? (
+                                        null
+                                    ) : (
+                                            <Image size='tiny' src={logo} />
+                                        )}
                                     <Message.Content>
                                         <Message.Header>
 
                                             Loading orders
-                                            <Image inline size='tiny' src={logo} />
                                         </Message.Header>
 
                                     </Message.Content>
+                                    <Icon style={{ marginLeft: '0.5em' }} name='circle notched' loading />
                                 </Message>
                             </div>
                         )
