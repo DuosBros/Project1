@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, Segment, Icon, Container, Button } from 'semantic-ui-react'
-
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -96,6 +96,7 @@ class Header extends React.Component {
                                 style={{ borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}
                                 name='bank'
                                 onClick={this.handleItemClick}
+                                as={Link} to='/bank'
                             >Bank</Menu.Item>
                             <Menu.Item
                                 style={{ borderColor: activeItem === 'bank' ? 'white' : 'transparent' }}

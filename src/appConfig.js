@@ -14,3 +14,4 @@ export const notActiveColor = '#bfbfbf'
 
 // 14.11. 1627
 // 24.11. 2040
+// 27.11. 2451

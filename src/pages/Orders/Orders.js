@@ -38,16 +38,19 @@ class Orders extends React.Component {
             orderLabelsToPrint: [],
             showPrintLabelsIcon: false,
             showMultiSearchFilter: false,
-            ordersLimit: GET_ORDERS_LIMIT
+            ordersLimit: GET_ORDERS_LIMIT,
+            isFromDetails: false,
+            inputWidth: 0
         }
 
         this.updateFilters = debounce(this.updateFilters, 400);
-
         if (this.state.showMultiSearchFilter === false) {
-            getCurrentYearOrders(GET_ORDERS_LIMIT, null)
-                .then(res => {
-                    this.props.getOrdersAction(res.data)
-                })
+            if (!this.state.isFromDetails) {
+                getCurrentYearOrders(GET_ORDERS_LIMIT, null)
+                    .then(res => {
+                        this.props.getOrdersAction(res.data)
+                    })
+            }
         }
 
         this.props.isGetNotPaidNotificationsAction(false)
@@ -63,7 +66,16 @@ class Orders extends React.Component {
                 this.props.getWarehouseNotificationsAction(res.data)
                 this.props.isGetWarehouseNotificationsAction(true)
             })
+
+        this.showTogglePaidOrdersButtonRef = React.createRef()
     }
+
+    // componentWillReceiveProps(nextProps) {
+
+    //     if(nextProps.location.state.fromDetails) {
+    //         this.setState({ isFromDetails: true });
+    //     }
+    // }
 
     openOrderDetails = (order) => {
         this.props.openOrderDetailsAction(order);
@@ -203,7 +215,13 @@ class Orders extends React.Component {
     // }
 
     showFilter = () => {
-        this.setState({ showMultiSearchFilter: !this.state.showMultiSearchFilter })
+
+        if (this.showTogglePaidOrdersButtonRef.current) {
+            console.log(this.showTogglePaidOrdersButtonRef.current.ref.offsetWidth)
+            this.setState({ inputWidth: this.showTogglePaidOrdersButtonRef.current.ref.offsetWidth });
+        }
+
+        this.setState({ showMultiSearchFilter: true})
 
         getCurrentYearOrders(null, null)
             .then(res => {
@@ -215,8 +233,7 @@ class Orders extends React.Component {
 
     render() {
         console.log(this.props.ordersPageStore.orders)
-        var { filteredOrders, showPaidOrders, multiSearchInput, showPrintLabelsIcon, orderLabelsToPrint } = this.state;
-        console.log(this.state.ordersLimit)
+        var { filteredOrders, showPaidOrders, multiSearchInput, multiSearchInputValue, orderLabelsToPrint } = this.state;
         var counter = 0;
         var sortedOrders;
         var filteredByMultiSearch;
@@ -229,7 +246,7 @@ class Orders extends React.Component {
             sortedOrders = _.orderBy(this.props.ordersPageStore.orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         }
 
-        if (multiSearchInput !== "" && multiSearchInput.length > 1) {
+        if (multiSearchInputValue !== "" && multiSearchInputValue.length > 1) {
             var mappedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']).map(order => {
                 var products = order.products.map(product => {
                     return (product.productName)
@@ -249,7 +266,7 @@ class Orders extends React.Component {
                 )
             })
 
-            filteredByMultiSearch = filterInArrayOfObjects(multiSearchInput, mappedOrders).map(order => order.original)
+            filteredByMultiSearch = filterInArrayOfObjects(multiSearchInputValue, mappedOrders).map(order => order.original)
         }
         else {
             filteredByMultiSearch = sortedOrders
@@ -269,7 +286,7 @@ class Orders extends React.Component {
                                         </Header>
                                     </Grid.Column>
                                 </Grid.Row> */}
-                                <Grid.Row textAlign='left' columns='equal' style={{paddingTop: '0px'}}>
+                                <Grid.Row textAlign='left' columns='equal' style={{ paddingTop: '0px' }}>
                                     <Grid.Column>
                                         <b>First name:</b> {order.address.firstName} <br />
                                         <b>Last name:</b> {order.address.lastName} <br />
@@ -345,7 +362,7 @@ class Orders extends React.Component {
                                         }
                                         {/* <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
                                         <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br /> */}
-                                        <b>Total Price: {order.totalPrice} Kč </b> <br />
+                                        <b>Total Price: {order.totalPrice} Kč</b>
                                     </Grid.Column>
                                 </Grid.Row>
                             </Grid>
@@ -481,12 +498,12 @@ class Orders extends React.Component {
                                                     {/* <Grid.Column width={8}>
                                                 </Grid.Column> */}
                                                     <Grid.Column>
-                                                        <b>Delivery price:</b> {order.payment.price} Kč<br />
                                                         <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
                                                         <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
                                                     </Grid.Column>
                                                     <Grid.Column style={{ paddingLeft: '0px' }}>
-                                                        <Header as='h4'>Total Price: {order.totalPrice} Kč</Header>
+                                                        <b>Delivery price:</b> {order.payment.price} Kč<br />
+                                                        <b>Total Price: {order.totalPrice} Kč</b>
                                                         {/* <b></b><br /> */}
                                                     </Grid.Column>
                                                 </Grid.Row>
@@ -634,7 +651,7 @@ class Orders extends React.Component {
                 <Message warning icon>
                     <Icon name='circle notched' loading />
                     <Message.Content>
-                        <Message.Header>Checking what's wrong in warehouse</Message.Header>
+                        <Message.Header>Checking what's missing in warehouse</Message.Header>
                     </Message.Content>
                 </Message>
             )
@@ -706,17 +723,17 @@ class Orders extends React.Component {
                                 <Grid.Column>
                                     <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
                                         <Input
-                                            style={{ minWidth: '100px' }}
+                                            style={{ width: this.state.inputWidth }}
                                             ref={this.handleRef}
                                             fluid
                                             name="multiSearchInput"
                                             icon={
                                                 <Icon
-                                                    name={this.state.multiSearchInputValue === "" ? 'search' : 'delete'}
-                                                    style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                    name='delete'
+                                                    style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                     circular
                                                     link
-                                                    onClick={this.state.multiSearchInputValue === "" ? () => { } : () => this.handleChange({}, {})} />
+                                                    onClick={() => this.handleChange({}, {})} />
                                             }
                                             placeholder='Search...'
                                             onChange={this.handleChange}
@@ -729,7 +746,7 @@ class Orders extends React.Component {
                                                 <div style={{ textAlign: 'right' }}>
                                                     <Icon
                                                         name='search'
-                                                        style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                        style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                         circular
                                                         link
                                                         onClick={this.showFilter} />
@@ -781,17 +798,17 @@ class Orders extends React.Component {
                         <Grid.Column width={3} textAlign='left' floated='right'>
                             <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
                                 <Input
-                                    style={{ minWidth: '100px' }}
+                                    style={{ width: this.state.inputWidth }}
                                     ref={this.handleRef}
                                     fluid
                                     name="multiSearchInput"
                                     icon={
                                         <Icon
-                                            name={this.state.multiSearchInputValue === "" ? 'search' : 'delete'}
-                                            style={{ backgroundColor: '#f20056', color: 'white' }}
+                                            name='delete'
+                                            style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                             circular
                                             link
-                                            onClick={this.state.multiSearchInputValue === "" ? () => { } : () => this.handleChange({}, {})} />
+                                            onClick={() => this.handleChange({}, {})} />
                                     }
                                     placeholder='Search...'
                                     onChange={this.handleChange}
@@ -804,7 +821,7 @@ class Orders extends React.Component {
                                         <div style={{ textAlign: 'right' }}>
                                             <Icon
                                                 name='search'
-                                                style={{ backgroundColor: '#f20056', color: 'white' }}
+                                                style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                 circular
                                                 link
                                                 onClick={this.showFilter} />
@@ -815,6 +832,7 @@ class Orders extends React.Component {
 
 
                             <Button
+                                ref={this.showTogglePaidOrdersButtonRef}
                                 fluid
                                 size="small"
                                 onClick={() => this.handleToggleShowPaidOrders()}
@@ -837,7 +855,13 @@ class Orders extends React.Component {
                         <div>
                             {grid}
                             {table}
-                            <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
+                            {
+                                multiSearchInputValue !== "" ? (
+                                    null
+                                ) : (
+                                        <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
+                                    )
+                            }
                         </div>
                     ) : (
                             // <Grid centered>

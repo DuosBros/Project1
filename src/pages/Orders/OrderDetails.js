@@ -25,13 +25,15 @@ class OrderDetails extends React.Component {
                         </Grid.Column>
                         <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                             <Button fluid size='medium' compact content='Save' id="primaryButton" />
-                            <Button
-                                style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                                compact content='Back'
-                            />
+                            <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                                <Button
+                                    style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
+                                    compact content='Back'
+                                />
+                            </Link>
                         </Grid.Column>
                     </Grid.Row>
-                    <Grid.Row>
+                    <Grid.Row columns='equal'>
                         <Grid.Column>
                             <Header block attached='top' as='h4'>
                                 Contact Info
@@ -41,8 +43,37 @@ class OrderDetails extends React.Component {
                                 Test
                             </Segment>
                         </Grid.Column>
+                        <Grid.Column>
+                            <Header block attached='top' as='h4'>
+                                Delivery Info
+                                {/* <Button content='Save' /> */}
+                            </Header>
+                            <Segment attached='bottom'>
+                                Test
+                            </Segment>
+                        </Grid.Column>
                     </Grid.Row>
-                </Grid>
+                    <Grid.Row columns="equal" >
+                        <Grid.Column>
+                            <Header block attached='top' as='h4'>
+                                Products
+                                {/* <Button content='Save' /> */}
+                            </Header>
+                            <Segment attached='bottom'>
+                                Test
+                            </Segment>
+                        </Grid.Column>
+                        <Grid.Column>
+                            <Header block attached='top' as='h4'>
+                                Summary
+                                {/* <Button content='Save' /> */}
+                            </Header>
+                            <Segment attached='bottom'>
+                                Test
+                            </Segment>
+                        </Grid.Column>
+                    </Grid.Row>
+                </Grid >
             )
         }
         else {
@@ -55,6 +86,7 @@ class OrderDetails extends React.Component {
                         <Grid.Column width={2}>
                             <Button fluid size='medium' compact content='Save' id="primaryButton" />
                             <Button
+                                onClick={() => this.props.history.push('/orders')}
                                 style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
                                 compact content='Back'
                             />

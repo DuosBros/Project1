@@ -144,6 +144,7 @@ class Bank extends React.Component {
                             <Input placeholder="Type to search..." name="multiSearchInput" onChange={this.handleChange} ></Input>
                         </Table.HeaderCell> */}
                         <Table.HeaderCell colSpan={6} textAlign="right">
+                        <Button onClick={() => this.props.history.goBack()}>pica</Button>
                             <Input placeholder="Type to search..." name="multiSearchInput" onChange={this.handleChange} ></Input>
                         </Table.HeaderCell>
                     </Table.Row>
