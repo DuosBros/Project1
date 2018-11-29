@@ -36,6 +36,11 @@ html, body {
     color: white
 }
 
+#tercialButton {
+    background-color: #f2005696;
+    color: white
+}
+
 #secondaryButton {
     background-color: #76767691;
     color: white
