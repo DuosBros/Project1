@@ -16,10 +16,11 @@
 
     <script type="text/javascript" src="https://secure.smartform.cz/api/v1/smartform.js"></script>
     <script type="text/javascript">
-        smartform.beforeInit = function () {
-            smartform.ssl = true;
-            smartform.setClientId('DmCPAYuzJ1');
+        window.smartform = smartform;
+        window.smartform.beforeInit = function initialize() {
+            window.smartform.setClientId('DmCPAYuzJ1');
         }
+
     </script>
     <!-- <link rel="stylesheet" href="%PUBLIC_URL%/icons.css"> -->
     <!--

@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Table, Message, Image, Icon, Input, Tab, Transition, Segment } from 'semantic-ui-react';
+import { Grid, Header, Button, Table, Message, Image, Icon, Input, Transition } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,6 @@ import {
 
 import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
 import SimpleTable from '../../components/SimpleTable';
-import Spinner from '../../assets/Spinner.svg'
 import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 
@@ -30,7 +29,6 @@ class Orders extends React.Component {
             expanded: null,
             filteredOrders: [],
             showPaidOrders: true,
-            ordersLimit: GET_ORDERS_LIMIT,
             orderIdsShowingDetails: [],
             showFilterInput: false,
             notPaidNotificationsDone: false,
@@ -171,7 +169,7 @@ class Orders extends React.Component {
         }
     }
 
-    togglePrintLabelIcon(orderId, e) {
+    togglePrintLabelIcon(orderId) {
 
 
         if (this.state.orderLabelsToPrint.indexOf(orderId) > -1) {
@@ -188,7 +186,7 @@ class Orders extends React.Component {
         }
     }
 
-    handleChange = (e, { name, value }) => {
+    handleChange = (e, { value }) => {
         if (value) {
             this.setState({ multiSearchInputValue: value });
             this.updateFilters(value);
@@ -233,10 +231,10 @@ class Orders extends React.Component {
 
     render() {
         console.log(this.props.ordersPageStore.orders)
-        var { filteredOrders, showPaidOrders, multiSearchInput, multiSearchInputValue, orderLabelsToPrint } = this.state;
+        var { filteredOrders, showPaidOrders, multiSearchInputValue, orderLabelsToPrint } = this.state;
         var counter = 0;
         var sortedOrders;
-        var filteredByMultiSearch;
+        var filteredByMultiSearch, mappedOrders;
 
         if (filteredOrders.length > 0) {
 
@@ -247,7 +245,7 @@ class Orders extends React.Component {
         }
 
         if (multiSearchInputValue !== "" && multiSearchInputValue.length > 1) {
-            var mappedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']).map(order => {
+            mappedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']).map(order => {
                 var products = order.products.map(product => {
                     return (product.productName)
                 }).join(" ")
@@ -272,7 +270,6 @@ class Orders extends React.Component {
             filteredByMultiSearch = sortedOrders
         }
 
-        var mappedOrders = [];
         mappedOrders = filteredByMultiSearch.map(order => {
             if (this.props.isMobile) {
                 var orderInlineDetails = (
@@ -632,9 +629,9 @@ class Orders extends React.Component {
 
         if (this.props.ordersPageStore.isWarehouseNotificationsDone) {
             if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
-                var message = this.props.ordersPageStore.warehouseNotifications.map(notification => {
+                var message = this.props.ordersPageStore.warehouseNotifications.map((notification,i) => {
                     return (
-                        <React.Fragment key={notification.product}>
+                        <React.Fragment key={i}>
                             <strong>{notification.product}: </strong> {notification.current} <br />
                         </React.Fragment>
                     )

@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API } from '../appConfig';
 
+export function getAllProducts() {
+    return axios.get(MEDPHARMAVN_API + 'products/allproducts')
+}
+
 export function sendAuthenticationData(payload) {
     return axios.post(MEDPHARMAVN_API + 'authenticate', payload);
 }
@@ -17,6 +21,10 @@ export function validateToken() {
         '&limit=1')
 }
 
+export function getOrder(id) {
+    return axios.get(MEDPHARMAVN_API + 'orders/' + id);
+}
+
 export function getCurrentYearOrders(limit, sinceId) {
     var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
     var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
@@ -29,7 +37,7 @@ export function getCurrentYearOrders(limit, sinceId) {
             to
         )
     }
-    
+
     if (sinceId) {
         return axios.get(MEDPHARMAVN_API +
             'orders?from=' +

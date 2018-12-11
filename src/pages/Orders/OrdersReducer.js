@@ -6,11 +6,14 @@ const ordersPageInitialState = {
     isWarehouseNotificationsDone: false,
     isNotPaidNotificationsDone: false,
     isLoadingDone: false,
-    orderToEdit: {}
+    orderToEdit: {},
+    products: []
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
     switch (action.type) {
+        case 'GET_ALL_PRODUCTS':
+            return Object.assign({}, state, { products: action.payload })
         case 'GET_ORDERS':
             return Object.assign({}, state, { orders: action.payload })
         case 'OPEN_ORDER_DETAILS':

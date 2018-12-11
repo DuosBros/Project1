@@ -1,3 +1,10 @@
+export function getAllProductsAction(payload) {
+    return {
+        payload,
+        type: 'GET_ALL_PRODUCTS'
+    }
+}
+
 export function authenticateAction(payload) {
     return {
         payload,
