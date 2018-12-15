@@ -15,7 +15,7 @@ export const deliveryCompanies = [
     { company: "cp" }
 ]
 
-export const paymentTypes = [
+export const deliveryTypes = [
     { type: "vs" },
     { type: "cash" }
 ]

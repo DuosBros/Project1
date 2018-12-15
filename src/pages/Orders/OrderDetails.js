@@ -1,16 +1,25 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Message, Icon, Segment, Form, Dropdown, Divider } from 'semantic-ui-react';
+import { Grid, Header, Button, Message, Icon, Segment, Form, Dropdown, Divider, Label } from 'semantic-ui-react';
 import _ from 'lodash';
 import { Link } from 'react-router-dom';
-import { paymentTypes, deliveryCompanies } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { getAllProducts, getOrder } from '../../utils/requests';
 
 class OrderDetails extends React.Component {
     constructor(props) {
         super(props);
+
+        //todo remove props
+        this.state = {
+            deliveryPrice: 0,
+            products: null,
+            productCounter: null,
+            smartformStreetAndNumber: "",
+            eraseAddress: false
+        }
 
         if (_.isEmpty(props.ordersPageStore.orderToEdit)) {
             getOrder(this.props.match.params.id)
@@ -20,73 +29,51 @@ class OrderDetails extends React.Component {
                         this.props.history.push('/orders')
 
                     }
+                    this.state.orderToEdit = res.data
                     this.props.openOrderDetailsAction(res.data)
                 })
         }
-
-        this.state = {
-            bankAccountPayment: null,
-            paymentType: null,
-            deliveryCompany: null,
-            deliveryPrice: 0,
-            firstName: "",
-            lastName: "",
-            company: "",
-            phone: "",
-            products: null,
-            productCounter: null,
-            note: "",
-            vs: 0,
-            deliveryPrice: 0,
-            smartformStreetAndNumber: "",
-            eraseAddress: false
+        else {
+            this.state.orderToEdit = props.ordersPageStore.orderToEdit
         }
+
+
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    // OK
+    componentDidUpdate() {
 
         if (this.props.match && this.props.match.params) {
-            const params = this.props.match.params;
-            if (!_.isEmpty(this.props.ordersPageStore.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
-                document.getElementById("streetAndNumber").value = this.props.ordersPageStore.orderToEdit.address.street + " " + this.props.ordersPageStore.orderToEdit.address.streetNumber
-                document.getElementById("city").value = this.props.ordersPageStore.orderToEdit.address.city
-                document.getElementById("zip").value = this.props.ordersPageStore.orderToEdit.address.psc
+            if (!_.isEmpty(this.state.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
+                document.getElementById("streetAndNumber").value = this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber
+                document.getElementById("city").value = this.state.orderToEdit.address.city
+                document.getElementById("zip").value = this.state.orderToEdit.address.psc
             }
-            // if (params.id && params.id !== prevProps.match.params.id) {
-            //     if (_.isEmpty(this.props.ordersPageStore.orderToEdit)) {
-            //         getOrder(this.props.match.params.id)
-            //             .then(res => {
-            //                 this.props.openOrderDetailsAction(res.data)
-            //             })
-            //     }
-            // }
         }
     }
 
+    // OK
     componentDidMount() {
-
-
-        // setInterval(() => {
-        //     window.smartform.rebindAllForms(false);
-        // }, 1000)
-
-        // if (document.getElementById("street")) {
-        //     document.getElementById("street").value = this.state.streetAndNumber
-        // }
-
-
-        // if (_.isEmpty(this.props.ordersPageStore.orderToEdit)) {
-        //     getOrder(this.props.match.params.id)
-        //         .then(res => {
-        //             this.props.openOrderDetailsAction(res.data)
-        //         })
-        // }
-
         getAllProducts()
             .then(res => this.props.getAllProductsAction(res.data))
     }
 
+    // remove this
+    handleOnChangeNewProduct = (e, m, product) => {
+        var array = [
+            {
+                name: m.value,
+                index: product.index,
+                count: product.count,
+                price: product.price
+            }
+        ]
 
+        this.setState(() => ({
+            productCounter: this.state.productCounter + 1,
+            products: array
+        }))
+    }
 
     handleOnChange = (e, m, product) => {
         this.setState({ productCounter: this.state.productCounter + 1 })
@@ -112,10 +99,18 @@ class OrderDetails extends React.Component {
         }
     }
 
-    handleChange = (e, { name, value }) => {
-        this.setState({ [name]: value })
+    handleInputChange = (e, { name, value }, prop) => {
+        var o = Object.assign({}, this.state.orderToEdit)
+        if (_.isEmpty(prop)) {
+            o[name] = value
+        }
+        else {
+            o[prop][name] = value
+        }
+        this.setState({ orderToEdit: o });
     }
 
+    // needed to make smartform working
     scrollToTop = () => {
         var currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
         if (currentScroll > 0) {
@@ -125,16 +120,11 @@ class OrderDetails extends React.Component {
     }
 
     getTotalPrice = () => {
-        var sum = this.state.deliveryPrice
+        var sum = this.state.orderToEdit.payment.price
 
-        if (this.state.products !== null) {
-            this.state.products.forEach(product => {
-                sum += product.count * product.price
-            });
-        }
-        else {
-            sum = this.props.ordersPageStore.orderToEdit.totalPrice
-        }
+        this.state.orderToEdit.products.forEach(product => {
+            sum += product.count * product.pricePerOne
+        });
 
         return sum;
     }
@@ -165,6 +155,7 @@ class OrderDetails extends React.Component {
                                         text: x
                                     })
                                 )}
+                                defaultValue={product.productName}
                                 fluid
                                 selectOnBlur={false}
                                 selectOnNavigation={false}
@@ -175,7 +166,7 @@ class OrderDetails extends React.Component {
                         </Form.Field>
                         <Form.Field>
                             <label>Product Price [CZK]</label>
-                            <input value={product.pricePerOne} disabled></input>
+                            <input value={product.pricePerOne} readOnly></input>
                         </Form.Field>
                         <Form.Input
                             label='Product Count'
@@ -189,12 +180,56 @@ class OrderDetails extends React.Component {
                             })} />
                         <Form.Field>
                             <label>Total Product Price</label>
-                            <input disabled value={product.totalPricePerProduct}></input>
+                            <input readOnly value={product.totalPricePerProduct}></input>
                         </Form.Field>
                         <Divider />
                     </React.Fragment>
                 )
             }
+
+            // empty product to add
+            let i = counter + 1
+            pica.push(
+                <React.Fragment key={i}>
+                    <Form.Field>
+                        <Dropdown
+                            selection
+                            onChange={(e, m) => this.handleOnChangeNewProduct(e, m, { name: m.value, index: i, count: 1, price: this.props.ordersPageStore.products[m.value].price })}
+                            options={Object.keys(this.props.ordersPageStore.products).map(x =>
+                                ({
+                                    value: x,
+                                    text: x
+                                })
+                            )}
+                            fluid
+                            selectOnBlur={false}
+                            selectOnNavigation={false}
+                            placeholder='Type to search...'
+                            // onSearchChange={this.handleOnSearchChange}
+                            search
+                        />
+                    </Form.Field>
+                    <Form.Field>
+                        <label>Product Price [CZK]</label>
+                        <input value={this.state.products ? this.props.ordersPageStore.products[this.state.products[i].name].price : ""} readOnly></input>
+                    </Form.Field>
+                    <Form.Input
+                        label='Product Count'
+                        fluid
+                        value={this.state.products ? this.state.products[i].count : ""}
+                        onChange={(e, m) => this.handleOnChange(e, m, {
+                            price: this.props.ordersPageStore.products[this.state.products[i].name].price,
+                            name: this.state.products[i].name,
+                            index: i,
+                            count: m.value
+                        })} />
+                    <Form.Field>
+                        <label>Total Product Price</label>
+                        <input readOnly value={(this.state.products ? this.props.ordersPageStore.products[this.state.products[i].name].price * this.state.products[i].count : "").toString()}></input>
+                    </Form.Field>
+                    <Divider />
+                </React.Fragment>
+            )
         }
         else {
             for (let i = 0; i < counter + 1; i++) {
@@ -220,7 +255,7 @@ class OrderDetails extends React.Component {
                         </Form.Field>
                         <Form.Field>
                             <label>Product Price [CZK]</label>
-                            <input value={this.props.ordersPageStore.products[this.state.products[i].name].price} disabled></input>
+                            <input value={this.props.ordersPageStore.products[this.state.products[i].name].price} readOnly></input>
                         </Form.Field>
                         <Form.Input
                             label='Product Count'
@@ -234,7 +269,7 @@ class OrderDetails extends React.Component {
                             })} />
                         <Form.Field>
                             <label>Total Product Price</label>
-                            <input disabled value={(this.props.ordersPageStore.products[this.state.products[i].name].price * this.state.products[i].count).toString()}></input>
+                            <input readOnly value={(this.props.ordersPageStore.products[this.state.products[i].name].price * this.state.products[i].count).toString()}></input>
                         </Form.Field>
                         <Divider />
                     </React.Fragment>
@@ -245,16 +280,35 @@ class OrderDetails extends React.Component {
         return pica;
     }
 
+    handleToggleDeliveryButtons = (prop, type) => {
+        this.setState({
+            orderToEdit: {
+                ...this.state.orderToEdit,
+                [prop]: type
+            }
+        });
+    }
+
+    save = (order) => {
+        // pri cash order smazat cashOnDelivery a deliveryCompany
+    }
+
+    handleToggleBankAccountPaymentButtons = (type) => {
+        var o = Object.assign({}, this.state.orderToEdit)
+        o.payment.cashOnDelivery = type
+        this.setState({ orderToEdit: o });
+    }
+
     render() {
 
         var grid;
-        console.log(this.props.ordersPageStore.orderToEdit)
-        // console.log("products:")
-        // console.log(this.state.products)
-        // console.log("state")
-        // console.log(this.state)
+        console.log(this.state.orderToEdit)
+        console.log("products:")
+        console.log(this.state.products)
+        console.log("state")
+        console.log(this.state)
         var orderToEdit;
-        if (_.isEmpty(this.props.ordersPageStore.orderToEdit)) {
+        if (_.isEmpty(this.state.orderToEdit)) {
             return (
                 <div className="centered">
                     <Message info icon>
@@ -267,10 +321,11 @@ class OrderDetails extends React.Component {
             )
         }
         else {
-            orderToEdit = this.props.ordersPageStore.orderToEdit
+            orderToEdit = this.state.orderToEdit
         }
 
         if (this.props.isMobile) {
+            // mobile
             grid = (
                 <Grid stackable>
                     <Grid.Row>
@@ -308,16 +363,16 @@ class OrderDetails extends React.Component {
                                     </Form.Field>
                                     <Form.Field>
                                         <label>City</label>
-                                        <input disabled id="city" className="smartform-city"></input>
+                                        <input readOnly id="city" className="smartform-city"></input>
                                     </Form.Field>
                                     <Form.Field>
                                         <label>ZIP</label>
-                                        <input disabled id="zip" className="smartform-zip"></input>
+                                        <input readOnly id="zip" className="smartform-zip"></input>
                                     </Form.Field>
-                                    <Form.Input label='First Name' fluid value={this.state.firstName === "" ? orderToEdit.address.firstName : this.state.firstName} name='firstName' onChange={this.handleChange} />
-                                    <Form.Input label='Last Name' fluid value={this.state.lastName === "" ? orderToEdit.address.lastName : this.state.lastName} name='lastName' onChange={this.handleChange} />
-                                    <Form.Input label='Phone Number' fluid value={this.state.phone === "" ? orderToEdit.address.phone : this.state.phone} name='phone' onChange={this.handleChange} />
-                                    <Form.Input label='Company' fluid value={this.state.company === "" ? orderToEdit.address.company : this.state.company} name='company' onChange={this.handleChange} />
+                                    <Form.Input label='First Name' fluid value={orderToEdit.address.firstName} name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Last Name' fluid value={orderToEdit.address.lastName} name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Phone Number' fluid value={orderToEdit.address.phone} name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Company' fluid value={orderToEdit.address.company} name='company' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -327,34 +382,26 @@ class OrderDetails extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <Form.Input label='Delivery Price [CZK]' fluid value={this.state.deliveryPrice === 0 ? orderToEdit.payment.price : ""} name='deliveryPrice' onChange={this.handleChange} />
-                                    <Form.Input label='VS' fluid value={this.state.vs === 0 ? orderToEdit.payment.vs : ""} name='vs' onChange={this.handleChange} />
+                                    <Form.Input label='Delivery Price [CZK]' fluid value={orderToEdit.payment.price} name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                    <Form.Input label='VS' fluid value={orderToEdit.payment.vs} name='vs' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><b>Payment type</b></label>
                                         <Button.Group fluid size='medium'>
                                             <Button
-                                                onClick={() => this.setState({ paymentType: this.state.paymentType === paymentTypes[0].type ? paymentTypes[1].type : paymentTypes[0].type })}
-                                                id={this.state.paymentType === null ? (
-                                                    orderToEdit.deliveryType.toLowerCase() === paymentTypes[0].type ? "primaryButton" : "secondaryButton")
-                                                    : (
-                                                        this.state.paymentType === paymentTypes[0].type ? "primaryButton" : "secondaryButton")
-                                                }>
+                                                onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[0].type)}
+                                                id={orderToEdit.deliveryType.toLowerCase() === deliveryTypes[0].type ? "primaryButton" : "secondaryButton"}>
                                                 VS
                                             </Button>
                                             <Button.Or text='OR' />
                                             <Button
-                                                onClick={() => this.setState({ paymentType: this.state.paymentType === paymentTypes[1].type ? paymentTypes[0].type : paymentTypes[1].type })}
-                                                id={this.state.paymentType === null ? (
-                                                    orderToEdit.deliveryType.toLowerCase() === paymentTypes[0].type ? "secondaryButton" : "primaryButton")
-                                                    : (
-                                                        this.state.paymentType === paymentTypes[0].type ? "secondaryButton" : "primaryButton")
-                                                }>
+                                                onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[1].type)}
+                                                id={orderToEdit.deliveryType.toLowerCase() === deliveryTypes[0].type ? "secondaryButton" : "primaryButton"}>
                                                 Cash
                                             </Button>
                                         </Button.Group>
                                     </div>
                                     {
-                                        this.state.paymentType === paymentTypes[1].type ? (
+                                        orderToEdit.deliveryType === deliveryTypes[1].type ? (
                                             null
                                         ) : (
                                                 <>
@@ -362,24 +409,14 @@ class OrderDetails extends React.Component {
                                                         <label><b>Delivery company</b></label>
                                                         <Button.Group fluid size='medium'>
                                                             <Button
-                                                                onClick={() => this.setState({ deliveryCompany: this.state.deliveryCompany === deliveryCompanies[1].company ? deliveryCompanies[0].company : deliveryCompanies[1].company })}
-                                                                id={
-                                                                    this.state.deliveryCompany === null ? (
-                                                                        orderToEdit.deliveryCompany.search(new RegExp(deliveryCompanies[0].company, "i")) >= 0 ? "primaryButton" : "secondaryButton")
-                                                                        : (
-                                                                            this.state.deliveryCompany.search(new RegExp(deliveryCompanies[0].company, "i")) >= 0 ? "primaryButton" : "secondaryButton")
-                                                                }>
+                                                                onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[0].company)}
+                                                                id={orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
                                                                 GLS
                                                             </Button>
                                                             <Button.Or text='OR' />
                                                             <Button
-                                                                onClick={() => this.setState({ deliveryCompany: this.state.deliveryCompany === deliveryCompanies[1].company ? deliveryCompanies[0].company : deliveryCompanies[1].company })}
-                                                                id={
-                                                                    this.state.deliveryCompany === null ? (
-                                                                        orderToEdit.deliveryCompany.search(new RegExp(deliveryCompanies[1].company, "i")) >= 0 ? "primaryButton" : "secondaryButton")
-                                                                        : (
-                                                                            this.state.deliveryCompany.search(new RegExp(deliveryCompanies[1].company, "i")) >= 0 ? "primaryButton" : "secondaryButton")
-                                                                } >
+                                                                onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[1].company)}
+                                                                id={orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
                                                                 Česká Pošta
                                                             </Button>
                                                         </Button.Group>
@@ -388,26 +425,16 @@ class OrderDetails extends React.Component {
                                                         <label><b>Bank account payment</b></label>
                                                         <Button.Group fluid size='medium'>
                                                             <Button
-                                                                onClick={() => this.setState({ bankAccountPayment: !this.state.bankAccountPayment })}
-                                                                id={
-                                                                    this.state.bankAccountPayment === null ? (
-                                                                        orderToEdit.payment.bankAccountPayment ? "primaryButton" : "secondaryButton")
-                                                                        : (
-                                                                            this.state.bankAccountPayment ? "primaryButton" : "secondaryButton")
-                                                                }
-                                                            >
+                                                                onClick={() => this.handleToggleBankAccountPaymentButtons(false)}
+                                                                id={orderToEdit.payment.cashOnDelivery ? "secondaryButton" : "primaryButton"}>
                                                                 Yes
                                                             </Button>
                                                             <Button.Or text='OR' />
                                                             <Button
-                                                                onClick={() => this.setState({ bankAccountPayment: !this.state.bankAccountPayment })}
-                                                                id={
-                                                                    this.state.bankAccountPayment === null ? (
-                                                                        orderToEdit.payment.bankAccountPayment ? "secondaryButton" : "primaryButton")
-                                                                        : (
-                                                                            this.state.bankAccountPayment ? "secondaryButton" : "primaryButton")
-                                                                }
-                                                            >NO</Button>
+                                                                onClick={() => this.handleToggleBankAccountPaymentButtons(true)}
+                                                                id={orderToEdit.payment.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
+                                                                NO
+                                                            </Button>
                                                         </Button.Group>
                                                     </div>
                                                 </>
@@ -434,9 +461,10 @@ class OrderDetails extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <label><b>Total price [CZK]</b></label>
-                                    <Form.Input disabled value={this.getTotalPrice()} />
-                                    <Form.Input label='Note' fluid value={this.state.note} name='note' onChange={this.handleChange} />
+                                    <label>Total price [CZK]</label>
+                                    {/* <label style={{marginBottom: '0.5em'}} ><b>Total price [CZK]</b></label> */}
+                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice()} ></input>
+                                    <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -456,6 +484,7 @@ class OrderDetails extends React.Component {
                 </Grid >
             )
         }
+        // desktop
         else {
             grid = (
                 <Grid>
@@ -486,7 +515,6 @@ class OrderDetails extends React.Component {
         }
         return (
             <div>
-
                 {grid}
             </div>
         )

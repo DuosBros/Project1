@@ -373,7 +373,7 @@ class Orders extends React.Component {
                     <Table.Row onClick={this.toggleInlineOrderDetails.bind(this, order._id)} key={order._id} style={{ backgroundColor: this.getBackgroundColor(order) }}
                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                        <Table.Cell style={{ color: 'black' }}>{order.payment.vs} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
+                        <Table.Cell style={{ color: 'black' }}>{order.payment.vs ? order.payment.vs : "cash"} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
                         <Table.Cell>
                             {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
