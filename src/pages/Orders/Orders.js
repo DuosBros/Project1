@@ -78,7 +78,7 @@ class Orders extends React.Component {
     openOrderDetails = (order) => {
 
         // TODO implement this
-        if(moment(order.lock.timestamp).isAfter(moment())) {
+        if (moment(order.lock.timestamp).isAfter(moment())) {
             console.log("pica")
         }
         this.props.openOrderDetailsAction(order);
@@ -224,7 +224,7 @@ class Orders extends React.Component {
             this.setState({ inputWidth: this.showTogglePaidOrdersButtonRef.current.ref.offsetWidth });
         }
 
-        this.setState({ showMultiSearchFilter: true})
+        this.setState({ showMultiSearchFilter: true })
 
         getCurrentYearOrders(null, null)
             .then(res => {
@@ -634,7 +634,7 @@ class Orders extends React.Component {
 
         if (this.props.ordersPageStore.isWarehouseNotificationsDone) {
             if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
-                var message = this.props.ordersPageStore.warehouseNotifications.map((notification,i) => {
+                var message = this.props.ordersPageStore.warehouseNotifications.map((notification, i) => {
                     return (
                         <React.Fragment key={i}>
                             <strong>{notification.product}: </strong> {notification.current} <br />
@@ -646,6 +646,9 @@ class Orders extends React.Component {
                     <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}
                         <Link to="/warehouse">Go to Warehouse</Link></Message>
                 )
+            }
+            else {
+                warehouseNotificationsMessage = null
             }
         }
         else {
@@ -685,6 +688,9 @@ class Orders extends React.Component {
                     )
                 }
             }
+            else if (this.props.ordersPageStore.notPaidNotifications.length === 0) {
+                notPaidNotificationsMessage = null
+            }
         }
         else {
             notPaidNotificationsMessage = (
@@ -707,69 +713,90 @@ class Orders extends React.Component {
                                 <Button toggle onClick={() => this.setState({ mobileShowHeader: !this.state.mobileShowHeader })} floated='right' style={{ backgroundColor: this.state.mobileShowHeader ? '#f2005696' : '#f20056', color: 'white' }} content={this.state.mobileShowHeader ? 'Hide' : 'Show'} />
                             </Header>
                         </Grid.Column>
-
                     </Grid.Row>
-                    <Transition.Group animation='drop' duration={500}>
+                    <Transition.Group animation='drop' duration={500} style={{ width: '100%' }}>
                         {this.state.mobileShowHeader && (
-                            <Grid.Row>
-                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                            <>
+                                <Grid.Row style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     <Button fluid size='small' content='Add Order' id="primaryButton" />
                                     <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} fluid size='small' compact content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"} />
-                                </Grid.Column>
-                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                                    {warehouseNotificationsMessage}
-                                </Grid.Column>
-                                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                                    {notPaidNotificationsMessage}
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
-                                        <Input
-                                            style={{ width: this.state.inputWidth }}
-                                            ref={this.handleRef}
-                                            fluid
-                                            name="multiSearchInput"
-                                            icon={
-                                                <Icon
-                                                    name='delete'
-                                                    style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                                    circular
-                                                    link
-                                                    onClick={() => this.handleChange({}, {})} />
-                                            }
-                                            placeholder='Search...'
-                                            onChange={this.handleChange}
-                                            value={this.state.multiSearchInputValue} />
-                                    </Transition>
-                                    {
-                                        this.state.showMultiSearchFilter ? (
-                                            null
-                                        ) : (
-                                                <div style={{ textAlign: 'right' }}>
+                                </Grid.Row>
+                                {
+                                    warehouseNotificationsMessage === null && notPaidNotificationsMessage === null ? (
+                                        null
+                                    ) : (
+                                            <Grid.Row>
+                                                {
+                                                    warehouseNotificationsMessage === null ? (
+                                                        null
+                                                    ) : (
+                                                            <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                                                {warehouseNotificationsMessage}
+                                                            </Grid.Column>
+                                                        )
+                                                }
+                                                {
+                                                    notPaidNotificationsMessage === null ? (
+                                                        null
+                                                    ) : (
+                                                            <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                                                {notPaidNotificationsMessage}
+                                                            </Grid.Column>
+                                                        )
+                                                }
+                                            </Grid.Row>
+                                        )
+                                }
+
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
+                                            <Input
+                                                style={{ width: this.state.inputWidth }}
+                                                ref={this.handleRef}
+                                                fluid
+                                                name="multiSearchInput"
+                                                icon={
                                                     <Icon
-                                                        name='search'
+                                                        name='delete'
                                                         style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                         circular
                                                         link
-                                                        onClick={this.showFilter} />
-                                                </div>
+                                                        onClick={() => this.handleChange({}, {})} />
+                                                }
+                                                placeholder='Search...'
+                                                onChange={this.handleChange}
+                                                value={this.state.multiSearchInputValue} />
+                                        </Transition>
+                                        {
+                                            this.state.showMultiSearchFilter ? (
+                                                null
+                                            ) : (
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <Icon
+                                                            name='search'
+                                                            style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
+                                                            circular
+                                                            link
+                                                            onClick={this.showFilter} />
+                                                    </div>
 
-                                            )
-                                    }
+                                                )
+                                        }
 
-
-                                    <Button
-                                        fluid
-                                        size="small"
-                                        onClick={() => this.handleToggleShowPaidOrders()}
-                                        compact
-                                        content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
-                                        style={{ padding: '0.3em', marginTop: '0.5em' }}
-                                        id="secondaryButton"
-                                        icon={showPaidOrders ? 'eye slash' : 'eye'}
-                                        labelPosition='left' />
-                                </Grid.Column>
-                            </Grid.Row>
+                                        <Button
+                                            fluid
+                                            size="small"
+                                            onClick={() => this.handleToggleShowPaidOrders()}
+                                            compact
+                                            content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
+                                            style={{ padding: '0.3em', marginTop: '0.5em' }}
+                                            id="secondaryButton"
+                                            icon={showPaidOrders ? 'eye slash' : 'eye'}
+                                            labelPosition='left' />
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </>
                         )}
                     </Transition.Group>
                 </Grid>
@@ -854,7 +881,7 @@ class Orders extends React.Component {
             <div>
                 {
                     this.props.ordersPageStore.orders.length > 0 && !_.isEmpty(grid) && !_.isEmpty(table) ? (
-                        <div>
+                        <>
                             {grid}
                             {table}
                             {
@@ -864,7 +891,7 @@ class Orders extends React.Component {
                                         <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                                     )
                             }
-                        </div>
+                        </>
                     ) : (
                             // <Grid centered>
                             //     <Grid.Row>

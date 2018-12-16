@@ -1,3 +1,16 @@
+export function showGenericModalAction(payload) {
+    return {
+        payload,
+        type: 'SHOW_GENERIC_MODAL'
+    }
+}
+
+export function closeGenericModalAction() {
+    return {
+        type: 'CLOSE_GENERIC_MODAL'
+    }
+}
+
 export function getAllProductsAction(payload) {
     return {
         payload,

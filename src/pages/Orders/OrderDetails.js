@@ -6,19 +6,47 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
-import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, getOrder, saveOrder } from '../../utils/requests';
+import { getAllProductsAction, openOrderDetailsAction, showGenericModalAction } from '../../utils/actions';
+import { getAllProducts, getOrder, saveOrder, verifyLock } from '../../utils/requests';
+import GenericModal from '../../components/GenericModal';
 
 class OrderDetails extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+        }
+
+        var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+
+        verifyLock(this.props.match.params.id, user)
+            .then(res => {
+
+            })
+            .catch(err => {
+
+
+                if (err.response.data) {
+                    if (err.response.data.message) {
+                        if (err.response.data.message.lockedBy !== user) {
+                            this.props.showGenericModalAction({
+                                modalContent: (
+                                    <span>
+                                        This order is locked by <b>{err.response.data.message.lockedBy}</b>!
+                                    </span>
+                                ),
+                                modalHeader: "Locked order!",
+                                redirectTo: '/orders',
+                                parentProps: props
+                            })
+                            // alert("This order is locked by " + err.response.data.message.lockedBy)
+                        }
+                    }
+                }
+            })
 
         setInterval(() => {
             window.smartform.rebindAllForms(false);
         }, 1000)
-        
-        this.state = {
-        }
 
         if (_.isEmpty(props.ordersPageStore.orderToEdit)) {
             getOrder(this.props.match.params.id)
@@ -28,18 +56,22 @@ class OrderDetails extends React.Component {
                         this.props.history.push('/orders')
 
                     }
-                    // TODO implement this
-                    if (moment(res.data.lock.timestamp).isAfter(moment())) {
-                        console.log("pica")
-                        this.props.history.push('/orders')
-                    }
+                    // // TODO implement this
+                    // if (moment(res.data.lock.timestamp).isAfter(moment())) {
+                    //     console.log("pica")
+                    //     this.props.history.push('/orders')
+                    // }
 
-                    this.state.orderToEdit = res.data
+                    this.state = {
+                        orderToEdit: res.data
+                    }
                     this.props.openOrderDetailsAction(res.data)
                 })
         }
         else {
-            this.state.orderToEdit = props.ordersPageStore.orderToEdit
+            this.state = {
+                orderToEdit: props.ordersPageStore.orderToEdit
+            }
         }
     }
 
@@ -250,7 +282,6 @@ class OrderDetails extends React.Component {
             .catch((res) => {
                 alert(res)
             })
-        // pri cash order smazat cashOnDelivery a deliveryCompany
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
@@ -260,7 +291,15 @@ class OrderDetails extends React.Component {
     }
 
     render() {
-
+        if (this.props.baseStore.showGenericModal) {
+            return (
+                <GenericModal
+                    show={this.props.baseStore.showGenericModal} 
+                    header={this.props.baseStore.modal.modalHeader} 
+                    content={this.props.baseStore.modal.modalContent} 
+                    redirectTo={this.props.baseStore.modal.redirectTo}
+                    parentProps={this.props.baseStore.modal.parentProps}/>)
+        }
         var grid;
         console.log(this.state.orderToEdit)
         console.log("products:")
@@ -480,14 +519,16 @@ class OrderDetails extends React.Component {
 function mapStateToProps(state) {
     return {
         ordersPageStore: state.OrdersReducer,
-        loginPageStore: state.LoginReducer
+        loginPageStore: state.LoginReducer,
+        baseStore: state.BaseReducer
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getAllProductsAction,
-        openOrderDetailsAction
+        openOrderDetailsAction,
+        showGenericModalAction
     }, dispatch);
 }
 

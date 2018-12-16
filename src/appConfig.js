@@ -26,3 +26,6 @@ export const deliveryTypes = [
 // 24.11. 2040
 // 27.11. 2451
 // 16.12. 3281
+
+
+// set lock o 10s při otevření ordery
