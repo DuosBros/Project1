@@ -76,6 +76,11 @@ class Orders extends React.Component {
     // }
 
     openOrderDetails = (order) => {
+
+        // TODO implement this
+        if(moment(order.lock.timestamp).isAfter(moment())) {
+            console.log("pica")
+        }
         this.props.openOrderDetailsAction(order);
         var route = "/orders/" + order.id;
         this.props.history.push(route);

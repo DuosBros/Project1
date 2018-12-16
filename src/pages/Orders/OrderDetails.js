@@ -3,22 +3,21 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Grid, Header, Button, Message, Icon, Segment, Form, Dropdown, Divider, Label } from 'semantic-ui-react';
 import _ from 'lodash';
+import moment from 'moment';
 import { Link } from 'react-router-dom';
-import { deliveryTypes, deliveryCompanies } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, getOrder } from '../../utils/requests';
+import { getAllProducts, getOrder, saveOrder } from '../../utils/requests';
 
 class OrderDetails extends React.Component {
     constructor(props) {
         super(props);
 
-        //todo remove props
+        setInterval(() => {
+            window.smartform.rebindAllForms(false);
+        }, 1000)
+        
         this.state = {
-            deliveryPrice: 0,
-            products: null,
-            productCounter: null,
-            smartformStreetAndNumber: "",
-            eraseAddress: false
         }
 
         if (_.isEmpty(props.ordersPageStore.orderToEdit)) {
@@ -29,6 +28,12 @@ class OrderDetails extends React.Component {
                         this.props.history.push('/orders')
 
                     }
+                    // TODO implement this
+                    if (moment(res.data.lock.timestamp).isAfter(moment())) {
+                        console.log("pica")
+                        this.props.history.push('/orders')
+                    }
+
                     this.state.orderToEdit = res.data
                     this.props.openOrderDetailsAction(res.data)
                 })
@@ -36,13 +41,10 @@ class OrderDetails extends React.Component {
         else {
             this.state.orderToEdit = props.ordersPageStore.orderToEdit
         }
-
-
     }
 
     // OK
     componentDidUpdate() {
-
         if (this.props.match && this.props.match.params) {
             if (!_.isEmpty(this.state.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
                 document.getElementById("streetAndNumber").value = this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber
@@ -58,47 +60,29 @@ class OrderDetails extends React.Component {
             .then(res => this.props.getAllProductsAction(res.data))
     }
 
-    // remove this
-    handleOnChangeNewProduct = (e, m, product) => {
-        var array = [
-            {
-                name: m.value,
-                index: product.index,
-                count: product.count,
-                price: product.price
-            }
-        ]
+    // OK
+    handleProductOnChange = (e, m, i, product) => {
+
+        if (_.isNaN(product.count)) {
+            product.count = ""
+        }
+
+        if (_.isNumber(product.count) || _.isNumber(product.pricePerOne)) {
+            product.totalPricePerProduct = product.pricePerOne * product.count
+        }
+        else {
+            product.totalPricePerProduct = ""
+        }
+
+        var o = Object.assign({}, this.state.orderToEdit)
+        o.products[i] = product;
 
         this.setState(() => ({
-            productCounter: this.state.productCounter + 1,
-            products: array
+            orderToEdit: o
         }))
     }
 
-    handleOnChange = (e, m, product) => {
-        this.setState({ productCounter: this.state.productCounter + 1 })
-        var found = this.state.products.filter(x => x.index === product.index)
-        if (found.length > 0) {
-            var newArray = Object.assign([], this.state.products)
-            newArray[product.index].name = product.name;
-            newArray[product.index].count = product.count;
-            newArray[product.index].price = product.price;
-            this.setState({ products: newArray });
-        }
-        else {
-
-            this.setState(() => ({
-                products: [...this.state.products,
-                {
-                    name: m.value,
-                    index: product.index,
-                    count: product.count,
-                    price: product.price
-                }]
-            }))
-        }
-    }
-
+    // OK
     handleInputChange = (e, { name, value }, prop) => {
         var o = Object.assign({}, this.state.orderToEdit)
         if (_.isEmpty(prop)) {
@@ -119,6 +103,7 @@ class OrderDetails extends React.Component {
         }
     }
 
+    // OK
     getTotalPrice = () => {
         var sum = this.state.orderToEdit.payment.price
 
@@ -129,155 +114,108 @@ class OrderDetails extends React.Component {
         return sum;
     }
 
+    // OK
     renderProducts = () => {
-        var pica = []
-        var counter = 0;
-        if (this.state.productCounter === null) {
-            counter = this.props.ordersPageStore.orderToEdit.products.length
-        }
-        else {
-            counter = this.state.productCounter
-        }
 
-        if (this.state.products === null) {
-            for (let i = 0; i < counter; i++) {
-                var product = this.props.ordersPageStore.orderToEdit.products[i];
+        var result = []
 
-                pica.push(
-                    <React.Fragment key={i}>
-                        <Form.Field>
-                            <Dropdown
-                                selection
-                                onChange={(e, m) => this.handleOnChange(e, m, { name: m.value, index: i, count: 1, price: this.props.ordersPageStore.products[m.value].price })}
-                                options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                    ({
-                                        value: x,
-                                        text: x
-                                    })
-                                )}
-                                defaultValue={product.productName}
-                                fluid
-                                selectOnBlur={false}
-                                selectOnNavigation={false}
-                                placeholder='Type to search...'
-                                // onSearchChange={this.handleOnSearchChange}
-                                search
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <label>Product Price [CZK]</label>
-                            <input value={product.pricePerOne} readOnly></input>
-                        </Form.Field>
-                        <Form.Input
-                            label='Product Count'
-                            fluid
-                            value={product.count}
-                            onChange={(e, m) => this.handleOnChange(e, m, {
-                                pricePerOne: product.pricePerOne,
-                                productName: product.productName,
-                                index: i,
-                                count: m.value
-                            })} />
-                        <Form.Field>
-                            <label>Total Product Price</label>
-                            <input readOnly value={product.totalPricePerProduct}></input>
-                        </Form.Field>
-                        <Divider />
-                    </React.Fragment>
-                )
-            }
-
-            // empty product to add
-            let i = counter + 1
-            pica.push(
+        // map existing products
+        result = this.state.orderToEdit.products.map((product, i) => {
+            return (
                 <React.Fragment key={i}>
                     <Form.Field>
+                        <label>Product Name</label>
                         <Dropdown
                             selection
-                            onChange={(e, m) => this.handleOnChangeNewProduct(e, m, { name: m.value, index: i, count: 1, price: this.props.ordersPageStore.products[m.value].price })}
+                            onChange={(e, m) => this.handleProductOnChange(
+                                e, m, i,
+                                {
+                                    productName: m.value,
+                                    count: 1,
+                                    pricePerOne: this.props.ordersPageStore.products[m.value].price
+                                })}
                             options={Object.keys(this.props.ordersPageStore.products).map(x =>
                                 ({
                                     value: x,
                                     text: x
                                 })
                             )}
+                            defaultValue={product.productName}
                             fluid
                             selectOnBlur={false}
                             selectOnNavigation={false}
                             placeholder='Type to search...'
-                            // onSearchChange={this.handleOnSearchChange}
                             search
                         />
                     </Form.Field>
                     <Form.Field>
-                        <label>Product Price [CZK]</label>
-                        <input value={this.state.products ? this.props.ordersPageStore.products[this.state.products[i].name].price : ""} readOnly></input>
+                        <Form.Input
+                            label='Product Price [CZK]'
+                            fluid
+                            value={product.pricePerOne}
+                            onChange={(e, m) => this.handleProductOnChange(e, m, i, {
+                                pricePerOne: m.value,
+                                productName: product.productName,
+                                count: product.count
+                            })} />
                     </Form.Field>
                     <Form.Input
                         label='Product Count'
                         fluid
-                        value={this.state.products ? this.state.products[i].count : ""}
-                        onChange={(e, m) => this.handleOnChange(e, m, {
-                            price: this.props.ordersPageStore.products[this.state.products[i].name].price,
-                            name: this.state.products[i].name,
-                            index: i,
-                            count: m.value
+                        value={product.count}
+                        onChange={(e, m) => this.handleProductOnChange(e, m, i, {
+                            pricePerOne: product.pricePerOne,
+                            productName: product.productName,
+                            count: parseInt(m.value)
                         })} />
                     <Form.Field>
                         <label>Total Product Price</label>
-                        <input readOnly value={(this.state.products ? this.props.ordersPageStore.products[this.state.products[i].name].price * this.state.products[i].count : "").toString()}></input>
+                        <input readOnly value={product.totalPricePerProduct}></input>
                     </Form.Field>
-                    <Divider />
+                    <Divider style={{ borderColor: '#f20056' }} />
                 </React.Fragment>
             )
-        }
-        else {
-            for (let i = 0; i < counter + 1; i++) {
-                pica.push(
-                    <React.Fragment key={i}>
-                        <Form.Field>
-                            <Dropdown
-                                selection
-                                onChange={(e, m) => this.handleOnChange(e, m, { name: m.value, index: i, count: 1, price: this.props.ordersPageStore.products[m.value].price })}
-                                options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                    ({
-                                        value: x,
-                                        text: x
-                                    })
-                                )}
-                                fluid
-                                selectOnBlur={false}
-                                selectOnNavigation={false}
-                                placeholder='Type to search...'
-                                // onSearchChange={this.handleOnSearchChange}
-                                search
-                            />
-                        </Form.Field>
-                        <Form.Field>
-                            <label>Product Price [CZK]</label>
-                            <input value={this.props.ordersPageStore.products[this.state.products[i].name].price} readOnly></input>
-                        </Form.Field>
-                        <Form.Input
-                            label='Product Count'
-                            fluid
-                            value={this.state.products[i].count}
-                            onChange={(e, m) => this.handleOnChange(e, m, {
-                                price: this.props.ordersPageStore.products[this.state.products[i].name].price,
-                                name: this.state.products[i].name,
-                                index: i,
-                                count: m.value
-                            })} />
-                        <Form.Field>
-                            <label>Total Product Price</label>
-                            <input readOnly value={(this.props.ordersPageStore.products[this.state.products[i].name].price * this.state.products[i].count).toString()}></input>
-                        </Form.Field>
-                        <Divider />
-                    </React.Fragment>
-                )
-            }
-        }
+        })
 
-        return pica;
+        // add new product
+        let i = this.state.orderToEdit.products.length + 1;
+
+        result.push(
+            <React.Fragment key={i}>
+                <Form.Field>
+                    <label>Product Name</label>
+                    <Dropdown
+                        selection
+                        onChange={(e, m) => this.handleProductOnChange(e, m, i, { productName: m.value, count: 1, pricePerOne: this.props.ordersPageStore.products[m.value].price })}
+                        options={Object.keys(this.props.ordersPageStore.products).map(x =>
+                            ({
+                                value: x,
+                                text: x
+                            })
+                        )}
+                        fluid
+                        selectOnBlur={false}
+                        selectOnNavigation={false}
+                        placeholder='Type to search...'
+                        search
+                    />
+                </Form.Field>
+                <Form.Field>
+                    <label>Product Price [CZK]</label>
+                    <input value="" readOnly></input>
+                </Form.Field>
+                <Form.Field>
+                    <label>Product Count</label>
+                    <input value="" readOnly></input>
+                </Form.Field>
+                <Form.Field>
+                    <label>Total Product Price</label>
+                    <input readOnly value=""></input>
+                </Form.Field>
+            </React.Fragment>
+        )
+
+        return result;
     }
 
     handleToggleDeliveryButtons = (prop, type) => {
@@ -290,6 +228,28 @@ class OrderDetails extends React.Component {
     }
 
     save = (order) => {
+
+        order.address.street = document.getElementById("hiddenStreet").value
+        order.address.city = document.getElementById("city").value
+        order.address.psc = document.getElementById("zip").value
+        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+
+
+        if (order.deliveryType === deliveryTypes[1].type) {
+            delete order.deliveryCompany
+            delete order.payment.cashOnDelivery
+            delete order.payment.vs
+            delete order.payment.price
+        }
+
+        var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+        saveOrder(order, user)
+            .then(() => {
+                this.props.history.push('/orders')
+            })
+            .catch((res) => {
+                alert(res)
+            })
         // pri cash order smazat cashOnDelivery a deliveryCompany
     }
 
@@ -326,6 +286,19 @@ class OrderDetails extends React.Component {
 
         if (this.props.isMobile) {
             // mobile
+            var buttons = (
+                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                    <Button onClick={() => this.save(this.state.orderToEdit)} fluid size='medium' compact content='Save' id="primaryButton" />
+                    <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
+                    <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                        <Button
+                            style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
+                            compact content='Back'
+                        />
+                    </Link>
+                </Grid.Column>
+            )
+
             grid = (
                 <Grid stackable>
                     <Grid.Row>
@@ -334,16 +307,7 @@ class OrderDetails extends React.Component {
                                 {'Edit Order'}
                             </Header>
                         </Grid.Column>
-                        <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                            <Button fluid size='medium' compact content='Save' id="primaryButton" />
-                            <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
-                                <Button
-                                    style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                                    compact content='Back'
-                                />
-                            </Link>
-                        </Grid.Column>
+                        {buttons}
                     </Grid.Row>
                     <Grid.Row columns='equal'>
                         <Grid.Column>
@@ -461,7 +425,7 @@ class OrderDetails extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <label>Total price [CZK]</label>
+                                    <label><b>Total price [CZK]</b></label>
                                     {/* <label style={{marginBottom: '0.5em'}} ><b>Total price [CZK]</b></label> */}
                                     <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice()} ></input>
                                     <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
@@ -470,16 +434,7 @@ class OrderDetails extends React.Component {
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
-                        <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                            <Button fluid size='medium' compact content='Save' id="primaryButton" />
-                            <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
-                                <Button
-                                    style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                                    compact content='Back'
-                                />
-                            </Link>
-                        </Grid.Column>
+                        {buttons}
                     </Grid.Row>
                 </Grid >
             )
@@ -524,7 +479,8 @@ class OrderDetails extends React.Component {
 
 function mapStateToProps(state) {
     return {
-        ordersPageStore: state.OrdersReducer
+        ordersPageStore: state.OrdersReducer,
+        loginPageStore: state.LoginReducer
     };
 }
 

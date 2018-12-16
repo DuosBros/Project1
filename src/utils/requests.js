@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API } from '../appConfig';
 
+export function saveOrder(order, user) {
+    return axios.put(MEDPHARMAVN_API + 'orders/' + order.id + '?username=' + user, order)
+}
+
 export function getAllProducts() {
     return axios.get(MEDPHARMAVN_API + 'products/allproducts')
 }
