@@ -52,7 +52,7 @@ class Login extends React.Component {
                 if (err.response.status === 403) {
                     this.setState({ authExceptionMessage: 'Wrong username or password' })
                 } else {
-                    this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
+                    this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response.statusText ? err.response.statusText : '' })
                 }
 
                 this.props.authenticationFailedAction();
@@ -71,7 +71,7 @@ class Login extends React.Component {
             errorMessage = (<Message error floating>
                 Failed to log in:
                                 <br />
-                {this.state.authExceptionMessage}
+                {this.state.authExceptionMessage} <br />
                 {this.state.authExceptionResponse}
             </Message>)
         }

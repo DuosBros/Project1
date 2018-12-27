@@ -45,3 +45,46 @@ html, body {
     background-color: #76767691;
     color: white
 }
+
+dl {
+    margin-top: 0;
+    margin-bottom: 20px;
+    box-sizing: border-box;
+}
+
+dt {
+    font-weight: 700;
+}
+
+dd, dt {
+    line-height: 1.42857143;
+    box-sizing: border-box;
+}
+
+dd {
+    margin-left: 0;
+}
+
+.dl-horizontal dd:after,.dl-horizontal dd:before {
+    display: table;
+    content: " "
+}
+
+.dl-horizontal dd:after {
+    clear: both
+}
+
+@media (min-width: 768px) {
+    .dl-horizontal dt {
+        float: left;
+        width: 160px;
+        overflow: hidden;
+        clear: left;
+        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .dl-horizontal dd {
+        margin-left: 180px;
+    }
+}

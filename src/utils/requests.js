@@ -1,8 +1,20 @@
 import axios from 'axios';
-import { MEDPHARMAVN_API } from '../appConfig';
+import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
 export function verifyLock(orderId, user) {
     return axios.get(MEDPHARMAVN_API + 'orders/' + orderId + '/lock?username=' + user)
+}
+
+export function lockOrder(orderId, user, seconds) {
+    if (!seconds) {
+        seconds = DEFAULT_ORDER_LOCK_SECONDS
+    }
+
+    return axios.put(MEDPHARMAVN_API + 'orders/' + orderId + '/lock?username=' + user + "&seconds=" + seconds)
+}
+
+export function unlockOrder(orderId, user) {
+    return axios.put(MEDPHARMAVN_API + 'orders/' + orderId + '/unlock?username=' + user)
 }
 
 export function saveOrder(order, user) {

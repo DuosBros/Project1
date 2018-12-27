@@ -2,20 +2,26 @@ import React from 'react';
 import { Table } from 'semantic-ui-react';
 
 const SimpleTable = (props) => (
-    <Table compact basic='very' size='small'>
+
+    <Table compact={props.compact} basic='very' size='small'>
         <Table.Header>
             <Table.Row>
-            {
-                props.columnProperties.map(property => {
-                    return (
-                        <Table.HeaderCell key={property.name} width={property.width} content={property.name} />
-                    )
-                })
-            }
+                {
+                    props.showHeader ?
+                    (props.columnProperties.map(property => {
+                        return (
+                            <Table.HeaderCell
+                                key={property.name}
+                                width={property.collapsing ? null : property.width}
+                                content={property.name}
+                                collapsing={property.collapsing} />
+                        )
+                    })) : null
+                }
             </Table.Row>
         </Table.Header>
         <Table.Body>
-            { props.body }   
+            {props.body}
         </Table.Body>
     </Table>
 

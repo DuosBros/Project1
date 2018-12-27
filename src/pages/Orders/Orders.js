@@ -9,10 +9,10 @@ import { Link } from 'react-router-dom';
 import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction, getMoreOrdersAction
+    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction, getMoreOrdersAction, showGenericModalAction
 } from '../../utils/actions';
 
-import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT } from '../../appConfig'
+import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
 import SimpleTable from '../../components/SimpleTable';
 import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
@@ -38,7 +38,8 @@ class Orders extends React.Component {
             showMultiSearchFilter: false,
             ordersLimit: GET_ORDERS_LIMIT,
             isFromDetails: false,
-            inputWidth: 0
+            inputWidth: 0,
+            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         }
 
         this.updateFilters = debounce(this.updateFilters, 400);
@@ -68,18 +69,20 @@ class Orders extends React.Component {
         this.showTogglePaidOrdersButtonRef = React.createRef()
     }
 
-    // componentWillReceiveProps(nextProps) {
-
-    //     if(nextProps.location.state.fromDetails) {
-    //         this.setState({ isFromDetails: true });
-    //     }
-    // }
-
     openOrderDetails = (order) => {
-
-        // TODO implement this
         if (moment(order.lock.timestamp).isAfter(moment())) {
-            console.log("pica")
+            if(order.lock.username !== this.state.user) {
+                this.props.showGenericModalAction({
+                    modalContent: (
+                        <span>
+                            This order is locked by <b>{order.lock.username}</b>!
+                        </span>
+                    ),
+                    modalHeader: "Locked order",
+                    redirectTo: '/orders',
+                    parentProps: this.props
+                })
+            }
         }
         this.props.openOrderDetailsAction(order);
         var route = "/orders/" + order.id;
@@ -752,18 +755,18 @@ class Orders extends React.Component {
                                     <Grid.Column>
                                         <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
                                             <Input
-                                                style={{ width: this.state.inputWidth }}
+                                                style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null}}
                                                 ref={this.handleRef}
                                                 fluid
                                                 name="multiSearchInput"
-                                                icon={
-                                                    <Icon
-                                                        name='delete'
-                                                        style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                                        circular
-                                                        link
-                                                        onClick={() => this.handleChange({}, {})} />
-                                                }
+                                                // icon={
+                                                //     <Icon
+                                                //         name='delete'
+                                                //         style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
+                                                //         circular
+                                                //         link
+                                                //         onClick={() => this.handleChange({}, {})} />
+                                                // }
                                                 placeholder='Search...'
                                                 onChange={this.handleChange}
                                                 value={this.state.multiSearchInputValue} />
@@ -826,22 +829,25 @@ class Orders extends React.Component {
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
                             <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
-                                <Input
-                                    style={{ width: this.state.inputWidth }}
-                                    ref={this.handleRef}
-                                    fluid
-                                    name="multiSearchInput"
-                                    icon={
-                                        <Icon
-                                            name='delete'
-                                            style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                            circular
-                                            link
-                                            onClick={() => this.handleChange({}, {})} />
-                                    }
-                                    placeholder='Search...'
-                                    onChange={this.handleChange}
-                                    value={this.state.multiSearchInputValue} />
+                                <>
+                                    <Input
+                                        style={{ width: this.state.inputWidth }}
+                                        ref={this.handleRef}
+
+                                        name="multiSearchInput"
+                                        // icon={
+
+                                        // }
+                                        placeholder='Search...'
+                                        onChange={this.handleChange}
+                                        value={this.state.multiSearchInputValue} />
+                                    {/* <Icon
+                                        name='delete'
+                                        style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
+                                        circular
+                                        link
+                                        onClick={() => this.handleChange({}, {})} /> */}
+                                </>
                             </Transition>
                             {
                                 this.state.showMultiSearchFilter ? (
@@ -939,7 +945,8 @@ function mapDispatchToProps(dispatch) {
         getWarehouseNotificationsAction,
         isGetWarehouseNotificationsAction,
         isGetNotPaidNotificationsAction,
-        getMoreOrdersAction
+        getMoreOrdersAction,
+        showGenericModalAction
     }, dispatch);
 }
 
