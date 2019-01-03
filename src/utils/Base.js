@@ -16,6 +16,7 @@ import Bank from '../pages/Bank/Bank';
 
 import { getOrdersAction } from '../utils/actions';
 import OrderDetails from '../pages/Orders/OrderDetails';
+import AddOrder from '../pages/Orders/AddOrder';
 
 class Base extends React.Component {
 
@@ -47,7 +48,7 @@ class Base extends React.Component {
             <Switch>
                 <Redirect exact from='/' to='/orders' />
                 <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
-                <Route path='/orders/new' render={(props) => <OrderDetails {...props} isMobile={isMobile} />} />
+                <Route path='/orders/new' render={(props) => <AddOrder {...props} isMobile={isMobile} />} />
                 <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} orderToEdit={this.props.ordersPageStore.orderToEdit} />} />
                 <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
                 <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />

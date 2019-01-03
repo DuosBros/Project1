@@ -1,5 +1,9 @@
 // export const MEDPHARMAVN_API = "https://medpharmavn.herokuapp.com/rest/"
 export const MEDPHARMAVN_API = "http://localhost:3000/rest/"
+export const SMARTFORM_API = "http://smartform.cz/smartform-ws/oracle/v4"
+
+export const SMARTFORM_KEY = "KQVrc9iW"
+export const DEFAULT_SMARTFORM_LIMIT = 10
 
 export const LOCALSTORAGE_NAME = 'showBubsAndVagena'
 
@@ -28,6 +32,7 @@ export const DEFAULT_ORDER_LOCK_SECONDS = 10
 // 24.11. 2040
 // 27.11. 2451
 // 16.12. 3281
+// 27.12. 3892
 
 
-// set lock o 10s při otevření ordery
+// zbarvit backgorund red když product neni už ve WH

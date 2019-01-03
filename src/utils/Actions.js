@@ -1,3 +1,10 @@
+export function getAddressSuggestionsAction(payload) {
+    return {
+        payload,
+        type: 'GET_ADDRESS_SUGGESTIONS'
+    }
+}
+
 export function showGenericModalAction(payload) {
     return {
         payload,

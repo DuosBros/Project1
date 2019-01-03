@@ -1,5 +1,21 @@
 import axios from 'axios';
-import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
+import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS, SMARTFORM_API, SMARTFORM_KEY, DEFAULT_SMARTFORM_LIMIT } from '../appConfig';
+
+export function getAddressSuggestions(street) {
+    var payload = {
+        "fieldType": "STREET_AND_NUMBER",
+        "values": {
+            "STREET_AND_NUMBER": street,
+            "CITY": "",
+            "ZIP": "",
+            "COUNTRY": "CZ"
+        },
+        "limit": DEFAULT_SMARTFORM_LIMIT,
+        "password": SMARTFORM_KEY
+    }
+
+    return axios.post(SMARTFORM_API, payload)
+}
 
 export function verifyLock(orderId, user) {
     return axios.get(MEDPHARMAVN_API + 'orders/' + orderId + '/lock?username=' + user)
@@ -46,7 +62,7 @@ export function getOrder(id) {
 }
 
 export function getCurrentYearOrders(limit, sinceId) {
-    var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
+    var from = new Date(new Date().getUTCFullYear() - 1, 0, 0, 24, 59, 59).toISOString();
     var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
 
     if (!limit) {

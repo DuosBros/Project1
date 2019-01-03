@@ -532,7 +532,7 @@ class Orders extends React.Component {
                             textAlign='center'
                             key={order._id}>
                             <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}>{order.address.lastName + " " + order.address.firstName}</Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}><b>{order.totalPrice} Kč</b></Table.Cell>
@@ -721,7 +721,7 @@ class Orders extends React.Component {
                         {this.state.mobileShowHeader && (
                             <>
                                 <Grid.Row style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                                    <Button fluid size='small' content='Add Order' id="primaryButton" />
+                                    <Button onClick={() => this.props.history.push('orders/new')} fluid size='small' content='Add Order' id="primaryButton" />
                                     <Button onClick={() => this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })} style={{ marginTop: '0.5em' }} fluid size='small' compact content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"} />
                                 </Grid.Row>
                                 {

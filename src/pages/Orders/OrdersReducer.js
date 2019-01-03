@@ -7,7 +7,8 @@ const ordersPageInitialState = {
     isNotPaidNotificationsDone: false,
     isLoadingDone: false,
     orderToEdit: {},
-    products: []
+    products: [],
+    addressSuggestions: []
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -18,10 +19,6 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
             return Object.assign({}, state, { orders: action.payload })
         case 'OPEN_ORDER_DETAILS':
             return Object.assign({}, state, { orderToEdit: action.payload })
-        // return {
-        //     ...state,
-        //     ordersDetails: state.ordersDetails.concat(action.payload)
-        // }
         case 'GET_WAREHOUSE_NOTIFICATIONS':
             return Object.assign({}, state, { warehouseNotifications: action.payload })
         case 'GET_NOT_PAID_NOTIFICATIONS':
@@ -35,6 +32,8 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
                 ...state,
                 orders: [...state.orders, ...action.payload]
             }
+        case 'GET_ADDRESS_SUGGESTIONS':
+            return Object.assign({}, state, { addressSuggestions: action.payload.suggestions })
         default:
             return state;
     }

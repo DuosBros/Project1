@@ -4,21 +4,16 @@ import { bindActionCreators } from 'redux';
 import { Grid, Header, Button, Message, Icon, Segment, Form, Dropdown, Divider, Label } from 'semantic-ui-react';
 import _ from 'lodash';
 import { Link } from 'react-router-dom';
-import { deliveryTypes, deliveryCompanies } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { getAllProducts, getOrder } from '../../utils/requests';
 
-class OrderDetails extends React.Component {
+class AddOrder extends React.Component {
     constructor(props) {
         super(props);
 
-        //todo remove props
         this.state = {
-            deliveryPrice: 0,
-            products: null,
-            productCounter: null,
-            smartformStreetAndNumber: "",
-            eraseAddress: false
+            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         }
 
         if (_.isEmpty(props.ordersPageStore.orderToEdit)) {
@@ -36,8 +31,13 @@ class OrderDetails extends React.Component {
         else {
             this.state.orderToEdit = props.ordersPageStore.orderToEdit
         }
+    }
 
-
+    componentDidMount() {
+        if(this.props.ordersPageStore.products.length === 0) {
+            getAllProducts()
+                .then(res => this.props.getAllProductsAction(res.data))
+        }
     }
 
     // OK
@@ -50,12 +50,6 @@ class OrderDetails extends React.Component {
                 document.getElementById("zip").value = this.state.orderToEdit.address.psc
             }
         }
-    }
-
-    // OK
-    componentDidMount() {
-        getAllProducts()
-            .then(res => this.props.getAllProductsAction(res.data))
     }
 
     // remove this
@@ -479,4 +473,4 @@ function mapDispatchToProps(dispatch) {
     }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(OrderDetails);
+export default connect(mapStateToProps, mapDispatchToProps)(AddOrder);
