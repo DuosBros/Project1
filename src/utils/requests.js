@@ -1,6 +1,14 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS, SMARTFORM_API, SMARTFORM_KEY, DEFAULT_SMARTFORM_LIMIT } from '../appConfig';
 
+export function getInvoice(orderId) {
+    return axios.get(MEDPHARMAVN_API + "pdf/orders/" + orderId)
+}
+
+export function getAllZaslatOrders() {
+    return axios.get(MEDPHARMAVN_API + 'zaslat/orders/list')
+}
+
 export function getAddressSuggestions(street) {
     var payload = {
         "fieldType": "STREET_AND_NUMBER",
@@ -14,7 +22,7 @@ export function getAddressSuggestions(street) {
         "password": SMARTFORM_KEY
     }
 
-    return axios.post(SMARTFORM_API, payload)
+    return axios.post(MEDPHARMAVN_API + "smartform", payload)
 }
 
 export function verifyLock(orderId, user) {

@@ -1,3 +1,10 @@
+export function getAllZaslatOrdersAction(payload) {
+    return {
+        payload,
+        type: 'GET_ZASLAT_ORDERS'
+    }
+}
+
 export function getAddressSuggestionsAction(payload) {
     return {
         payload,

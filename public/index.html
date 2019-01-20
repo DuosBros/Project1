@@ -16,7 +16,8 @@
 
     <script type="text/javascript" src="https://secure.smartform.cz/api/v1/smartform.js"></script>
     <script type="text/javascript">
-        window.smartform = smartform;
+        window.smartform = smartform || {};
+
         window.smartform.beforeInit = function initialize() {
             window.smartform.setClientId('DmCPAYuzJ1');
         }

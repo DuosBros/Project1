@@ -15,7 +15,9 @@ class OrderDetails extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+            streetAndNumberInput: null,
+            dropdownAddressSugestionInput: "",
+            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
         }
 
         // check if order is locked
@@ -105,11 +107,11 @@ class OrderDetails extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (this.props.match && this.props.match.params) {
-            // if (!_.isEmpty(this.state.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
-            //     document.getElementById("streetAndNumber").value = this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber
-            //     document.getElementById("city").value = this.state.orderToEdit.address.city
-            //     document.getElementById("zip").value = this.state.orderToEdit.address.psc
-            // }
+            if (!_.isEmpty(this.state.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
+                document.getElementById("streetAndNumber").value = this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber
+                document.getElementById("city").value = this.state.orderToEdit.address.city
+                document.getElementById("zip").value = this.state.orderToEdit.address.psc
+            }
         }
     }
 
@@ -123,7 +125,16 @@ class OrderDetails extends React.Component {
                 .then(res => this.props.getAllProductsAction(res.data))
         }
 
+        setInterval(() => {
+            if(window.smartform && !window.smartformReloaded) {
+                window.smartformReloaded = true
+                window.smartform.rebindAllForms(true);
+            }
+        }, 1000);
+        
+
         this.intervalId = setInterval(() => {
+
             lockOrder(this.props.ordersPageStore.orderToEdit.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
         }, DEFAULT_ORDER_LOCK_SECONDS * 1000)
 
@@ -131,7 +142,6 @@ class OrderDetails extends React.Component {
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
-
         if (_.isNaN(product.count)) {
             product.count = ""
         }
@@ -172,15 +182,20 @@ class OrderDetails extends React.Component {
         this.setState({ orderToEdit: o });
     }
 
-    getTotalPrice = () => {
+    getTotalPrice = (raw) => {
         var sum = this.state.orderToEdit.payment.price
 
         this.state.orderToEdit.products.forEach(product => {
             sum += product.count * product.pricePerOne
         });
 
-        // adding space after 3 digits
-        return sum.toLocaleString('cs-CZ');
+        if (raw) {
+            return sum
+        }
+        else {
+            // adding space after 3 digits
+            return sum.toLocaleString('cs-CZ');
+        }
     }
 
     // render products segment
@@ -248,7 +263,7 @@ class OrderDetails extends React.Component {
         })
 
         // add new product
-        let i = this.state.orderToEdit.products.length + 1;
+        let i = this.state.orderToEdit.products.length;
 
         result.push(
             <React.Fragment key={i}>
@@ -293,11 +308,7 @@ class OrderDetails extends React.Component {
 
     saveOrder = (order) => {
 
-        order.address.street = document.getElementById("hiddenStreet").value
-        order.address.city = document.getElementById("city").value
-        order.address.psc = document.getElementById("zip").value
-        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
-
+        order.totalPrice = this.getTotalPrice(true);
 
         if (order.deliveryType === deliveryTypes[1].type) {
             delete order.deliveryCompany
@@ -324,119 +335,47 @@ class OrderDetails extends React.Component {
     }
 
     handleStreetAndNumberOnSearchChange = (e, { searchQuery }) => {
+        this.setState({ dropdownAddressSugestionInput: searchQuery, isDropdownShowing: true });
+
         getAddressSuggestions(searchQuery)
             .then(res => {
                 if (res) {
-                    if (res.resultCode === "OK" && res.errorMessage === null) {
-                        this.props.getAddressSuggestionsAction(res)
+                    if (res.data) {
+                        if (res.data.resultCode === "OK" && res.data.errorMessage === null) {
+                            this.props.getAddressSuggestionsAction(res.data.suggestions)
+                        }
                     }
                 }
             })
             .catch(err => {
-                var pica = {
-                    "resultCode": "OK",
-                    "errorMessage": null,
-                    "id": 0,
-                    "suggestions": [
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Boženy Němcové ",
-                                "STREET": "Boženy Němcové",
-                                "WHOLE_ADDRESS": "Boženy Němcové "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Bezručova ",
-                                "STREET": "Bezručova",
-                                "WHOLE_ADDRESS": "Bezručova "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Brněnská ",
-                                "STREET": "Brněnská",
-                                "WHOLE_ADDRESS": "Brněnská "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Petra Bezruče ",
-                                "STREET": "Petra Bezruče",
-                                "WHOLE_ADDRESS": "Petra Bezruče "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Březová ",
-                                "STREET": "Březová",
-                                "WHOLE_ADDRESS": "Březová "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Budějovická ",
-                                "STREET": "Budějovická",
-                                "WHOLE_ADDRESS": "Budějovická "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Březinova ",
-                                "STREET": "Březinova",
-                                "WHOLE_ADDRESS": "Březinova "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "třída Tomáše Bati ",
-                                "STREET": "třída Tomáše Bati",
-                                "WHOLE_ADDRESS": "třída Tomáše Bati "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Bří Čapků ",
-                                "STREET": "Bří Čapků",
-                                "WHOLE_ADDRESS": "Bří Čapků "
-                            }
-                        },
-                        {
-                            "fieldType": "STREET_AND_NUMBER",
-                            "wholeAddress": false,
-                            "values": {
-                                "STREET_AND_NUMBER": "Bratislavská ",
-                                "STREET": "Bratislavská",
-                                "WHOLE_ADDRESS": "Bratislavská "
-                            }
-                        }
-                    ]
-                }
-
-                this.props.getAddressSuggestionsAction(pica)
+                console.log(err)
             })
     }
 
     handleStreetAndNumberOnChange = (e, { value }) => {
-        this.handleStreetAndNumberOnSearchChange(null, { searchQuery: value })
+        this.setState({ isDropdownShowing: true });
+        // this.setState({ dropdownAddressSugestionInput: value });
+        var found = this.props.ordersPageStore.addressSuggestions.filter(x => {
+            return x.values.WHOLE_ADDRESS === value
+        })
+
+        if (found) {
+            var address = found[0]
+            if (address.wholeAddress) {
+                var o = Object.assign({}, this.state.orderToEdit)
+
+                o.address.street = address.values.STREET
+                o.address.city = address.values.CITY
+                o.address.psc = address.values.ZIP
+                o.address.streetNumber = address.values.NUMBER
+                this.setState({ orderToEdit: o, isDropdownShowing: false, searchQuery: address.values.WHOLE_ADDRESS, dropdownAddressSugestionInput: address.values.WHOLE_ADDRESS });
+            }
+            else {
+                this.handleStreetAndNumberOnSearchChange(null, { searchQuery: value })
+                this.setState({ isDropdownShowing: true });
+            }
+        }
+
     }
 
     render() {
@@ -469,6 +408,8 @@ class OrderDetails extends React.Component {
             orderToEdit = this.state.orderToEdit
         }
 
+        console.log(orderToEdit);
+
         if (this.props.isMobile) {
             // mobile
             var buttons = (
@@ -483,6 +424,7 @@ class OrderDetails extends React.Component {
                     </Link>
                 </Grid.Column>
             )
+            var pica = this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : orderToEdit.address.street + " " + orderToEdit.address.streetNumber
 
             grid = (
                 <Grid stackable>
@@ -502,20 +444,21 @@ class OrderDetails extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
                                     <Form.Field>
-                                        <label>
-                                            Street and number
-                                        </label>
-                                        <input id="streetAndNumber" type="text" className="smartform-street-and-number"></input>
+                                        <label>Street and number</label>
+                                        <input id="streetAndNumber" type="text" className="smartform-street-and-number" value={pica} onChange={(e) => this.setState({ streetAndNumberInput: e.target.value })}></input>
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
+                                        {/* <input disabled readOnly value={orderToEdit.address.street + " " + orderToEdit.address.streetNumber}></input> */}
                                     </Form.Field>
                                     <Form.Field>
                                         <label>City</label>
-                                        <input readOnly id="city" className="smartform-city"></input>
+                                        <input readOnly id="city" value={orderToEdit.address.city} className="smartform-city"></input>
+                                        {/* <input disabled readOnly ></input> */}
                                     </Form.Field>
                                     <Form.Field>
                                         <label>ZIP</label>
-                                        <input readOnly id="zip" className="smartform-zip"></input>
+                                        <input readOnly id="zip" value={orderToEdit.address.psc} className="smartform-zip"></input>
+                                        {/* <input disabled readOnly value={orderToEdit.address.psc}></input> */}
                                     </Form.Field>
                                     <Form.Input label='First Name' fluid value={orderToEdit.address.firstName} name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                     <Form.Input label='Last Name' fluid value={orderToEdit.address.lastName} name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
@@ -611,7 +554,7 @@ class OrderDetails extends React.Component {
                                 <Form className='form' size='large'>
                                     <label><b>Total price [CZK]</b></label>
                                     {/* <label style={{marginBottom: '0.5em'}} ><b>Total price [CZK]</b></label> */}
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice()} ></input>
+                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice(false)} ></input>
                                     <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
                                 </Form>
                             </Segment>
@@ -772,18 +715,15 @@ class OrderDetails extends React.Component {
                                         <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
-                                                    Street and number
+                                                    Search address
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Dropdown
-                                                        searchQuery={this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber}
-                                                        // id="pica,aaa"
-                                                        // className="mrdkaakokokot"
-                                                        // defaultValue={this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber}
-                                                        // value={this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber}
+                                                        searchQuery={this.state.dropdownAddressSugestionInput}
                                                         selection
+                                                        open={this.state.isDropdownShowing}
                                                         onSearchChange={this.handleStreetAndNumberOnSearchChange}
                                                         onChange={this.handleStreetAndNumberOnChange}
                                                         options={this.props.ordersPageStore.addressSuggestions.map(x =>
@@ -793,7 +733,7 @@ class OrderDetails extends React.Component {
                                                             })
                                                         )}
                                                         icon={null}
-                                                        searchInput = {{
+                                                        searchInput={{
                                                             autoComplete: 'picamrdka'
                                                         }}
                                                         fluid
@@ -801,32 +741,55 @@ class OrderDetails extends React.Component {
                                                         selectOnNavigation={false}
                                                         placeholder='Type to search address'
                                                         search
+                                                        icon={<Icon style={{ bottom: '0.5px' }} name="search"></Icon>}
                                                     />
-                                                    {/* <input id="streetAndNumber" className="smartform-street-and-number"></input> */}
                                                 </Form.Field>
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                            <Grid.Column width={4}>
+                                                <strong>
+                                                    Street and number
+                                                </strong>
+                                            </Grid.Column>
+                                            <Grid.Column width={12}>
+                                                <Form.Field>
+                                                    <Form.Input >
+                                                        <input disabled readOnly value={orderToEdit.address.street + " " + orderToEdit.address.streetNumber}></input>
+                                                    </Form.Input>
+                                                </Form.Field>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     City
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <input readOnly id="city" value={orderToEdit.address.city}></input>
+                                                <Form.Field>
+                                                    <Form.Input>
+                                                        <input disabled readOnly value={orderToEdit.address.city}></input>
+                                                    </Form.Input>
+                                                </Form.Field>
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     ZIP
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <input readOnly id="zip" value={orderToEdit.address.psc}></input>
+                                                <Form.Field>
+                                                    <Form.Input>
+                                                        <input disabled readOnly value={orderToEdit.address.psc}></input>
+                                                    </Form.Input>
+                                                </Form.Field>
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Divider></Divider>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     First Name
@@ -836,7 +799,7 @@ class OrderDetails extends React.Component {
                                                 <Form.Input fluid value={orderToEdit.address.firstName} name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Last Name
@@ -846,7 +809,7 @@ class OrderDetails extends React.Component {
                                                 <Form.Input fluid value={orderToEdit.address.lastName} name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Phone Number
@@ -856,7 +819,7 @@ class OrderDetails extends React.Component {
                                                 <Form.Input fluid value={orderToEdit.address.phone} name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '1em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Company
@@ -975,7 +938,7 @@ class OrderDetails extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='small'>
                                     <label><b>Total price [CZK]</b></label>
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice()} ></input>
+                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice(false)} ></input>
                                     <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
                                 </Form>
                             </Segment>
@@ -986,6 +949,26 @@ class OrderDetails extends React.Component {
         }
         return (
             <div>
+                {/* <form>
+                    <div>
+                        <input id="adresa" type="text" className="smartform-whole-address" />
+                    </div>
+
+                    <div>
+                        <label htmlFor="ulice">Ulice a číslo</label>
+                        <input id="ulice" type="text" className="smartform-street-and-number" />
+                        <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
+                        <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
+                    </div>
+                    <div>
+                        <label htmlFor="obec">Obec</label>
+                        <input id="obec" type="text" className="smartform-city" />
+                    </div>
+                    <div>
+                        <label htmlFor="psc">PSČ</label>
+                        <input id="psc" type="text" className="smartform-zip" />
+                    </div>
+                </form> */}
                 {grid}
             </div>
         )

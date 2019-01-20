@@ -16,21 +16,6 @@ class AddOrder extends React.Component {
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         }
 
-        if (_.isEmpty(props.ordersPageStore.orderToEdit)) {
-            getOrder(this.props.match.params.id)
-                .then(res => {
-                    if (res.data === null) {
-                        alert("Could not open order " + this.props.match.params.id);
-                        this.props.history.push('/orders')
-
-                    }
-                    this.state.orderToEdit = res.data
-                    this.props.openOrderDetailsAction(res.data)
-                })
-        }
-        else {
-            this.state.orderToEdit = props.ordersPageStore.orderToEdit
-        }
     }
 
     componentDidMount() {
@@ -245,22 +230,7 @@ class AddOrder extends React.Component {
         console.log(this.state.products)
         console.log("state")
         console.log(this.state)
-        var orderToEdit;
-        if (_.isEmpty(this.state.orderToEdit)) {
-            return (
-                <div className="centered">
-                    <Message info icon>
-                        <Icon name='circle notched' loading />
-                        <Message.Content>
-                            <Message.Header>Loading order details</Message.Header>
-                        </Message.Content>
-                    </Message>
-                </div>
-            )
-        }
-        else {
-            orderToEdit = this.state.orderToEdit
-        }
+        var orderToEdit = this.state.orderToEdit
 
         if (this.props.isMobile) {
             // mobile
@@ -307,10 +277,10 @@ class AddOrder extends React.Component {
                                         <label>ZIP</label>
                                         <input readOnly id="zip" className="smartform-zip"></input>
                                     </Form.Field>
-                                    <Form.Input label='First Name' fluid value={orderToEdit.address.firstName} name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Last Name' fluid value={orderToEdit.address.lastName} name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Phone Number' fluid value={orderToEdit.address.phone} name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Company' fluid value={orderToEdit.address.company} name='company' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='First Name' fluid  name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Last Name' fluid  name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Phone Number' fluid  name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input label='Company' fluid  name='company' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -320,8 +290,8 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <Form.Input label='Delivery Price [CZK]' fluid value={orderToEdit.payment.price} name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
-                                    <Form.Input label='VS' fluid value={orderToEdit.payment.vs} name='vs' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                    <Form.Input label='Delivery Price [CZK]' fluid  name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                    <Form.Input label='VS' fluid name='vs' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><b>Payment type</b></label>
                                         <Button.Group fluid size='medium'>

@@ -3,7 +3,7 @@ import { Table } from 'semantic-ui-react';
 
 const SimpleTable = (props) => (
 
-    <Table compact={props.compact} basic='very' size='small'>
+    <Table stackable compact={props.compact} basic='very' size='small'>
         <Table.Header>
             <Table.Row>
                 {

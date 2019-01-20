@@ -33,7 +33,7 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
                 orders: [...state.orders, ...action.payload]
             }
         case 'GET_ADDRESS_SUGGESTIONS':
-            return Object.assign({}, state, { addressSuggestions: action.payload.suggestions })
+            return Object.assign({}, state, { addressSuggestions: action.payload })
         default:
             return state;
     }
