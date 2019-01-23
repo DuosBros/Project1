@@ -117,6 +117,8 @@ class OrderDetails extends React.Component {
 
     componentWillUnmount() {
         clearInterval(this.intervalId);
+        clearInterval(this.smartformInterval)
+        window.smartformReloaded = false
     }
 
     componentDidMount() {
@@ -125,13 +127,13 @@ class OrderDetails extends React.Component {
                 .then(res => this.props.getAllProductsAction(res.data))
         }
 
-        setInterval(() => {
-            if(window.smartform && !window.smartformReloaded) {
+        this.smartformInterval = setInterval(() => {
+            if (window.smartform && !window.smartformReloaded) {
                 window.smartformReloaded = true
                 window.smartform.rebindAllForms(true);
             }
-        }, 1000);
-        
+        }, 5000);
+
 
         this.intervalId = setInterval(() => {
 
@@ -308,6 +310,11 @@ class OrderDetails extends React.Component {
 
     saveOrder = (order) => {
 
+        order.address.street = document.getElementById("hiddenStreet").value
+        order.address.city = document.getElementById("city").value
+        order.address.psc = document.getElementById("zip").value
+        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+
         order.totalPrice = this.getTotalPrice(true);
 
         if (order.deliveryType === deliveryTypes[1].type) {
@@ -410,6 +417,8 @@ class OrderDetails extends React.Component {
 
         console.log(orderToEdit);
 
+        var pica = this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : orderToEdit.address.street + " " + orderToEdit.address.streetNumber
+
         if (this.props.isMobile) {
             // mobile
             var buttons = (
@@ -424,7 +433,6 @@ class OrderDetails extends React.Component {
                     </Link>
                 </Grid.Column>
             )
-            var pica = this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : orderToEdit.address.street + " " + orderToEdit.address.streetNumber
 
             grid = (
                 <Grid stackable>
@@ -445,7 +453,7 @@ class OrderDetails extends React.Component {
                                 <Form className='form' size='large'>
                                     <Form.Field>
                                         <label>Street and number</label>
-                                        <input id="streetAndNumber" type="text" className="smartform-street-and-number" value={pica} onChange={(e) => this.setState({ streetAndNumberInput: e.target.value })}></input>
+                                        <input name="toto-neni-ulice" id="streetAndNumber" type="text" className="smartform-street-and-number" value={pica} onChange={(e) => this.setState({ streetAndNumberInput: e.target.value })}></input>
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                         {/* <input disabled readOnly value={orderToEdit.address.street + " " + orderToEdit.address.streetNumber}></input> */}
@@ -712,40 +720,6 @@ class OrderDetails extends React.Component {
                             <Segment attached='bottom'>
                                 <Form size='small'>
                                     <Grid>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                            <Grid.Column width={4}>
-                                                <strong>
-                                                    Search address
-                                                </strong>
-                                            </Grid.Column>
-                                            <Grid.Column width={12}>
-                                                <Form.Field>
-                                                    <Dropdown
-                                                        searchQuery={this.state.dropdownAddressSugestionInput}
-                                                        selection
-                                                        open={this.state.isDropdownShowing}
-                                                        onSearchChange={this.handleStreetAndNumberOnSearchChange}
-                                                        onChange={this.handleStreetAndNumberOnChange}
-                                                        options={this.props.ordersPageStore.addressSuggestions.map(x =>
-                                                            ({
-                                                                value: x.values.WHOLE_ADDRESS,
-                                                                text: x.values.WHOLE_ADDRESS
-                                                            })
-                                                        )}
-                                                        icon={null}
-                                                        searchInput={{
-                                                            autoComplete: 'picamrdka'
-                                                        }}
-                                                        fluid
-                                                        selectOnBlur={false}
-                                                        selectOnNavigation={false}
-                                                        placeholder='Type to search address'
-                                                        search
-                                                        icon={<Icon style={{ bottom: '0.5px' }} name="search"></Icon>}
-                                                    />
-                                                </Form.Field>
-                                            </Grid.Column>
-                                        </Grid.Row>
                                         <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
                                             <Grid.Column width={4}>
                                                 <strong>
@@ -755,7 +729,9 @@ class OrderDetails extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input >
-                                                        <input disabled readOnly value={orderToEdit.address.street + " " + orderToEdit.address.streetNumber}></input>
+                                                        <input id="streetAndNumber" type="text" className="smartform-street-and-number" value={pica} onChange={(e) => this.setState({ streetAndNumberInput: e.target.value })}></input>
+                                                        <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
+                                                        <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                                     </Form.Input>
                                                 </Form.Field>
                                             </Grid.Column>
@@ -769,7 +745,7 @@ class OrderDetails extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input>
-                                                        <input disabled readOnly value={orderToEdit.address.city}></input>
+                                                        <input readOnly id="city" value={orderToEdit.address.city} className="smartform-city"></input>
                                                     </Form.Input>
                                                 </Form.Field>
                                             </Grid.Column>
@@ -783,7 +759,7 @@ class OrderDetails extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input>
-                                                        <input disabled readOnly value={orderToEdit.address.psc}></input>
+                                                        <input readOnly id="zip" value={orderToEdit.address.psc} className="smartform-zip"></input>
                                                     </Form.Input>
                                                 </Form.Field>
                                             </Grid.Column>
@@ -949,26 +925,6 @@ class OrderDetails extends React.Component {
         }
         return (
             <div>
-                {/* <form>
-                    <div>
-                        <input id="adresa" type="text" className="smartform-whole-address" />
-                    </div>
-
-                    <div>
-                        <label htmlFor="ulice">Ulice a číslo</label>
-                        <input id="ulice" type="text" className="smartform-street-and-number" />
-                        <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
-                        <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
-                    </div>
-                    <div>
-                        <label htmlFor="obec">Obec</label>
-                        <input id="obec" type="text" className="smartform-city" />
-                    </div>
-                    <div>
-                        <label htmlFor="psc">PSČ</label>
-                        <input id="psc" type="text" className="smartform-zip" />
-                    </div>
-                </form> */}
                 {grid}
             </div>
         )

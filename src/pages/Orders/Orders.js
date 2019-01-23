@@ -315,7 +315,6 @@ class Orders extends React.Component {
             })
             .then((res) => {
                 if (res) {
-                    throw new Error()
                     return getInvoice(order.id)
 
                 }
@@ -331,7 +330,6 @@ class Orders extends React.Component {
                 });
             })
             .catch(err => {
-                debugger
                 this.props.showGenericModalAction({
                     modalContent: (
                         <span>
