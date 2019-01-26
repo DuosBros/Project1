@@ -937,7 +937,7 @@ class Orders extends React.Component {
                             <Header as='h1' content='Orders' />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <Button fluid size='medium' compact content='Add Order' id="primaryButton" />
+                            <Button onClick={() => this.props.history.push('orders/new')} fluid size='medium' compact content='Add Order' id="primaryButton" />
                             <Button
                                 onClick={() => this.handlePrintLabelButtonOnClick()}
                                 style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : "secondaryButton"} fluid size='small'

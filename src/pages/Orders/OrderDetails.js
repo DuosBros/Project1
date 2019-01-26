@@ -341,50 +341,6 @@ class OrderDetails extends React.Component {
         this.setState({ orderToEdit: o });
     }
 
-    handleStreetAndNumberOnSearchChange = (e, { searchQuery }) => {
-        this.setState({ dropdownAddressSugestionInput: searchQuery, isDropdownShowing: true });
-
-        getAddressSuggestions(searchQuery)
-            .then(res => {
-                if (res) {
-                    if (res.data) {
-                        if (res.data.resultCode === "OK" && res.data.errorMessage === null) {
-                            this.props.getAddressSuggestionsAction(res.data.suggestions)
-                        }
-                    }
-                }
-            })
-            .catch(err => {
-                console.log(err)
-            })
-    }
-
-    handleStreetAndNumberOnChange = (e, { value }) => {
-        this.setState({ isDropdownShowing: true });
-        // this.setState({ dropdownAddressSugestionInput: value });
-        var found = this.props.ordersPageStore.addressSuggestions.filter(x => {
-            return x.values.WHOLE_ADDRESS === value
-        })
-
-        if (found) {
-            var address = found[0]
-            if (address.wholeAddress) {
-                var o = Object.assign({}, this.state.orderToEdit)
-
-                o.address.street = address.values.STREET
-                o.address.city = address.values.CITY
-                o.address.psc = address.values.ZIP
-                o.address.streetNumber = address.values.NUMBER
-                this.setState({ orderToEdit: o, isDropdownShowing: false, searchQuery: address.values.WHOLE_ADDRESS, dropdownAddressSugestionInput: address.values.WHOLE_ADDRESS });
-            }
-            else {
-                this.handleStreetAndNumberOnSearchChange(null, { searchQuery: value })
-                this.setState({ isDropdownShowing: true });
-            }
-        }
-
-    }
-
     render() {
         if (this.props.baseStore.showGenericModal) {
             return (
