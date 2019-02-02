@@ -9,6 +9,10 @@ export function getAllZaslatOrders() {
     return axios.get(MEDPHARMAVN_API + 'zaslat/orders/list')
 }
 
+export function getHighestVS() {
+    return axios.get(MEDPHARMAVN_API + "orders/vs/next")
+}
+
 export function getAddressSuggestions(street) {
     var payload = {
         "fieldType": "STREET_AND_NUMBER",
@@ -43,6 +47,10 @@ export function unlockOrder(orderId, user) {
 
 export function saveOrder(order, user) {
     return axios.put(MEDPHARMAVN_API + 'orders/' + order.id + '?username=' + user, order)
+}
+
+export function createOrder(order, user) {
+    return axios.post(MEDPHARMAVN_API + 'orders?username=' + user, order)
 }
 
 export function getAllProducts() {

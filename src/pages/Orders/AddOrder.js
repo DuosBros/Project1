@@ -6,8 +6,10 @@ import _ from 'lodash';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, getOrder, saveOrder } from '../../utils/requests';
+import { getAllProducts, getOrder, saveOrder, createOrder, getHighestVS } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
+import moment from 'moment';
+import { getGLSDeliveryPrice } from '../../utils/helpers';
 
 class AddOrder extends React.Component {
     constructor(props) {
@@ -16,7 +18,7 @@ class AddOrder extends React.Component {
         this.state = {
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
             orderToAdd: {
-
+                state: "active",
                 products: [],
                 deliveryType: 'vs',
                 deliveryCompany: 'gls',
@@ -71,6 +73,8 @@ class AddOrder extends React.Component {
 
         var o = Object.assign({}, this.state.orderToAdd)
         o.products[i] = product;
+
+        o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
 
         this.setState(() => ({
             orderToAdd: o
@@ -132,7 +136,8 @@ class AddOrder extends React.Component {
                                 {
                                     productName: m.value,
                                     count: 1,
-                                    pricePerOne: this.props.ordersPageStore.products[m.value].price
+                                    pricePerOne: this.props.ordersPageStore.products[m.value].price,
+                                    product: this.props.ordersPageStore.products[m.value]
                                 })}
                             options={Object.keys(this.props.ordersPageStore.products).map(x =>
                                 ({
@@ -186,7 +191,13 @@ class AddOrder extends React.Component {
                     <label>Product Name</label>
                     <Dropdown
                         selection
-                        onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, { productName: m.value, count: 1, pricePerOne: this.props.ordersPageStore.products[m.value].price })}
+                        onChange={(e, m) => this.handleProductDropdownOnChange(
+                            e, m, i, {
+                                productName: m.value,
+                                count: 1,
+                                pricePerOne: this.props.ordersPageStore.products[m.value].price,
+                                product: this.props.ordersPageStore.products[m.value]
+                            })}
                         options={Object.keys(this.props.ordersPageStore.products).map(x =>
                             ({
                                 value: x,
@@ -219,12 +230,18 @@ class AddOrder extends React.Component {
     }
 
     handleToggleDeliveryButtons = (prop, type) => {
-        this.setState({
-            orderToAdd: {
-                ...this.state.orderToAdd,
-                [prop]: type
-            }
-        });
+        debugger
+        var o = Object.assign({}, this.state.orderToAdd)
+        if (prop === "deliveryType" && type === deliveryTypes[0].type || prop === "deliveryCompany" && type === deliveryCompanies[0].company) {
+            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
+        }
+        else {
+            o.payment.price = 0
+        }
+
+        o[prop] = type
+
+        this.setState({ orderToAdd: o });
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
@@ -235,22 +252,34 @@ class AddOrder extends React.Component {
 
     saveOrder = (order) => {
 
-        order.address.street = document.getElementById("hiddenStreet").value
-        order.address.city = document.getElementById("city").value
-        order.address.psc = document.getElementById("zip").value
-        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
-
-        order.totalPrice = this.getTotalPrice(true);
-
         if (order.deliveryType === deliveryTypes[1].type) {
             delete order.deliveryCompany
             delete order.payment.cashOnDelivery
             delete order.payment.vs
             delete order.payment.price
         }
+        else {
+            getHighestVS()
+                .then(res => {
+                    order.payment.vs = res.data
+                })
+        }
+
+        order.address.street = document.getElementById("hiddenStreet").value
+        order.address.city = document.getElementById("city").value
+        order.address.psc = document.getElementById("zip").value
+        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+        order.payment.orderDate = moment().toISOString()
+        order.totalPrice = this.getTotalPrice(true);
+
+        order.address.firstName = document.getElementById("firstName").value
+        order.address.lastName = document.getElementById("lastName").value
+        order.address.phone = document.getElementById("phone").value
+        order.address.company = document.getElementById("company").value
+
 
         var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
-        saveOrder(order, user)
+        createOrder(order, user)
             .then(() => {
                 this.props.history.push('/orders')
             })
@@ -474,7 +503,8 @@ class AddOrder extends React.Component {
                                     {
                                         productName: m.value,
                                         count: 1,
-                                        pricePerOne: this.props.ordersPageStore.products[m.value].price
+                                        pricePerOne: this.props.ordersPageStore.products[m.value].price,
+                                        product: this.props.ordersPageStore.products[m.value]
                                     })}
                                 options={Object.keys(this.props.ordersPageStore.products).map(x =>
                                     ({
@@ -528,7 +558,13 @@ class AddOrder extends React.Component {
                     <Table.Cell colSpan={6}>
                         <Dropdown
                             selection
-                            onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i - 1, { productName: m.value, count: 1, pricePerOne: this.props.ordersPageStore.products[m.value].price })}
+                            onChange={(e, m) => this.handleProductDropdownOnChange(
+                                e, m, i - 1, {
+                                    productName: m.value,
+                                    count: 1,
+                                    pricePerOne: this.props.ordersPageStore.products[m.value].price,
+                                    product: this.props.ordersPageStore.products[m.value]
+                                })}
                             options={Object.keys(this.props.ordersPageStore.products).map(x =>
                                 ({
                                     value: x,
@@ -585,7 +621,7 @@ class AddOrder extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input >
-                                                        <input id="streetAndNumber" type="text" className="smartform-street-and-number"></input>
+                                                        <input id="streetAndNumber" name="nope" type="text" className="smartform-street-and-number"></input>
                                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                                     </Form.Input>
@@ -601,7 +637,7 @@ class AddOrder extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input>
-                                                        <input readOnly id="city" value={orderToAdd.address.city} className="smartform-city"></input>
+                                                        <input readOnly id="city" className="smartform-city"></input>
                                                     </Form.Input>
                                                 </Form.Field>
                                             </Grid.Column>
@@ -615,7 +651,7 @@ class AddOrder extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input>
-                                                        <input readOnly id="zip" value={orderToAdd.address.psc} className="smartform-zip"></input>
+                                                        <input readOnly id="zip" className="smartform-zip"></input>
                                                     </Form.Input>
                                                 </Form.Field>
                                             </Grid.Column>
@@ -628,7 +664,7 @@ class AddOrder extends React.Component {
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <Form.Input fluid value={orderToAdd.address.firstName} name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                                <Form.Input fluid id="firstName" name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
                                         <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
@@ -638,7 +674,7 @@ class AddOrder extends React.Component {
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <Form.Input fluid value={orderToAdd.address.lastName} name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                                <Form.Input fluid id='lastName' name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
                                         <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
@@ -648,7 +684,7 @@ class AddOrder extends React.Component {
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <Form.Input fluid value={orderToAdd.address.phone} name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                                <Form.Input fluid id='phone' name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
                                         <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '1em' }}>
@@ -658,11 +694,10 @@ class AddOrder extends React.Component {
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <Form.Input fluid value={orderToAdd.address.company} name='company' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                                <Form.Input fluid id='company' name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
                                     </Grid>
-
                                 </Form>
                             </Segment>
                             <Header block attached='top' as='h4'>

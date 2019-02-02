@@ -783,6 +783,16 @@ class OrderDetails extends React.Component {
                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
                                         <Grid.Column width={4}>
                                             <strong>
+                                                VS
+                                            </strong>
+                                        </Grid.Column>
+                                        <Grid.Column width={12}>
+                                            <Form.Input disabled fluid value={orderToEdit.payment.vs} name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                        <Grid.Column width={4}>
+                                            <strong>
                                                 Payment type
                                             </strong>
                                         </Grid.Column>

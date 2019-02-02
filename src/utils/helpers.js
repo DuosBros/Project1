@@ -1,3 +1,14 @@
+export const getGLSDeliveryPrice = (weight) => {
+    if (weight < 3000)
+        return 111
+    if (weight < 5000)
+        return 116
+    if (weight < 10000)
+        return 127
+    if (weight < 15000)
+        return 139
+}
+
 function trimString(s) {
     var l = 0, r = s.length - 1;
     while (l < s.length && s[l] === ' ') l++;
