@@ -6,10 +6,13 @@ import _ from 'lodash';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, getOrder, saveOrder, createOrder, getHighestVS } from '../../utils/requests';
+import { getAllProducts, getOrder, createOrder, getHighestVS } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
 import moment from 'moment';
 import { getGLSDeliveryPrice } from '../../utils/helpers';
+import { handleOrder, handleProductDropdownOnChangeHelper, getTotalPriceHelper, handleInputChangeHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
+import ProductRow from '../../components/ProductRow';
+import GenericModal from '../../components/GenericModal';
 
 class AddOrder extends React.Component {
     constructor(props) {
@@ -42,6 +45,8 @@ class AddOrder extends React.Component {
     componentWillUnmount() {
         clearInterval(this.smartformInterval)
         window.smartformReloaded = false
+
+        this.isCancelled = true;
     }
 
     componentDidMount() {
@@ -60,62 +65,23 @@ class AddOrder extends React.Component {
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
-        if (_.isNaN(product.count)) {
-            product.count = ""
+        var temp = handleProductDropdownOnChangeHelper(
+            product, this.state.orderToAdd, i)
+        if (!this.isCancelled) {
+            this.setState(() => ({
+                orderToAdd: temp
+            }))
         }
-
-        if (_.isNumber(product.count) || _.isNumber(product.pricePerOne)) {
-            product.totalPricePerProduct = product.pricePerOne * product.count
-        }
-        else {
-            product.totalPricePerProduct = ""
-        }
-
-        var o = Object.assign({}, this.state.orderToAdd)
-        o.products[i] = product;
-
-        o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
-
-        this.setState(() => ({
-            orderToAdd: o
-        }))
     }
 
     handleInputChange = (e, { name, value }, prop) => {
-        var o = Object.assign({}, this.state.orderToAdd)
-        if (_.isEmpty(prop)) {
-            if (_.isNumber(o[name])) {
-                o[name] = Number(value)
-            }
-            else {
-                o[name] = value
-            }
-        }
-        else {
-            if (_.isNumber(o[prop][name])) {
-                o[prop][name] = Number(value)
-            }
-            else {
-                o[prop][name] = value
-            }
-        }
-        this.setState({ orderToAdd: o });
+        var temp = handleInputChangeHelper(name, value, prop, this.state.orderToAdd);
+
+        this.setState({ orderToAdd: temp });
     }
 
     getTotalPrice = (raw) => {
-        var sum = this.state.orderToAdd.payment.price
-
-        this.state.orderToAdd.products.forEach(product => {
-            sum += product.count * product.pricePerOne
-        });
-
-        if (raw) {
-            return sum
-        }
-        else {
-            // adding space after 3 digits
-            return sum.toLocaleString('cs-CZ');
-        }
+        return getTotalPriceHelper(raw, this.state.orderToAdd);
     }
 
 
@@ -127,57 +93,11 @@ class AddOrder extends React.Component {
         result = this.state.orderToAdd.products.map((product, i) => {
             return (
                 <React.Fragment key={i}>
-                    <Form.Field>
-                        <label>Product Name</label>
-                        <Dropdown
-                            selection
-                            onChange={(e, m) => this.handleProductDropdownOnChange(
-                                e, m, i,
-                                {
-                                    productName: m.value,
-                                    count: 1,
-                                    pricePerOne: this.props.ordersPageStore.products[m.value].price,
-                                    product: this.props.ordersPageStore.products[m.value]
-                                })}
-                            options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                ({
-                                    value: x,
-                                    text: x
-                                })
-                            )}
-                            defaultValue={product.productName}
-                            fluid
-                            selectOnBlur={false}
-                            selectOnNavigation={false}
-                            placeholder='Type to search...'
-                            search
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Form.Input
-                            label='Product Price [CZK]'
-                            fluid
-                            value={product.pricePerOne}
-                            onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
-                                pricePerOne: m.value,
-                                productName: product.productName,
-                                count: product.count
-                            })} />
-                    </Form.Field>
-                    <Form.Input
-                        label='Product Count'
-                        fluid
-                        value={product.count}
-                        onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
-                            pricePerOne: product.pricePerOne,
-                            productName: product.productName,
-                            count: parseInt(m.value)
-                        })} />
-                    <Form.Field>
-                        <label>Total Product Price</label>
-                        <input readOnly value={product.totalPricePerProduct}></input>
-                    </Form.Field>
-                    <Divider style={{ borderColor: '#f20056' }} />
+                    <ProductRow
+                        allProducts={this.props.ordersPageStore.products}
+                        i={i}
+                        product={product}
+                        handleProductDropdownOnChange={this.handleProductDropdownOnChange} />
                 </React.Fragment>
             )
         })
@@ -188,16 +108,10 @@ class AddOrder extends React.Component {
         result.push(
             <React.Fragment key={i}>
                 <Form.Field>
-                    <label>Product Name</label>
+                    <label><Icon name='add' />Product Name</label>
                     <Dropdown
                         selection
-                        onChange={(e, m) => this.handleProductDropdownOnChange(
-                            e, m, i, {
-                                productName: m.value,
-                                count: 1,
-                                pricePerOne: this.props.ordersPageStore.products[m.value].price,
-                                product: this.props.ordersPageStore.products[m.value]
-                            })}
+                        onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, { productName: m.value, count: 1, pricePerOne: this.props.ordersPageStore.products[m.value].price })}
                         options={Object.keys(this.props.ordersPageStore.products).map(x =>
                             ({
                                 value: x,
@@ -207,21 +121,9 @@ class AddOrder extends React.Component {
                         fluid
                         selectOnBlur={false}
                         selectOnNavigation={false}
-                        placeholder='Type to search...'
+                        placeholder='Type to search & add...'
                         search
                     />
-                </Form.Field>
-                <Form.Field>
-                    <label>Product Price [CZK]</label>
-                    <input value="" readOnly></input>
-                </Form.Field>
-                <Form.Field>
-                    <label>Product Count</label>
-                    <input value="" readOnly></input>
-                </Form.Field>
-                <Form.Field>
-                    <label>Total Product Price</label>
-                    <input readOnly value=""></input>
                 </Form.Field>
             </React.Fragment>
         )
@@ -230,76 +132,38 @@ class AddOrder extends React.Component {
     }
 
     handleToggleDeliveryButtons = (prop, type) => {
-        debugger
-        var o = Object.assign({}, this.state.orderToAdd)
-        if (prop === "deliveryType" && type === deliveryTypes[0].type || prop === "deliveryCompany" && type === deliveryCompanies[0].company) {
-            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
-        }
-        else {
-            o.payment.price = 0
-        }
+        var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.orderToAdd);
 
-        o[prop] = type
-
-        this.setState({ orderToAdd: o });
+        this.setState({ orderToAdd: temp });
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var o = Object.assign({}, this.state.orderToAdd)
-        o.payment.cashOnDelivery = type
-        this.setState({ orderToAdd: o });
-    }
+        var temp = handleToggleBankAccountPaymentButtonsHelper(type);
 
-    saveOrder = (order) => {
-
-        if (order.deliveryType === deliveryTypes[1].type) {
-            delete order.deliveryCompany
-            delete order.payment.cashOnDelivery
-            delete order.payment.vs
-            delete order.payment.price
-        }
-        else {
-            getHighestVS()
-                .then(res => {
-                    order.payment.vs = res.data
-                })
-        }
-
-        order.address.street = document.getElementById("hiddenStreet").value
-        order.address.city = document.getElementById("city").value
-        order.address.psc = document.getElementById("zip").value
-        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
-        order.payment.orderDate = moment().toISOString()
-        order.totalPrice = this.getTotalPrice(true);
-
-        order.address.firstName = document.getElementById("firstName").value
-        order.address.lastName = document.getElementById("lastName").value
-        order.address.phone = document.getElementById("phone").value
-        order.address.company = document.getElementById("company").value
-
-
-        var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
-        createOrder(order, user)
-            .then(() => {
-                this.props.history.push('/orders')
-            })
-            .catch((res) => {
-                alert(res)
-            })
+        this.setState({ orderToAdd: temp });
     }
 
     removeProductFromOrder = (index) => {
-        var o = Object.assign({}, this.state.orderToAdd)
-        o.products.splice(index, 1);
+        var temp = removeProductFromOrder(index, this.state.orderToAdd);
 
-        this.setState({ orderToAdd: o });
+        this.setState({ orderToAdd: temp });
     }
 
     render() {
+        if (this.props.baseStore.showGenericModal) {
+            return (
+                <GenericModal
+                    show={this.props.baseStore.showGenericModal}
+                    header={this.props.baseStore.modal.modalHeader}
+                    content={this.props.baseStore.modal.modalContent}
+                    redirectTo={this.props.baseStore.modal.redirectTo}
+                    parentProps={this.props.baseStore.modal.parentProps}
+                    err={this.props.baseStore.modal.err} />)
+        }
 
         var grid;
         const { orderToAdd } = this.state;
-        var pica = this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : orderToAdd.address.street + " " + orderToAdd.address.streetNumber
+
         if (this.props.isMobile) {
             // mobile
             grid = (
@@ -583,7 +447,7 @@ class AddOrder extends React.Component {
 
             var buttons = (
                 <Grid.Column width={13}>
-                    <Button onClick={() => this.saveOrder(this.state.orderToAdd)} size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToAdd, "create")} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button
@@ -826,7 +690,8 @@ class AddOrder extends React.Component {
 
 function mapStateToProps(state) {
     return {
-        ordersPageStore: state.OrdersReducer
+        ordersPageStore: state.OrdersReducer,
+        baseStore: state.BaseReducer
     };
 }
 

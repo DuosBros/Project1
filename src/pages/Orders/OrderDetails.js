@@ -7,9 +7,11 @@ import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction, showGenericModalAction, getAddressSuggestionsAction } from '../../utils/actions';
-import { getAllProducts, getOrder, saveOrder, verifyLock, lockOrder, getAddressSuggestions } from '../../utils/requests';
+import { getAllProducts, getOrder, verifyLock, lockOrder } from '../../utils/requests';
 import GenericModal from '../../components/GenericModal';
 import SimpleTable from '../../components/SimpleTable';
+import { handleOrder, handleProductDropdownOnChangeHelper, handleInputChangeHelper, getTotalPriceHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
+import ProductRow from '../../components/ProductRow';
 
 class OrderDetails extends React.Component {
     constructor(props) {
@@ -144,60 +146,21 @@ class OrderDetails extends React.Component {
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
-        if (_.isNaN(product.count)) {
-            product.count = ""
-        }
-
-        if (_.isNumber(product.count) || _.isNumber(product.pricePerOne)) {
-            product.totalPricePerProduct = product.pricePerOne * product.count
-        }
-        else {
-            product.totalPricePerProduct = ""
-        }
-
-        var o = Object.assign({}, this.state.orderToEdit)
-        o.products[i] = product;
+        var temp = handleProductDropdownOnChangeHelper(product, this.state.orderToEdit, i);
 
         this.setState(() => ({
-            orderToEdit: o
+            orderToEdit: temp
         }))
     }
 
     handleInputChange = (e, { name, value }, prop) => {
-        var o = Object.assign({}, this.state.orderToEdit)
-        if (_.isEmpty(prop)) {
-            if (_.isNumber(o[name])) {
-                o[name] = Number(value)
-            }
-            else {
-                o[name] = value
-            }
-        }
-        else {
-            if (_.isNumber(o[prop][name])) {
-                o[prop][name] = Number(value)
-            }
-            else {
-                o[prop][name] = value
-            }
-        }
-        this.setState({ orderToEdit: o });
+        var temp = handleInputChangeHelper(name, value, prop, this.state.orderToEdit);
+
+        this.setState({ orderToEdit: temp });
     }
 
     getTotalPrice = (raw) => {
-        var sum = this.state.orderToEdit.payment.price
-
-        this.state.orderToEdit.products.forEach(product => {
-            sum += product.count * product.pricePerOne
-        });
-
-        if (raw) {
-            return sum
-        }
-        else {
-            // adding space after 3 digits
-            return sum.toLocaleString('cs-CZ');
-        }
+        return getTotalPriceHelper(raw, this.state.orderToEdit);
     }
 
     // render products segment
@@ -210,56 +173,11 @@ class OrderDetails extends React.Component {
         result = this.state.orderToEdit.products.map((product, i) => {
             return (
                 <React.Fragment key={i}>
-                    <Form.Field>
-                        <label>Product Name</label>
-                        <Dropdown
-                            selection
-                            onChange={(e, m) => this.handleProductDropdownOnChange(
-                                e, m, i,
-                                {
-                                    productName: m.value,
-                                    count: 1,
-                                    pricePerOne: this.props.ordersPageStore.products[m.value].price
-                                })}
-                            options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                ({
-                                    value: x,
-                                    text: x
-                                })
-                            )}
-                            defaultValue={product.productName}
-                            fluid
-                            selectOnBlur={false}
-                            selectOnNavigation={false}
-                            placeholder='Type to search...'
-                            search
-                        />
-                    </Form.Field>
-                    <Form.Field>
-                        <Form.Input
-                            label='Product Price [CZK]'
-                            fluid
-                            value={product.pricePerOne}
-                            onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
-                                pricePerOne: m.value,
-                                productName: product.productName,
-                                count: product.count
-                            })} />
-                    </Form.Field>
-                    <Form.Input
-                        label='Product Count [Pcs]'
-                        fluid
-                        value={product.count}
-                        onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
-                            pricePerOne: product.pricePerOne,
-                            productName: product.productName,
-                            count: parseInt(m.value)
-                        })} />
-                    <Form.Field>
-                        <label>Total Product Price [CZK]</label>
-                        <input readOnly value={product.totalPricePerProduct}></input>
-                    </Form.Field>
-                    <Divider style={{ borderColor: '#f20056' }} />
+                    <ProductRow
+                        allProducts={this.props.ordersPageStore.products}
+                        i={i}
+                        product={product}
+                        handleProductDropdownOnChange={this.handleProductDropdownOnChange} />
                 </React.Fragment>
             )
         })
@@ -294,51 +212,21 @@ class OrderDetails extends React.Component {
     }
 
     handleToggleDeliveryButtons = (prop, type) => {
-        this.setState({
-            orderToEdit: {
-                ...this.state.orderToEdit,
-                [prop]: type
-            }
-        });
+        var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.orderToEdit);
+
+        this.setState({ orderToAdd: temp });
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var o = Object.assign({}, this.state.orderToEdit)
-        o.payment.cashOnDelivery = type
-        this.setState({ orderToEdit: o });
-    }
+        var temp = handleToggleBankAccountPaymentButtonsHelper(type);
 
-    saveOrder = (order) => {
-
-        order.address.street = document.getElementById("hiddenStreet").value
-        order.address.city = document.getElementById("city").value
-        order.address.psc = document.getElementById("zip").value
-        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
-
-        order.totalPrice = this.getTotalPrice(true);
-
-        if (order.deliveryType === deliveryTypes[1].type) {
-            delete order.deliveryCompany
-            delete order.payment.cashOnDelivery
-            delete order.payment.vs
-            delete order.payment.price
-        }
-
-        var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
-        saveOrder(order, user)
-            .then(() => {
-                this.props.history.push('/orders')
-            })
-            .catch((res) => {
-                alert(res)
-            })
+        this.setState({ orderToAdd: temp });
     }
 
     removeProductFromOrder = (index) => {
-        var o = Object.assign({}, this.state.orderToEdit)
-        o.products.splice(index, 1);
+        var temp = removeProductFromOrder(index, this.state.orderToEdit);
 
-        this.setState({ orderToEdit: o });
+        this.setState({ orderToEdit: temp });
     }
 
     render() {
@@ -379,7 +267,7 @@ class OrderDetails extends React.Component {
             // mobile
             var buttons = (
                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                    <Button onClick={() => this.saveOrder(this.state.orderToEdit)} fluid size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update")} fluid size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button
@@ -574,7 +462,8 @@ class OrderDetails extends React.Component {
                                     {
                                         productName: m.value,
                                         count: 1,
-                                        pricePerOne: this.props.ordersPageStore.products[m.value].price
+                                        pricePerOne: this.props.ordersPageStore.products[m.value].price,
+                                        product: this.props.ordersPageStore.products[m.value]
                                     })}
                                 options={Object.keys(this.props.ordersPageStore.products).map(x =>
                                     ({
@@ -647,7 +536,7 @@ class OrderDetails extends React.Component {
 
             var buttons = (
                 <Grid.Column width={13}>
-                    <Button onClick={() => this.saveOrder(this.state.orderToEdit)} size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update")} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button
@@ -827,13 +716,13 @@ class OrderDetails extends React.Component {
                                                             <Button.Group fluid size='medium'>
                                                                 <Button
                                                                     onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[0].company)}
-                                                                    id={orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
+                                                                    id={orderToEdit.deliveryCompany ? (orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton") : "primaryButton"}>
                                                                     GLS
                                                             </Button>
                                                                 <Button.Or text='OR' />
                                                                 <Button
                                                                     onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[1].company)}
-                                                                    id={orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
+                                                                    id={orderToEdit.deliveryCompany ? (orderToEdit.deliveryCompany.toLowerCase() === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton") : "secondaryButton"}>
                                                                     Česká Pošta
                                                             </Button>
                                                             </Button.Group>
@@ -849,13 +738,13 @@ class OrderDetails extends React.Component {
                                                             <Button.Group fluid size='medium'>
                                                                 <Button
                                                                     onClick={() => this.handleToggleBankAccountPaymentButtons(false)}
-                                                                    id={orderToEdit.payment.cashOnDelivery ? "secondaryButton" : "primaryButton"}>
+                                                                    id={orderToEdit.payment.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
                                                                     Yes
                                                             </Button>
                                                                 <Button.Or text='OR' />
                                                                 <Button
                                                                     onClick={() => this.handleToggleBankAccountPaymentButtons(true)}
-                                                                    id={orderToEdit.payment.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
+                                                                    id={orderToEdit.payment.cashOnDelivery === true || orderToEdit.payment.cashOnDelivery === undefined ? "primaryButton" : "secondaryButton"}>
                                                                     NO
                                                             </Button>
                                                             </Button.Group>
