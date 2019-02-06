@@ -218,7 +218,7 @@ class OrderDetails extends React.Component {
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var temp = handleToggleBankAccountPaymentButtonsHelper(type);
+        var temp = handleToggleBankAccountPaymentButtonsHelper(type, this.state.orderToEdit);
 
         this.setState({ orderToAdd: temp });
     }
@@ -267,7 +267,7 @@ class OrderDetails extends React.Component {
             // mobile
             var buttons = (
                 <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update")} fluid size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update", this.props)} fluid size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button
@@ -536,7 +536,7 @@ class OrderDetails extends React.Component {
 
             var buttons = (
                 <Grid.Column width={13}>
-                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update")} size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update", this.props)} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button

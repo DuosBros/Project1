@@ -138,7 +138,7 @@ class AddOrder extends React.Component {
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var temp = handleToggleBankAccountPaymentButtonsHelper(type);
+        var temp = handleToggleBankAccountPaymentButtonsHelper(type, this.state.orderToAdd);
 
         this.setState({ orderToAdd: temp });
     }
@@ -447,7 +447,7 @@ class AddOrder extends React.Component {
 
             var buttons = (
                 <Grid.Column width={13}>
-                    <Button onClick={() => handleOrder(this.state.orderToAdd, "create")} size='medium' compact content='Save' id="primaryButton" />
+                    <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
                     <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                         <Button

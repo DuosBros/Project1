@@ -4,7 +4,7 @@ import { deliveryTypes, LOCALSTORAGE_NAME, deliveryCompanies } from "../../appCo
 import moment from 'moment';
 import _ from 'lodash';
 
-export const handleOrder = async (order, mode) => {
+export const handleOrder = async (order, mode, props) => {
     if (order.deliveryType === deliveryTypes[1].type) {
         delete order.deliveryCompany
         delete order.payment.cashOnDelivery
@@ -21,7 +21,7 @@ export const handleOrder = async (order, mode) => {
     order.address.psc = document.getElementById("zip").value
     order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
 
-    order.totalPrice = this.getTotalPrice(true);
+    order.totalPrice = getTotalPriceHelper(true, order);
 
     order.address.firstName = document.getElementById("firstName").value
     order.address.lastName = document.getElementById("lastName").value
@@ -36,7 +36,7 @@ export const handleOrder = async (order, mode) => {
 
         createOrder(order, user)
             .then(() => {
-                this.props.history.push('/orders')
+                props.history.push('/orders')
             })
             .catch((res) => {
                 alert(res)
@@ -45,7 +45,7 @@ export const handleOrder = async (order, mode) => {
     else {
         saveOrder(order, user)
             .then(() => {
-                this.props.history.push('/orders')
+                props.history.push('/orders')
             })
             .catch((res) => {
                 alert(res)
@@ -91,6 +91,8 @@ export const handleInputChangeHelper = (name, value, prop, stateOrder) => {
             o[prop][name] = value
         }
     }
+
+    return o;
 }
 
 export const getTotalPriceHelper = (raw, orderState) => {
@@ -127,8 +129,8 @@ export const handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
     return o;
 }
 
-export const handleToggleBankAccountPaymentButtonsHelper = (type) => {
-    var o = Object.assign({}, this.state.orderToEdit)
+export const handleToggleBankAccountPaymentButtonsHelper = (type, stateOrder) => {
+    var o = Object.assign({}, stateOrder)
     o.payment.cashOnDelivery = type
 
     return o;
