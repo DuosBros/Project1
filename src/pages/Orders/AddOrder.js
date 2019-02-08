@@ -65,6 +65,7 @@ class AddOrder extends React.Component {
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
+        product.product = this.props.ordersPageStore.products[product.productName]
         var temp = handleProductDropdownOnChangeHelper(
             product, this.state.orderToAdd, i)
         if (!this.isCancelled) {
