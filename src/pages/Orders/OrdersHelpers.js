@@ -28,6 +28,8 @@ export const handleOrder = async (order, mode, props) => {
     order.address.phone = document.getElementById("phone").value
     order.address.company = document.getElementById("company").value
 
+    order.payment.price = document.getElementById("deliveryPrice").value
+    order.note = document.getElementById("note").value
 
     var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
 
@@ -67,7 +69,7 @@ export const handleProductDropdownOnChangeHelper = (product, stateOrder, i) => {
 
     var o = Object.assign({}, stateOrder)
     o.products[i] = product;
-    o.payment.price = getGLSDeliveryPrice(
+    document.getElementById("deliveryPrice").value = getGLSDeliveryPrice(
         o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
 
     return o;
@@ -98,8 +100,11 @@ export const handleInputChangeHelper = (name, value, prop, stateOrder) => {
 export const getTotalPriceHelper = (raw, orderState) => {
     var sum = 0;
 
-    if (orderState.payment.price) {
-        sum = orderState.payment.price
+    if(document.getElementById("deliveryPrice")) {
+        var parsed = parseInt(document.getElementById("deliveryPrice").value)
+        if (parsed !== NaN) {
+            sum = parsed
+        }
     }
 
     orderState.products.forEach(product => {

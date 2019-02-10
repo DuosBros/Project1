@@ -25,15 +25,7 @@ class AddOrder extends React.Component {
                 products: [],
                 deliveryType: 'vs',
                 deliveryCompany: 'gls',
-                address: {
-                    city: "",
-                    firstName: "",
-                    lastName: "",
-                    phone: "",
-                    psc: "",
-                    street: "",
-                    streetNumber: ""
-                },
+                totalPrice: 0,
                 payment: {
                     price: 0,
                     cashOnDelivery: true
@@ -75,14 +67,10 @@ class AddOrder extends React.Component {
         }
     }
 
-    handleInputChange = (e, { name, value }, prop) => {
-        var temp = handleInputChangeHelper(name, value, prop, this.state.orderToAdd);
-
-        this.setState({ orderToAdd: temp });
-    }
-
     getTotalPrice = (raw) => {
-        return getTotalPriceHelper(raw, this.state.orderToAdd);
+        var o = Object.assign({}, this.state.orderToAdd)
+        o.totalPrice = getTotalPriceHelper(raw, this.state.orderToAdd);
+        this.setState({ orderToAdd: o });
     }
 
 
@@ -150,6 +138,15 @@ class AddOrder extends React.Component {
         this.setState({ orderToAdd: temp });
     }
 
+    // needed to make smartform working
+    scrollToTop = () => {
+        var currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
+        if (currentScroll > 0) {
+            window.requestAnimationFrame(this.scrollToTop);
+            window.scrollTo(0, currentScroll - (currentScroll / 5));
+        }
+    }
+
     render() {
         if (this.props.baseStore.showGenericModal) {
             return (
@@ -210,10 +207,10 @@ class AddOrder extends React.Component {
                                         <label>ZIP</label>
                                         <input readOnly id="zip" className="smartform-zip"></input>
                                     </Form.Field>
-                                    <Form.Input label='First Name' fluid name='firstName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Last Name' fluid name='lastName' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Phone Number' fluid name='phone' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
-                                    <Form.Input label='Company' fluid name='company' onChange={(e, m) => this.handleInputChange(e, m, "address")} />
+                                    <Form.Input id='firstName' label='First Name' fluid name='nope' />
+                                    <Form.Input id='lastName' label='Last Name' fluid name='lastName' />
+                                    <Form.Input id='phone' label='Phone Number' fluid name='phone' />
+                                    <Form.Input id='company' label='Company' fluid name='company' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -223,8 +220,7 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <Form.Input label='Delivery Price [CZK]' fluid name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
-                                    <Form.Input label='VS' fluid name='vs' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><b>Payment type</b></label>
                                         <Button.Group fluid size='medium'>
@@ -303,9 +299,8 @@ class AddOrder extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
                                     <label><b>Total price [CZK]</b></label>
-                                    {/* <label style={{marginBottom: '0.5em'}} ><b>Total price [CZK]</b></label> */}
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice()} ></input>
-                                    <Form.Input label='Note' fluid value={orderToAdd.note ? orderToAdd.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
+                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
+                                    <Form.Input id='note' label='Note' fluid name='note' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -577,7 +572,7 @@ class AddOrder extends React.Component {
                                             </strong>
                                         </Grid.Column>
                                         <Grid.Column width={12}>
-                                            <Form.Input fluid value={orderToAdd.payment.price} name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
+                                            <Form.Input onChange={() => this.getTotalPrice(false)}   id='deliveryPrice' fluid name='price' />
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
@@ -670,8 +665,8 @@ class AddOrder extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='small'>
                                     <label><b>Total price [CZK]</b></label>
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice(false)} ></input>
-                                    <Form.Input label='Note' fluid value={orderToAdd.note ? orderToAdd.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
+                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
+                                    <Form.Input label='Note' fluid id='note' name='note' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
