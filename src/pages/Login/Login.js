@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 import logo from '../../assets/logo.png';
 import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from '../../utils/actions'
-import { sendAuthenticationData } from '../../utils/requests'
+import { sendAuthenticationData, validateToken } from '../../utils/requests'
 
 class Login extends React.Component {
     constructor(props) {
@@ -19,6 +19,24 @@ class Login extends React.Component {
             authExceptionResponse: "",
             isMobile : this.props.isMobile
         }
+
+        props.authenticationStartedAction();
+
+        validateToken()
+            .then(() => {
+                    this.props.authenticateEndedAction();
+                    this.props.authenticateOKAction();
+                    this.props.history.push('/orders')
+                })
+            .catch((err) => {
+                if (err.response.status >= 400 && err.response.status < 500) {
+                    this.props.history.push('/login');
+                }
+                this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
+
+                this.props.authenticationFailedAction();
+                this.props.authenticateEndedAction();
+            })
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -41,7 +59,7 @@ class Login extends React.Component {
 
         sendAuthenticationData(payload)
             .then(res => {
-                
+
                 this.props.authenticateAction(res.data)
                 this.props.authenticateEndedAction();
                 this.props.authenticateOKAction();

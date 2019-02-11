@@ -21,6 +21,7 @@ class AddOrder extends React.Component {
         this.state = {
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
             orderToAdd: {
+                address: {},
                 state: "active",
                 products: [],
                 deliveryType: 'vs',
@@ -60,6 +61,9 @@ class AddOrder extends React.Component {
         product.product = this.props.ordersPageStore.products[product.productName]
         var temp = handleProductDropdownOnChangeHelper(
             product, this.state.orderToAdd, i)
+
+        temp.totalPrice = getTotalPriceHelper(false, this.state.orderToAdd);
+
         if (!this.isCancelled) {
             this.setState(() => ({
                 orderToAdd: temp
@@ -173,7 +177,7 @@ class AddOrder extends React.Component {
                             </Header>
                         </Grid.Column>
                         <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                            <Button fluid size='medium' compact content='Save' id="primaryButton" />
+                            <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} fluid size='medium' compact content='Save' id="primaryButton" />
                             <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
                             <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
                                 <Button
@@ -220,7 +224,6 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><b>Payment type</b></label>
                                         <Button.Group fluid size='medium'>
@@ -298,6 +301,7 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
+                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                                     <label><b>Total price [CZK]</b></label>
                                     <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
                                     <Form.Input id='note' label='Note' fluid name='note' />
@@ -568,16 +572,6 @@ class AddOrder extends React.Component {
                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
                                         <Grid.Column width={4}>
                                             <strong>
-                                                Delivery Price [CZK]
-                                            </strong>
-                                        </Grid.Column>
-                                        <Grid.Column width={12}>
-                                            <Form.Input onChange={() => this.getTotalPrice(false)}   id='deliveryPrice' fluid name='price' />
-                                        </Grid.Column>
-                                    </Grid.Row>
-                                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                        <Grid.Column width={4}>
-                                            <strong>
                                                 Payment type
                                             </strong>
                                         </Grid.Column>
@@ -664,6 +658,7 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='small'>
+                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                                     <label><b>Total price [CZK]</b></label>
                                     <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
                                     <Form.Input label='Note' fluid id='note' name='note' />

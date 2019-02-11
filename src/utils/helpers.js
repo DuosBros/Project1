@@ -1,4 +1,6 @@
 export const getGLSDeliveryPrice = (weight) => {
+    // weight of the box
+    weight += 500
     if (weight < 3000)
         return 111
     if (weight < 5000)
