@@ -173,7 +173,7 @@ class AddOrder extends React.Component {
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
-                                {'Edit Order'}
+                                {'Add Order'}
                             </Header>
                         </Grid.Column>
                         <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
@@ -463,7 +463,7 @@ class AddOrder extends React.Component {
                     <Grid.Row>
                         <Grid.Column width={2}>
                             <Header as='h1'>
-                                {'Edit Order'}
+                                {'Add Order'}
                             </Header>
                         </Grid.Column>
                         {buttons}
@@ -668,7 +668,6 @@ class AddOrder extends React.Component {
                     </Grid.Row>
                 </Grid >
             )
-
         }
         return (
             <div>

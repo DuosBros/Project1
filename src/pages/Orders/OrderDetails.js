@@ -12,6 +12,7 @@ import GenericModal from '../../components/GenericModal';
 import SimpleTable from '../../components/SimpleTable';
 import { handleOrder, handleProductDropdownOnChangeHelper, handleInputChangeHelper, getTotalPriceHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
 import ProductRow from '../../components/ProductRow';
+import OrderDetailsButtons from '../../components/OrderDetailsButtons';
 
 class OrderDetails extends React.Component {
     constructor(props) {
@@ -266,18 +267,6 @@ class OrderDetails extends React.Component {
 
         if (this.props.isMobile) {
             // mobile
-            var buttons = (
-                <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                    <Button onClick={() => handleOrder(this.state.orderToEdit, "update", this.props)} fluid size='medium' compact content='Save' id="primaryButton" />
-                    <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                    <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
-                        <Button
-                            style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                            compact content='Back'
-                        />
-                    </Link>
-                </Grid.Column>
-            )
 
             grid = (
                 <Grid stackable>
@@ -287,7 +276,7 @@ class OrderDetails extends React.Component {
                                 {'Edit Order'}
                             </Header>
                         </Grid.Column>
-                        {buttons}
+                        <OrderDetailsButtons isMobile={this.props.isMobile} order={this.state.orderToEdit} mode='update' props={this.props} />
                     </Grid.Row>
                     <Grid.Row columns='equal'>
                         <Grid.Column>
@@ -556,7 +545,8 @@ class OrderDetails extends React.Component {
                                 {'Edit Order'}
                             </Header>
                         </Grid.Column>
-                        {buttons}
+                        <OrderDetailsButtons isMobile={this.props.isMobile} order={this.state.orderToEdit} mode='update' props={this.props} />
+                        {/* {buttons} */}
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column width={7}>
