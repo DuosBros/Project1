@@ -1,3 +1,45 @@
+import { LOCALSTORAGE_NAME } from "../appConfig";
+import axios from 'axios';
+
+/**
+ *
+ * @param {boolean} isAuthenticated
+ * @param {string} token
+ */
+export const handleLocalStorageToken = (isAuthenticated, token) => {
+
+    if (isAuthenticated) {
+        let localStorageToken = localStorage.getItem(LOCALSTORAGE_NAME)
+        if (!localStorageToken) {
+            localStorage.setItem(LOCALSTORAGE_NAME, token)
+            axios.defaults.headers.common['x-access-token'] = token;
+        }
+
+        return;
+    }
+
+    // if authentication is not successful
+    if (!token) localStorage.removeItem(LOCALSTORAGE_NAME)
+}
+
+/**
+ *
+ * @param {functionCall} fn
+ * @param {number} time
+ */
+export const debounce = (fn, time) => {
+    let timeout;
+
+    return function () {
+        const functionCall = () => fn.apply(this, arguments);
+
+        clearTimeout(timeout);
+        timeout = setTimeout(functionCall, time);
+    }
+}
+
+// -------------------------------------------------------------------------
+
 export const getGLSDeliveryPrice = (weight) => {
     // weight of the box
     weight += 500
@@ -46,13 +88,3 @@ export const filterInArrayOfObjects = (toSearch, array) => {
     return results;
 }
 
-export const debounce = (fn, time) => {
-    let timeout;
-
-    return function () {
-        const functionCall = () => fn.apply(this, arguments);
-
-        clearTimeout(timeout);
-        timeout = setTimeout(functionCall, time);
-    }
-}

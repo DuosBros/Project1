@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Switch, BrowserRouter, Redirect } from 'react-router-dom';
+import { Route, Switch, BrowserRouter, Redirect, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import axios from 'axios';
@@ -42,6 +42,7 @@ class Base extends React.Component {
             })
             .catch(() => {
                 props.authenticateSucceededAction(false);
+                props.history.push('/login')
             })
             .finally(() => {
                 props.authenticationInProgressAction(false);
@@ -135,4 +136,4 @@ function mapDispatchToProps(dispatch) {
     }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Base);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Base));

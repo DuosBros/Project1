@@ -27,7 +27,7 @@ class Orders extends React.Component {
         this.state = {
             multiSearchInput: "",
             multiSearchInputValue: "",
-            mobileShowHeader: false,
+            showFunctionsMobile: false,
             expanded: null,
             filteredOrders: [],
             showPaidOrders: true,
@@ -201,14 +201,7 @@ class Orders extends React.Component {
     }
 
     handleChange = (e, { value }) => {
-        if (value) {
-            this.setState({ multiSearchInputValue: value });
-            this.updateFilters(value);
-        }
-        else {
-            this.setState({ multiSearchInputValue: "" });
-            this.updateFilters("");
-        }
+        this.updateFilters(value ? value : "");
     }
 
     updateFilters = (value) => {
@@ -826,12 +819,12 @@ class Orders extends React.Component {
                         <Grid.Column>
                             <Header as='h1'>
                                 Orders
-                                <Button toggle onClick={() => this.setState({ mobileShowHeader: !this.state.mobileShowHeader })} floated='right' style={{ backgroundColor: this.state.mobileShowHeader ? '#f2005696' : '#f20056', color: 'white' }} content={this.state.mobileShowHeader ? 'Hide' : 'Show'} />
+                                <Button toggle onClick={() => this.setState({ showFunctionsMobile: !this.state.showFunctionsMobile })} floated='right' style={{ backgroundColor: this.state.showFunctionsMobile ? '#f2005696' : '#f20056', color: 'white' }} content={this.state.showFunctionsMobile ? 'Hide' : 'Show'} />
                             </Header>
                         </Grid.Column>
                     </Grid.Row>
                     <Transition.Group animation='drop' duration={500} style={{ width: '100%' }}>
-                        {this.state.mobileShowHeader && (
+                        {this.state.showFunctionsMobile && (
                             <>
                                 <Grid.Row style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                                     <Button onClick={() => this.props.history.push('orders/new')} fluid size='small' content='Add Order' id="primaryButton" />
@@ -946,20 +939,9 @@ class Orders extends React.Component {
                                     <Input
                                         style={{ width: this.state.inputWidth }}
                                         ref={this.handleRef}
-
                                         name="multiSearchInput"
-                                        // icon={
-
-                                        // }
                                         placeholder='Search...'
-                                        onChange={this.handleChange}
-                                        value={this.state.multiSearchInputValue} />
-                                    {/* <Icon
-                                        name='delete'
-                                        style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                        circular
-                                        link
-                                        onClick={() => this.handleChange({}, {})} /> */}
+                                        onChange={this.handleChange} />
                                 </>
                             </Transition>
                             {

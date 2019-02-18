@@ -1,5 +1,33 @@
 import axios from 'axios';
-import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS, SMARTFORM_API, SMARTFORM_KEY, DEFAULT_SMARTFORM_LIMIT } from '../appConfig';
+import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS, SMARTFORM_KEY, DEFAULT_SMARTFORM_LIMIT } from '../appConfig';
+
+/**
+ * Send authentication payload
+ * @param {object} payload
+ */
+export function sendAuthenticationData(payload) {
+    return axios.post(MEDPHARMAVN_API + 'authenticate', payload);
+}
+
+/**
+ * Validate localStorage token
+ */
+export function validateToken() {
+    // get from (start of year) and to (end of year) date
+    var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
+    var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
+
+    // limit 1 -> its enough to know if token is valid
+    // axios.defaults.headers.common['x-access-token'] (see helpers.js)
+    return axios.get(MEDPHARMAVN_API +
+        'orders?from=' +
+        from +
+        '&to=' +
+        to +
+        '&limit=1')
+}
+
+// ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {
     return axios.get(MEDPHARMAVN_API + "pdf/orders/" + orderId)
@@ -55,22 +83,6 @@ export function createOrder(order, user) {
 
 export function getAllProducts() {
     return axios.get(MEDPHARMAVN_API + 'products/allproducts')
-}
-
-export function sendAuthenticationData(payload) {
-    return axios.post(MEDPHARMAVN_API + 'authenticate', payload);
-}
-
-export function validateToken() {
-    var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
-    var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
-
-    return axios.get(MEDPHARMAVN_API +
-        'orders?from=' +
-        from +
-        '&to=' +
-        to +
-        '&limit=1')
 }
 
 export function getOrder(id) {

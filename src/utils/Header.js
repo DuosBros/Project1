@@ -1,6 +1,5 @@
 import React from 'react';
-import { Menu, Segment, Icon, Container, Button } from 'semantic-ui-react'
-import { Link } from 'react-router-dom';
+import { Menu, Segment, Icon, Container } from 'semantic-ui-react'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -15,7 +14,8 @@ class Header extends React.Component {
 
         this.state = {
             activeItem: currentPath,
-            isMobile: this.props.isMobile
+            isMobile: this.props.isMobile,
+            showMobileMenu: false
         }
     }
 
@@ -57,7 +57,7 @@ class Header extends React.Component {
 
     render() {
 
-        const { activeItem } = this.state
+        const { activeItem, isMobile, showMobileMenu } = this.state
 
         var menuItems;
 
@@ -73,8 +73,8 @@ class Header extends React.Component {
         }
 
 
-        if (this.state.isMobile) {
-            if (!this.state.showMobileMenu) {
+        if (isMobile) {
+            if (!showMobileMenu) {
                 menuItems = (
                     <Menu stackable inverted className='borderlessMenu' pointing secondary size='tiny'>
                         <Menu.Item name='MedpharmaVN'>
@@ -92,7 +92,7 @@ class Header extends React.Component {
             <Menu stackable inverted className='borderlessMenu' pointing secondary size='tiny'>
                 <Menu.Item name='MedpharmaVN'>
                     Medpharma VN
-                        {this.state.isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}
+                        {isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}
                 </Menu.Item>
                 <Menu.Item
                     content='Orders'
@@ -130,7 +130,7 @@ class Header extends React.Component {
                     active={activeItem === 'scripts'}
                     onClick={this.handleItemClick} />
                 <Menu.Menu position='right'>
-                    {!this.state.isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
+                    {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
                     <Menu.Item
                         style={{ color: 'black' }}
                         className='logout'
