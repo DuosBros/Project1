@@ -4,19 +4,21 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import axios from 'axios';
 
-import { Container } from 'semantic-ui-react'
+import { Container, Message, Icon, Image } from 'semantic-ui-react'
 
 import Header from './Header';
 import Login from '../pages/Login/Login';
 import Orders from '../pages/Orders/Orders';
 
-import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from './actions';
+import { authenticateAction, authenticationInProgressAction, authenticateSucceededAction } from './actions';
 import { LOCALSTORAGE_NAME } from '../appConfig'
 import Bank from '../pages/Bank/Bank';
 
-import { getOrdersAction } from '../utils/actions';
 import OrderDetails from '../pages/Orders/OrderDetails';
 import AddOrder from '../pages/Orders/AddOrder';
+import { validateToken } from './requests';
+import ErrorBoundary from '../components/ErrorBoundary';
+import logo from '../assets/logo.png';
 
 class Base extends React.Component {
 
@@ -31,6 +33,19 @@ class Base extends React.Component {
         this.state = {
             width: window.innerWidth
         }
+
+        props.authenticationInProgressAction(true);
+
+        validateToken()
+            .then(() => {
+                props.authenticateSucceededAction(true);
+            })
+            .catch(() => {
+                props.authenticateSucceededAction(false);
+            })
+            .finally(() => {
+                props.authenticationInProgressAction(false);
+            })
     }
 
     handleWindowSizeChange = () => {
@@ -38,9 +53,29 @@ class Base extends React.Component {
     };
 
     render() {
-
         const { width } = this.state;
         var isMobile = width <= 766;
+
+        // still authenticating
+        if (this.props.loginStore.authenticationInProgress) {
+            return (
+                <div className="messageBox">
+                    <Message positive icon >
+                        <Icon name='circle notched' loading />
+                        <Message.Content content={
+                            <Message.Header>Authentication</Message.Header>
+                        }>
+                        </Message.Content>
+                        {isMobile ? null : <Image size='tiny' src={logo} />}
+                    </Message>
+                </div>
+            );
+        }
+
+        // if authentication fails
+        if (!(this.props.loginStore.authenticationInProgress || this.props.loginStore.authenticationSucceeded)) {
+            return (<Login isMobile={isMobile} ex={{ authExceptionMessage: "Please login again" }} />);
+        }
 
         var body, switchBody;
 
@@ -49,7 +84,7 @@ class Base extends React.Component {
                 <Redirect exact from='/' to='/orders' />
                 <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
                 <Route path='/orders/new' render={(props) => <AddOrder {...props} isMobile={isMobile} />} />
-                <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} orderToEdit={this.props.ordersPageStore.orderToEdit} />} />
+                <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} />} />
                 <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
                 <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
             </Switch>
@@ -76,7 +111,9 @@ class Base extends React.Component {
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
                     />
-                    {body}
+                    <ErrorBoundary>
+                        {body}
+                    </ErrorBoundary>
                 </>
             </BrowserRouter>
         )
@@ -86,19 +123,15 @@ class Base extends React.Component {
 function mapStateToProps(state) {
     return {
         baseStore: state.BaseReducer,
-        loginPageStore: state.LoginReducer,
-        ordersPageStore: state.OrdersReducer
+        loginStore: state.LoginReducer
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        authenticateAction: authenticateAction,
-        authenticationStartedAction: authenticationStartedAction,
-        authenticateEndedAction: authenticateEndedAction,
-        authenticateOKAction: authenticateOKAction,
-        authenticationFailedAction: authenticationFailedAction,
-        getOrdersAction
+        authenticateAction,
+        authenticationInProgressAction,
+        authenticateSucceededAction
     }, dispatch);
 }
 

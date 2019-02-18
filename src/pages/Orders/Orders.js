@@ -350,17 +350,6 @@ class Orders extends React.Component {
     }
 
     render() {
-        if (this.props.baseStore.showGenericModal) {
-            return (
-                <GenericModal
-                    show={this.props.baseStore.showGenericModal}
-                    header={this.props.baseStore.modal.modalHeader}
-                    content={this.props.baseStore.modal.modalContent}
-                    redirectTo={this.props.baseStore.modal.redirectTo}
-                    parentProps={this.props.baseStore.modal.parentProps}
-                    err={this.props.baseStore.modal.err} />)
-        }
-
         console.log(this.props.ordersPageStore.orders)
         var { filteredOrders, showPaidOrders, multiSearchInputValue, multiSearchInput, orderLabelsToPrint } = this.state;
         var counter = 0;
@@ -1050,17 +1039,13 @@ class Orders extends React.Component {
                     ) : (
                             <div className="centered">
                                 <Message positive icon>
-                                    {this.props.isMobile ? (
-                                        null
-                                    ) : (
-                                            <Image size='tiny' src={logo} />
-                                        )}
+                                    <Icon name='circle notched' loading />
                                     <Message.Content>
                                         <Message.Header>
                                             Loading orders
                                         </Message.Header>
                                     </Message.Content>
-                                    <Icon style={{ marginLeft: '0.5em' }} name='circle notched' loading />
+                                    {this.props.isMobile ? null : <Image size='tiny' src={logo} />}
                                 </Message>
                             </div>
                         )
