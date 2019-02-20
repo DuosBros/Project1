@@ -1,14 +1,13 @@
 const ordersPageInitialState = {
-    orders: [],
+    orders: { success: true },
     ordersDetails: [],
-    warehouseNotifications: [],
-    notPaidNotifications: [],
+    warehouseNotifications: { success: true },
+    notPaidNotifications: { success: true },
     isWarehouseNotificationsDone: false,
     isNotPaidNotificationsDone: false,
     isLoadingDone: false,
     orderToEdit: {},
-    products: [],
-    addressSuggestions: []
+    products: []
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -32,8 +31,6 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
                 ...state,
                 orders: [...state.orders, ...action.payload]
             }
-        case 'GET_ADDRESS_SUGGESTIONS':
-            return Object.assign({}, state, { addressSuggestions: action.payload })
         default:
             return state;
     }

@@ -19,6 +19,7 @@ import AddOrder from '../pages/Orders/AddOrder';
 import { validateToken } from './requests';
 import ErrorBoundary from '../components/ErrorBoundary';
 import logo from '../assets/logo.png';
+import GenericModal from '../components/GenericModal';
 
 class Base extends React.Component {
 
@@ -78,17 +79,30 @@ class Base extends React.Component {
             return (<Login isMobile={isMobile} ex={{ authExceptionMessage: "Please login again" }} />);
         }
 
+        if (this.props.baseStore.showGenericModal) {
+            return (
+                <GenericModal
+                    show={this.props.baseStore.showGenericModal}
+                    header={this.props.baseStore.modal.modalHeader}
+                    content={this.props.baseStore.modal.modalContent}
+                    redirectTo={this.props.baseStore.modal.redirectTo}
+                    parentProps={this.props.baseStore.modal.parentProps}
+                    err={this.props.baseStore.modal.err} />)
+        }
+
         var body, switchBody;
 
         switchBody = (
-            <Switch>
-                <Redirect exact from='/' to='/orders' />
-                <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
-                <Route path='/orders/new' render={(props) => <AddOrder {...props} isMobile={isMobile} />} />
-                <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} />} />
-                <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
-                <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
-            </Switch>
+            <ErrorBoundary>
+                <Switch>
+                    <Redirect exact from='/' to='/orders' />
+                    <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
+                    <Route path='/orders/new' render={(props) => <AddOrder {...props} isMobile={isMobile} />} />
+                    <Route path='/orders/:id' render={(props) => <OrderDetails {...props} key={props.match.params.id} isMobile={isMobile} />} />
+                    <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
+                    <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
+                </Switch>
+            </ErrorBoundary>
         )
 
         if (isMobile) {
@@ -112,11 +126,10 @@ class Base extends React.Component {
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
                     />
-                    <ErrorBoundary>
-                        {body}
-                    </ErrorBoundary>
+
+                    {body}
                 </>
-            </BrowserRouter>
+            </BrowserRouter >
         )
     }
 }

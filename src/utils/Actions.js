@@ -5,13 +5,6 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
-export function getAddressSuggestionsAction(payload) {
-    return {
-        payload,
-        type: 'GET_ADDRESS_SUGGESTIONS'
-    }
-}
-
 export function showGenericModalAction(payload) {
     return {
         payload,
@@ -88,14 +81,14 @@ export function getWarehouseNotificationsAction(payload) {
     }
 }
 
-export function isGetWarehouseNotificationsAction(payload) {
+export function isGettingWarehouseNotificationsDoneAction(payload) {
     return {
         payload,
         type: 'IS_GET_WAREHOUSE_NOTIFICATIONS'
     }
 }
 
-export function isGetNotPaidNotificationsAction(payload) {
+export function isGettingNotPaidNotificationsDoneAction(payload) {
     return {
         payload,
         type: 'IS_GET_NOT_PAID_NOTIFICATIONS'

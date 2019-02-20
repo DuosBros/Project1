@@ -9,15 +9,16 @@ import { Link } from 'react-router-dom';
 import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications, getAllZaslatOrders, verifyLock, getInvoice } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    isGetWarehouseNotificationsAction, isGetNotPaidNotificationsAction, getMoreOrdersAction, showGenericModalAction,
+    isGettingWarehouseNotificationsDoneAction, isGettingNotPaidNotificationsDoneAction, getMoreOrdersAction, showGenericModalAction,
     getAllZaslatOrdersAction
 } from '../../utils/actions';
 
 import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
 import SimpleTable from '../../components/SimpleTable';
-import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, verifyOrderTimestamp, handleVerifyLockError } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import GenericModal from '../../components/GenericModal';
+import ErrorMessage from '../../components/ErrorMessage';
 
 class Orders extends React.Component {
 
@@ -25,10 +26,10 @@ class Orders extends React.Component {
         super(props);
 
         this.state = {
+            isMobile: this.props.isMobile,
             multiSearchInput: "",
-            multiSearchInputValue: "",
             showFunctionsMobile: false,
-            expanded: null,
+            expandedRowIds: null,
             filteredOrders: [],
             showPaidOrders: true,
             orderIdsShowingDetails: [],
@@ -39,7 +40,6 @@ class Orders extends React.Component {
             showPrintLabelsIcon: false,
             showMultiSearchFilter: false,
             ordersLimit: GET_ORDERS_LIMIT,
-            isFromDetails: false,
             inputWidth: 0,
             generateInvoice: {
                 generateInvoiceDone: true,
@@ -49,54 +49,83 @@ class Orders extends React.Component {
         }
 
         this.updateFilters = debounce(this.updateFilters, 1000);
-        if (this.state.showMultiSearchFilter === false) {
-            if (!this.state.isFromDetails) {
-                getCurrentYearOrders(GET_ORDERS_LIMIT, null)
-                    .then(res => {
-                        this.props.getOrdersAction(res.data)
-                    })
-            }
-        }
-
-        this.props.isGetNotPaidNotificationsAction(false)
-        getNotPaidNotificationsNotifications()
-            .then(res => {
-                this.props.getNotPaidNotificationsAction(res.data)
-                this.props.isGetNotPaidNotificationsAction(true)
-            })
-
-        this.props.isGetWarehouseNotificationsAction(false)
-        getWarehouseNotifications()
-            .then(res => {
-                this.props.getWarehouseNotificationsAction(res.data)
-                this.props.isGetWarehouseNotificationsAction(true)
-            })
 
         this.showTogglePaidOrdersButtonRef = React.createRef()
     }
 
-    openOrderDetails = (order) => {
-        if (moment(order.lock.timestamp).isAfter(moment())) {
-            if (order.lock.username !== this.state.user) {
-                this.props.showGenericModalAction({
-                    modalContent: (
-                        <span>
-                            This order is locked by <b>{order.lock.username}</b>!
-                        </span>
-                    ),
-                    modalHeader: "Locked order",
-                    redirectTo: '/orders',
-                    parentProps: this.props
-                })
+    componentDidMount() {
+
+        // load current year orders when landing on orders for the first time
+        // or there are no orders in store
+        if (!this.props.location.state || !this.props.ordersPageStore.orders.data) {
+            this.fetchAndHandleThisYearOrders()
+        }
+
+        // reload orders only if the previous location wasn't order details
+        if (this.props.location.state) {
+            if (!this.props.location.state.isFromDetails) {
+                this.fetchAndHandleThisYearOrders()
             }
         }
+
+        this.fetchAndHandleNotPaidNotifications()
+        this.fetchAndHandleWarehouseNotifications()
+    }
+
+    fetchAndHandleThisYearOrders = () => {
+        getCurrentYearOrders(GET_ORDERS_LIMIT, null)
+            .then(res => {
+                this.props.getOrdersAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.getOrdersAction({ error: err, success: false })
+            })
+    }
+
+    fetchAndHandleNotPaidNotifications = () => {
+        this.props.isGettingNotPaidNotificationsDoneAction(false)
+        getNotPaidNotificationsNotifications()
+            .then(res => {
+                this.props.getNotPaidNotificationsAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.getNotPaidNotificationsAction({ error: err, success: false })
+            })
+            .finally(() => {
+                this.props.isGettingNotPaidNotificationsDoneAction(true)
+            })
+    }
+
+    fetchAndHandleWarehouseNotifications = () => {
+        this.props.isGettingWarehouseNotificationsDoneAction(false)
+        getWarehouseNotifications()
+            .then(res => {
+                this.props.getWarehouseNotificationsAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.getWarehouseNotificationsAction({ error: err, success: false })
+            })
+            .finally(() => {
+                this.props.isGettingWarehouseNotificationsDoneAction(true)
+            })
+    }
+
+    verifyLockAndHandleError = (orderId) => {
+        verifyLock(orderId, this.state.user)
+            .catch(err => {
+                handleVerifyLockError(this.props, err, this.state.user)
+            })
+    }
+
+    openOrderDetails = (order) => {
+        this.verifyLockAndHandleError(order.id)
+
         this.props.openOrderDetailsAction(order);
-        var route = "/orders/" + order.id;
-        this.props.history.push(route);
+        this.props.history.push("/orders/" + order.id);
     }
 
     expandRow = (row) => {
-        var expanded = { ...this.state.expanded };
+        var expanded = { ...this.state.expandedRowIds };
         if (expanded[row.index]) {
             expanded[row.index] = !expanded[row.index];
         } else {
@@ -104,7 +133,7 @@ class Orders extends React.Component {
         }
 
         this.setState({
-            expanded: expanded
+            expandedRowIds: expanded
         });
     }
 
@@ -343,8 +372,46 @@ class Orders extends React.Component {
     }
 
     render() {
-        console.log(this.props.ordersPageStore.orders)
-        var { filteredOrders, showPaidOrders, multiSearchInputValue, multiSearchInput, orderLabelsToPrint } = this.state;
+
+        const { isMobile } = this.state;
+
+        // in case of error
+        if (!this.props.ordersPageStore.orders.success) {
+            return (
+                <Grid stackable={isMobile}>
+                    <Grid.Row>
+                        <Grid.Column>
+                            <Header as='h1'>
+                                Orders
+                            </Header>
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <ErrorMessage handleRefresh={this.fetchAndHandleThisYearOrders} error={this.props.ordersPageStore.orders.error} />
+                    </Grid.Row>
+                </Grid>
+            );
+        }
+
+        // in case it's still loading data
+        if (!this.props.ordersPageStore.orders.data) {
+            return (
+                <div className="messageBox">
+                    <Message positive icon >
+                        <Icon name='circle notched' loading />
+                        <Message.Content content={
+                            <Message.Header>Loading orders</Message.Header>
+                        }>
+                        </Message.Content>
+                        {isMobile ? null : <Image size='tiny' src={logo} />}
+                    </Message>
+                </div>
+            );
+        }
+
+        var orders = this.props.ordersPageStore.orders.data;
+        console.log(orders)
+        var { filteredOrders, showPaidOrders, multiSearchInput, orderLabelsToPrint } = this.state;
         var counter = 0;
         var sortedOrders;
         var filteredByMultiSearch, mappedOrders;
@@ -354,11 +421,11 @@ class Orders extends React.Component {
             sortedOrders = _.orderBy(filteredOrders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         }
         else {
-            sortedOrders = _.orderBy(this.props.ordersPageStore.orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
+            sortedOrders = _.orderBy(orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         }
 
         if (multiSearchInput !== "" && multiSearchInput.length > 1) {
-            mappedOrders = _.orderBy(this.props.ordersPageStore.orders, ['payment.orderDate'], ['desc']).map(order => {
+            mappedOrders = _.orderBy(orders, ['payment.orderDate'], ['desc']).map(order => {
                 var products = order.products.map(product => {
                     return (product.productName)
                 }).join(" ")
@@ -384,7 +451,7 @@ class Orders extends React.Component {
         }
 
         mappedOrders = filteredByMultiSearch.map(order => {
-            if (this.props.isMobile) {
+            if (isMobile) {
                 var orderInlineDetails = (
                     this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
                         <Table.Cell style={{ color: 'black' }}>
@@ -701,7 +768,7 @@ class Orders extends React.Component {
 
         var table;
 
-        if (this.props.isMobile) {
+        if (isMobile) {
             table = (
                 <Table compact basic='very'>
                     <Table.Header>
@@ -812,7 +879,7 @@ class Orders extends React.Component {
             )
         }
         var grid;
-        if (this.props.isMobile) {
+        if (isMobile) {
             grid = (
                 <Grid stackable>
                     <Grid.Row>
@@ -874,8 +941,7 @@ class Orders extends React.Component {
                                                 //         onClick={() => this.handleChange({}, {})} />
                                                 // }
                                                 placeholder='Search...'
-                                                onChange={this.handleChange}
-                                                value={this.state.multiSearchInputValue} />
+                                                onChange={this.handleChange} />
                                         </Transition>
                                         {
                                             this.state.showMultiSearchFilter ? (
@@ -981,7 +1047,7 @@ class Orders extends React.Component {
         return (
             <div>
                 {
-                    this.props.ordersPageStore.orders.length > 0 && !_.isEmpty(grid) && !_.isEmpty(table) ? (
+                    orders.length > 0 && !_.isEmpty(grid) && !_.isEmpty(table) ? (
                         <>
                             {
                                 this.state.generateInvoice.generateInvoiceDone === false ? (
@@ -1027,7 +1093,7 @@ class Orders extends React.Component {
                                             Loading orders
                                         </Message.Header>
                                     </Message.Content>
-                                    {this.props.isMobile ? null : <Image size='tiny' src={logo} />}
+                                    {isMobile ? null : <Image size='tiny' src={logo} />}
                                 </Message>
                             </div>
                         )
@@ -1051,8 +1117,8 @@ function mapDispatchToProps(dispatch) {
         openOrderDetailsAction,
         getNotPaidNotificationsAction,
         getWarehouseNotificationsAction,
-        isGetWarehouseNotificationsAction,
-        isGetNotPaidNotificationsAction,
+        isGettingWarehouseNotificationsDoneAction: isGettingWarehouseNotificationsDoneAction,
+        isGettingNotPaidNotificationsDoneAction,
         getMoreOrdersAction,
         showGenericModalAction,
         getAllZaslatOrdersAction

@@ -179,7 +179,7 @@ class AddOrder extends React.Component {
                         <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                             <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} fluid size='medium' compact content='Save' id="primaryButton" />
                             <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                            <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                                 <Button
                                     style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
                                     compact content='Back'
@@ -313,7 +313,7 @@ class AddOrder extends React.Component {
                         <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
                             <Button fluid size='medium' compact content='Save' id="primaryButton" />
                             <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                            <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                                 <Button
                                     style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
                                     compact content='Back'
@@ -449,7 +449,7 @@ class AddOrder extends React.Component {
                 <Grid.Column width={13}>
                     <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
-                    <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                    <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                         <Button
                             style={{ marginTop: '0.5em' }} id="secondaryButton" size='small'
                             compact content='Back'

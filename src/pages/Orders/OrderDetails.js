@@ -6,7 +6,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig';
-import { getAllProductsAction, openOrderDetailsAction, showGenericModalAction, getAddressSuggestionsAction } from '../../utils/actions';
+import { getAllProductsAction, openOrderDetailsAction, showGenericModalAction } from '../../utils/actions';
 import { getAllProducts, getOrder, verifyLock, lockOrder } from '../../utils/requests';
 import GenericModal from '../../components/GenericModal';
 import SimpleTable from '../../components/SimpleTable';
@@ -125,6 +125,9 @@ class OrderDetails extends React.Component {
     }
 
     componentDidMount() {
+        // fire immediately after mounting
+        lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+
         if (this.props.ordersPageStore.products.length === 0) {
             getAllProducts()
                 .then(res => this.props.getAllProductsAction(res.data))
@@ -232,17 +235,6 @@ class OrderDetails extends React.Component {
     }
 
     render() {
-        if (this.props.baseStore.showGenericModal) {
-            return (
-                <GenericModal
-                    show={this.props.baseStore.showGenericModal}
-                    header={this.props.baseStore.modal.modalHeader}
-                    content={this.props.baseStore.modal.modalContent}
-                    redirectTo={this.props.baseStore.modal.redirectTo}
-                    parentProps={this.props.baseStore.modal.parentProps}
-                    err={this.props.baseStore.modal.err} />)
-        }
-
         var grid, orderToEdit;
 
         if (_.isEmpty(this.state.orderToEdit)) {
@@ -528,7 +520,7 @@ class OrderDetails extends React.Component {
                 <Grid.Column width={13}>
                     <Button onClick={() => handleOrder(this.state.orderToEdit, "update", this.props)} size='medium' compact content='Save' id="primaryButton" />
                     <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
-                    <Link to={{ pathname: '/orders', state: { fromDetails: true } }}>
+                    <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                         <Button
                             style={{ marginTop: '0.5em' }} id="secondaryButton" size='small'
                             compact content='Back'
@@ -790,8 +782,7 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getAllProductsAction,
         openOrderDetailsAction,
-        showGenericModalAction,
-        getAddressSuggestionsAction
+        showGenericModalAction
     }, dispatch);
 }
 

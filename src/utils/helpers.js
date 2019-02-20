@@ -1,5 +1,7 @@
 import { LOCALSTORAGE_NAME } from "../appConfig";
 import axios from 'axios';
+import moment from "moment";
+import React from 'react';
 
 /**
  *
@@ -35,6 +37,59 @@ export const debounce = (fn, time) => {
 
         clearTimeout(timeout);
         timeout = setTimeout(functionCall, time);
+    }
+}
+
+/**
+ *
+ * @param {string} timestamp in ISO
+ */
+export const verifyOrderTimestamp = (timestamp) => {
+    if (!timestamp) return false
+
+    return moment(timestamp).isAfter(moment())
+}
+
+/**
+ *
+ * @param {object} parentProps
+ * @param {object} error
+ * @param {string} currentUser
+ */
+export const handleVerifyLockError = (parentProps, error, currentUser) => {
+    if (error.response) {
+        if (error.response.data) {
+            if (error.response.data.message) {
+                if (error.response.data.message.lockedBy !== currentUser) {
+                    parentProps.showGenericModalAction({
+                        modalContent: (
+                            <span>
+                                This order is locked by <b>{error.response.data.message.lockedBy}</b>!
+                    </span>
+                        ),
+                        modalHeader: "Locked order",
+                        redirectTo: '/orders',
+                        parentProps: parentProps
+                    })
+
+                }
+                else {
+                    return true
+                }
+            }
+        }
+    }
+    else {
+        parentProps.showGenericModalAction({
+            modalContent: (
+                <span>
+                    Details:
+        </span>
+            ),
+            redirectTo: '/orders',
+            parentProps: parentProps,
+            err: error
+        })
     }
 }
 
