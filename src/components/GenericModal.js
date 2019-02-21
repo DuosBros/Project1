@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 import { closeGenericModalAction } from '../utils/actions';
+import { errorColor } from '../appConfig';
 
 class GenericModal extends React.Component {
 
@@ -31,10 +32,10 @@ class GenericModal extends React.Component {
                         <Icon name='dropdown' />
                         Error details
                 </Accordion.Title>
-                    <Accordion.Content active={active}>
-                        <p>
-                            {JSON.stringify(this.props.err)}
-                        </p>
+                    <Accordion.Content style={{overflowY: 'scroll'}} active={active}>
+                        {this.props.err && this.props.err.toString()}
+                        <br />
+                        {this.props.err.stack}
                     </Accordion.Content>
                 </Accordion>
             )
@@ -44,13 +45,13 @@ class GenericModal extends React.Component {
             <Modal
                 closeOnDimmerClick={false}
                 dimmer={true}
-                size='mini'
+                size='large'
                 open={this.props.show}
                 closeOnEscape={true}
                 closeIcon={true}
                 onClose={() => this.close()}
             >
-                <Modal.Header>{this.props.header || "Error"}</Modal.Header>
+                <Modal.Header style={{backgroundColor: errorColor}}>{this.props.header || "Error"}</Modal.Header>
                 <Modal.Content>
                     {this.props.content || "Something happened!"}
                     {accordion}
@@ -58,7 +59,6 @@ class GenericModal extends React.Component {
                 <Modal.Actions>
                     <Button
                         onClick={() => this.close()}
-                        positive
                         labelPosition='right'
                         icon='checkmark'
                         content='Close'

@@ -27,9 +27,17 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'IS_GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { isNotPaidNotificationsDone: action.payload })
         case 'GET_MORE_ORDERS':
-            return {
-                ...state,
-                orders: [...state.orders, ...action.payload]
+            if (action.payload.success) {
+                var temp = Object.assign([], state.orders)
+
+                if (temp.data) {
+                    temp.data = temp.data.concat(action.payload.data)
+                }
+                else {
+                    temp.data = action.payload.data
+                }
+
+                return Object.assign({}, state, { orders: temp })
             }
         default:
             return state;

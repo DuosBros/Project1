@@ -73,9 +73,6 @@ export const handleVerifyLockError = (parentProps, error, currentUser) => {
                     })
 
                 }
-                else {
-                    return true
-                }
             }
         }
     }
@@ -91,6 +88,25 @@ export const handleVerifyLockError = (parentProps, error, currentUser) => {
             err: error
         })
     }
+}
+
+/*
+ * "keys" (optional) Specifies which properties of objects should be inspected.
+ *                   If omitted, all properties will be inspected.
+ */
+export const filterInArrayOfObjects = (toSearch, array, keys) => {
+    toSearch = trimString(toSearch); // trim it
+    return array.filter(element => {
+        let objk = keys ? keys : Object.keys(element);
+        for (let key of objk) {
+            if (element[key]) { // fuken lodash returning isEmpty true for numbers
+                if (element[key].toString().toLowerCase().indexOf(toSearch.toString().toLowerCase()) !== -1) {
+                    return true
+                }
+            }
+        }
+        return false;
+    });
 }
 
 // -------------------------------------------------------------------------
@@ -114,32 +130,3 @@ function trimString(s) {
     while (r > l && s[r] === ' ') r -= 1;
     return s.substring(l, r + 1);
 }
-
-function compareObjects(o1, o2) {
-    var k = '';
-    for (k in o1) if (o1[k] !== o2[k]) return false;
-    for (k in o2) if (o1[k] !== o2[k]) return false;
-    return true;
-}
-
-function itemExists(haystack, needle) {
-    for (var i = 0; i < haystack.length; i++) if (compareObjects(haystack[i], needle)) return true;
-    return false;
-}
-
-
-export const filterInArrayOfObjects = (toSearch, array) => {
-    var results = [];
-    toSearch = trimString(toSearch); // trim it
-    for (var i = 0; i < array.length; i++) {
-        Object.keys(array[i]).map((key, index) => {
-            if (array[i][key]) { // fuken lodash returning isEmpty true for numbers
-                if (array[i][key].toString().toLowerCase().indexOf(toSearch.toString().toLowerCase()) !== -1) {
-                    if (!itemExists(results, array[i])) results.push(array[i]);
-                }
-            }
-        })
-    }
-    return results;
-}
-
