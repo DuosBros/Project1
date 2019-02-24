@@ -9,16 +9,14 @@ import { Link } from 'react-router-dom';
 import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications, getAllZaslatOrders, verifyLock, getInvoice } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    isGettingWarehouseNotificationsDoneAction, isGettingNotPaidNotificationsDoneAction, getMoreOrdersAction, showGenericModalAction,
-    getAllZaslatOrdersAction
+    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction
 } from '../../utils/actions';
 
-import { errorColor, successColor, warningColor, notActiveColor, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
-import SimpleTable from '../../components/SimpleTable';
-import { filterInArrayOfObjects, debounce, verifyOrderTimestamp, handleVerifyLockError } from '../../utils/helpers';
+import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
+import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
-import GenericModal from '../../components/GenericModal';
 import ErrorMessage from '../../components/ErrorMessage';
+import OrderInlineDetails from '../../components/OrderInlineDetails';
 
 class Orders extends React.Component {
 
@@ -29,16 +27,12 @@ class Orders extends React.Component {
             isMobile: this.props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
-            expandedRowIds: null,
             showPaidOrders: false,
             orderIdsShowingDetails: [],
-            showFilterInput: false,
-            notPaidNotificationsDone: false,
-            warehouseNotificationsDone: false,
             orderLabelsToPrint: [],
             showPrintLabelsIcon: false,
             showMultiSearchFilter: false,
-            ordersLimit: GET_ORDERS_LIMIT,
+            ordersLimit: this.props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             inputWidth: 0,
             generateInvoice: {
                 generateInvoiceDone: true,
@@ -82,7 +76,6 @@ class Orders extends React.Component {
     }
 
     fetchAndHandleNotPaidNotifications = () => {
-        this.props.isGettingNotPaidNotificationsDoneAction(false)
         getNotPaidNotificationsNotifications()
             .then(res => {
                 this.props.getNotPaidNotificationsAction({ data: res.data, success: true })
@@ -90,22 +83,15 @@ class Orders extends React.Component {
             .catch(err => {
                 this.props.getNotPaidNotificationsAction({ error: err, success: false })
             })
-            .finally(() => {
-                this.props.isGettingNotPaidNotificationsDoneAction(true)
-            })
     }
 
     fetchAndHandleWarehouseNotifications = () => {
-        this.props.isGettingWarehouseNotificationsDoneAction(false)
         getWarehouseNotifications()
             .then(res => {
                 this.props.getWarehouseNotificationsAction({ data: res.data, success: true })
             })
             .catch(err => {
                 this.props.getWarehouseNotificationsAction({ error: err, success: false })
-            })
-            .finally(() => {
-                this.props.isGettingWarehouseNotificationsDoneAction(true)
             })
     }
 
@@ -121,29 +107,6 @@ class Orders extends React.Component {
 
         this.props.openOrderDetailsAction(order);
         this.props.history.push("/orders/" + order.id);
-    }
-
-    getOrderTableRowStyle(order) {
-        var backgroundColor;
-
-        if (!order) {
-            return null
-        }
-
-        if (order.payment.paid) {
-            backgroundColor = successColor
-        }
-        else if (order.zaslatDate && !order.payment.paid) {
-            backgroundColor = warningColor
-        }
-        else if (!order.zaslatDate && order.state === "active") {
-            backgroundColor = errorColor
-        }
-        else {
-            backgroundColor = notActiveColor
-        }
-
-        return { backgroundColor: backgroundColor }
     }
 
     handleToggleShowPaidOrders = () => {
@@ -214,11 +177,9 @@ class Orders extends React.Component {
         this.setState({ multiSearchInput: value });
     }
 
-    handleNotPaidVs = (vs) => {
+    handleNotPaidVSOnClick = (vs) => {
         this.setState({ multiSearchInput: vs });
         this.showFilter()
-        // this.inputRef.focus()
-        this.updateFilters(vs);
     }
 
     showFilter = () => {
@@ -295,16 +256,10 @@ class Orders extends React.Component {
             })
             .catch(err => {
                 this.props.showGenericModalAction({
-                    modalContent: (
-                        <span>
-                            {"Failed to generate pdf"}
-                            <br />
-                            {JSON.stringify(err, Object.getOwnPropertyNames(err))}
-                        </span>
-                    ),
-                    modalHeader: "Error",
                     redirectTo: '/orders',
-                    parentProps: this.props
+                    header: 'Failed to generate invoice for orderID:' + order.id,
+                    parentProps: this.props,
+                    err: err
                 })
 
             })
@@ -313,9 +268,59 @@ class Orders extends React.Component {
             })
     }
 
+    filterData = (orders, multiSearchInput) => {
+        var mappedOrdersForFiltering = _.orderBy(orders, ['payment.orderDate'], ['desc']).map(order => {
+
+            // joing product names to string to be searchable
+            var products = order.products.map(product => {
+                return (product.productName)
+            }).join(" ")
+
+            return (
+                {
+                    original: order,
+                    fullName: order.address.firstName + " " + order.address.lastName,
+                    fullNameReversed: order.address.lastName + " " + order.address.firstName,
+                    phone: order.address.phone,
+                    street: order.address.street,
+                    vs: order.payment.vs,
+                    totalPrice: order.totalPrice,
+                    products: products
+                }
+            )
+        })
+
+        return filterInArrayOfObjects(
+            multiSearchInput,
+            mappedOrdersForFiltering,
+            [
+                "fullName",
+                "fullNameReversed",
+                "phone",
+                "street",
+                "vs",
+                "totalPrice",
+                "products"
+            ])
+            .map(order => order.original)
+    }
+
+    toggleShowFunctionsMobile = () => {
+        this.setState({ showFunctionsMobile: !this.state.showFunctionsMobile })
+
+        // fetch _all_ orders
+        getCurrentYearOrders(null, null)
+            .then(res => {
+                this.props.getOrdersAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.getOrdersAction({ error: err, success: false })
+            })
+    }
+
     render() {
 
-        const { isMobile } = this.state;
+        const { isMobile, orderIdsShowingDetails } = this.state;
 
         // in case of error
         if (!this.props.ordersPageStore.orders.success) {
@@ -335,8 +340,9 @@ class Orders extends React.Component {
             );
         }
 
+        var orders = this.props.ordersPageStore.orders.data;
         // in case it's still loading data
-        if (!this.props.ordersPageStore.orders.data) {
+        if (!orders) {
             return (
                 <div className="messageBox">
                     <Message positive icon >
@@ -351,150 +357,43 @@ class Orders extends React.Component {
             );
         }
 
-        var orders = this.props.ordersPageStore.orders.data;
         console.log(orders)
-        var { showPaidOrders, multiSearchInput, orderLabelsToPrint } = this.state;
-        var counter = 0;
-        var sortedOrders;
-        var filteredByMultiSearch, mappedOrders;
+        var {
+            showPaidOrders,
+            multiSearchInput,
+            orderLabelsToPrint,
+            showFunctionsMobile
+        } = this.state;
+        var rowCounter = 0;
+        var filteredByMultiSearch, mappedOrders, sortedOrders;
 
+        // sort orders by order date and render orders count based by orderLimit
+        sortedOrders = _.orderBy(orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
         if (showPaidOrders) {
-            sortedOrders = _.orderBy(orders.filter(order => {
+            sortedOrders = sortedOrders.filter(order => {
                 return !order.payment.paid
-            }).slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
-        }
-        else {
-            sortedOrders = _.orderBy(orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
+            });
         }
 
-        if (multiSearchInput !== "" && multiSearchInput.length > 1) {
-            mappedOrders = _.orderBy(orders, ['payment.orderDate'], ['desc']).map(order => {
-                var products = order.products.map(product => {
-                    return (product.productName)
-                }).join(" ")
-
-                return (
-                    {
-                        original: order,
-                        fullName: order.address.firstName + " " + order.address.lastName,
-                        fullNameReversed: order.address.lastName + " " + order.address.firstName,
-                        phone: order.address.phone,
-                        street: order.address.street,
-                        vs: order.payment.vs,
-                        totalPrice: order.totalPrice,
-                        products: products
-                    }
-                )
-            })
-
-            filteredByMultiSearch = filterInArrayOfObjects(
-                multiSearchInput, mappedOrders, ["fullName", "fullNameReversed", "phone", "street", "vs", "totalPrice", "products"]).map(order => order.original)
+        if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
+            filteredByMultiSearch = this.filterData(orders, multiSearchInput)
         }
         else {
             filteredByMultiSearch = sortedOrders
         }
 
         mappedOrders = filteredByMultiSearch.map(order => {
+
+            var orderInlineDetails = null
+
+            if (orderIdsShowingDetails.indexOf(order.id) > -1) {
+                orderInlineDetails = <OrderInlineDetails order={order} isMobile={isMobile} />
+            }
+
             if (isMobile) {
-                var orderInlineDetails = (
-                    this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
-                        <Table.Cell style={{ color: 'black' }}>
-                            <Grid style={{ marginTop: '0.5em' }}>
-                                {/* <Grid.Row style={{ padding: '1em' }}>
-                                    <Grid.Column>
-                                        <Header as='h4'>
-                                            Customer info
-                                        </Header>
-                                    </Grid.Column>
-                                </Grid.Row> */}
-                                <Grid.Row textAlign='left' columns='equal' style={{ paddingTop: '0px' }}>
-                                    <Grid.Column>
-                                        <b>First name:</b> {order.address.firstName} <br />
-                                        <b>Last name:</b> {order.address.lastName} <br />
-                                        <b>Phone:</b> {order.address.phone} <br />
-                                        <b>Street:</b> {order.address.street} <br />
-                                        <b>City:</b> {order.address.city} <br />
-                                        <b>Street number:</b> {order.address.streetNumber} <br />
-                                        <b>ZIP:</b> {order.address.psc} <br />
-                                    </Grid.Column>
-                                    <Grid.Column textAlign='left'>
-                                        <b>Company:</b> {order.address.company} <br />
-                                        {/* <b>Delivery price:</b> {order.payment.price} Kč<br /> */}
-                                        <b>Bank payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
-
-                                    </Grid.Column>
-                                </Grid.Row>
-                                {/* <Grid.Row style={{ paddingBottom: '0px' }}>
-                                    <Grid.Column>
-                                        <Header as='h4'>
-                                            Order info
-                                        </Header>
-                                    </Grid.Column>
-                                </Grid.Row> */}
-                                <Grid.Row style={{ textDecoration: 'underline', fontSize: '0.8em', paddingTop: '0px', paddingBottom: '0px' }}>
-                                    <Grid.Column width={9}>
-                                        Product
-                                    </Grid.Column>
-                                    <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
-                                        Count
-                                    </Grid.Column>
-                                    <Grid.Column width={3}>
-                                        Price/piece [CZK]
-                                    </Grid.Column>
-                                    <Grid.Column width={3}>
-                                        Sum [CZK]
-                                    </Grid.Column>
-                                </Grid.Row>
-                                {/* <Grid.Row style={{ paddingTop: '0px' }} > */}
-
-                                {order.products.map((product, index) => {
-                                    return (
-                                        <Grid.Row key={index} style={{ paddingTop: '0px', paddingBottom: '0px' }}>
-                                            <Grid.Column width={9}>
-                                                {product.productName}
-                                            </Grid.Column>
-                                            <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
-                                                {product.count}
-                                            </Grid.Column>
-                                            <Grid.Column width={3}>
-                                                {product.pricePerOne}
-                                            </Grid.Column>
-                                            <Grid.Column width={3}>
-                                                <b>{product.totalPricePerProduct}</b>
-                                            </Grid.Column>
-
-                                        </Grid.Row>
-                                    )
-                                })}
-
-                                {/* </Grid.Row> */}
-                                <Grid.Row>
-
-                                    <Grid.Column textAlign='left'>
-                                        {
-                                            order.payment.price ? (
-                                                <>
-                                                    <b>Delivery price:</b> {order.payment.price} Kč<br />
-                                                </>
-                                            ) : (
-                                                    null
-                                                )
-                                        }
-                                        {/* <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br /> */}
-                                        <b>Total Price: {order.totalPrice} Kč</b>
-                                    </Grid.Column>
-                                </Grid.Row>
-                            </Grid>
-                        </Table.Cell>
-                    ) : (
-                            null
-                        )
-                )
                 // mobile return
                 return (
-                    <Table.Row onClick={() => this.toggleInlineOrderDetails(order._id)} key={order._id} style={this.getOrderTableRowStyle(order)}
+                    <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                         <Table.Cell style={{ color: 'black' }}>{order.payment.vs ? order.payment.vs : "cash"} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
@@ -504,8 +403,8 @@ class Orders extends React.Component {
                                     null
                                 ) : (
                                         <>
-                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                                            <Button style={{ padding: '0.3em' }} size='medium' icon={
+                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='big' icon='edit' />
+                                            <Button style={{ padding: '0.3em' }} size='big' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -517,14 +416,14 @@ class Orders extends React.Component {
                                     )
                             }
 
-                            <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                            <Button style={{ padding: '0.3em' }} size='big' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                             {
                                 order.payment.paid ? (
                                     null
                                 ) : (
                                         <>
-                                            <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                                            <Button style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
+                                            <Button style={{ padding: '0.3em' }} size='big' icon='shipping fast' />
+                                            <Button style={{ padding: '0.3em' }} size='big' icon={<Icon name='close' color='red' />} />
 
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate ? (
@@ -552,103 +451,16 @@ class Orders extends React.Component {
 
             }
             else {
-                var orderInlineDetails = (
-                    this.state.orderIdsShowingDetails.indexOf(order._id) > -1 ? (
-                        <Table.Row
-                            style={this.getOrderTableRowStyle(order)}>
-                            <Table.Cell colSpan={9}>
-                                <Grid style={{ marginTop: '1.5em', marginBottom: '2em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
-                                    <Grid.Row style={{ padding: '1em' }}>
-                                        <Grid.Column width={4}>
-                                            <Header as='h4'>
-                                                Customer info
-                                </Header>
-                                        </Grid.Column>
-                                        <Grid.Column width={4}>
-                                        </Grid.Column>
-                                        <Grid.Column width={8}>
-                                            <Header as='h4'>
-                                                Order info
-                                </Header>
-                                        </Grid.Column>
-                                    </Grid.Row>
-                                    <Grid.Row>
-                                        <Grid.Column width={4}>
-                                            <b>First name:</b> {order.address.firstName} <br />
-                                            <b>Last name:</b> {order.address.lastName} <br />
-                                            <b>Phone:</b> {order.address.phone} <br />
-                                            <b>Company:</b> {order.address.company} <br />
-                                        </Grid.Column>
-                                        <Grid.Column width={4}>
-                                            <b>Street:</b> {order.address.street} <br />
-                                            <b>City:</b> {order.address.city} <br />
-                                            <b>Street number:</b> {order.address.streetNumber} <br />
-                                            <b>ZIP:</b> {order.address.psc} <br />
-                                        </Grid.Column>
-                                        <Grid.Column width={8}>
-                                            <SimpleTable columnProperties={
-                                                [
-                                                    {
-                                                        name: "Name",
-                                                        width: 4,
-                                                    },
-                                                    {
-                                                        name: "Count",
-                                                        width: 4,
-                                                    },
-                                                    {
-                                                        name: "Price per One",
-                                                        width: 4,
-                                                    },
-                                                    {
-                                                        name: "Total product price",
-                                                        width: 4,
-                                                    }
-                                                ]
-                                            } body={order.products.map((product, index) => {
-                                                return (
-                                                    <Table.Row key={index}>
-                                                        <Table.Cell >{product.productName}</Table.Cell>
-                                                        <Table.Cell >{product.count}</Table.Cell>
-                                                        <Table.Cell >{product.pricePerOne} Kč</Table.Cell>
-                                                        <Table.Cell>{product.totalPricePerProduct} Kč</Table.Cell>
-                                                    </Table.Row>
-                                                )
-                                            })} />
-                                            <Grid>
-                                                <Grid.Row columns='equal' style={{ padding: '0px', borderBottom: '0px' }}>
-                                                    {/* <Grid.Column width={8}>
-                                                </Grid.Column> */}
-                                                    <Grid.Column>
-                                                        <b>Bank account payment:</b> {order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                                        <b>Delivery:</b> {order.deliveryCompany ? order.deliveryType + " + " + order.deliveryCompany : order.deliveryType} <br />
-                                                    </Grid.Column>
-                                                    <Grid.Column style={{ paddingLeft: '0px' }}>
-                                                        <b>Delivery price:</b> {order.payment.price} Kč<br />
-                                                        <b>Total Price: {order.totalPrice} Kč</b>
-                                                        {/* <b></b><br /> */}
-                                                    </Grid.Column>
-                                                </Grid.Row>
-                                            </Grid>
-                                        </Grid.Column>
-                                    </Grid.Row>
-                                </Grid>
-                            </Table.Cell>
-                        </Table.Row>
-                    ) : (
-                            null
-                        )
-                )
-                counter++;
+                rowCounter++;
                 // desktop return
                 return (
-                    <React.Fragment key={order._id}>
+                    <React.Fragment key={order.id}>
                         <Table.Row
-                            onClick={(e) => this.toggleInlineOrderDetails(order._id, e)}
-                            style={this.getOrderTableRowStyle(order)}
+                            onClick={(e) => this.toggleInlineOrderDetails(order.id, e)}
+                            style={getOrderTableRowStyle(order)}
                             textAlign='center'
-                            key={order._id}>
-                            <Table.Cell style={{ color: 'black' }}>{counter}</Table.Cell>
+                            key={order.id}>
+                            <Table.Cell style={{ color: 'black' }}>{rowCounter}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
@@ -704,9 +516,7 @@ class Orders extends React.Component {
                         </Table.Row>
                         {orderInlineDetails}
                     </React.Fragment>
-
                 )
-
             }
         })
 
@@ -730,7 +540,7 @@ class Orders extends React.Component {
         }
         else {
             table = (
-                <Table selectable compact padded basic='very'>
+                <Table compact padded basic='very'>
                     <Table.Header>
                         <Table.Row style={{ textAlign: 'center' }}>
                             <Table.HeaderCell width={1}>#</Table.HeaderCell>
@@ -752,89 +562,93 @@ class Orders extends React.Component {
 
         var notPaidNotificationsMessage, warehouseNotificationsMessage;
 
-        if (this.props.ordersPageStore.isWarehouseNotificationsDone) {
-            if (this.props.ordersPageStore.warehouseNotifications.length > 0) {
-                var message = this.props.ordersPageStore.warehouseNotifications.map((notification, i) => {
-                    return (
-                        <React.Fragment key={i}>
-                            <strong>{notification.product}: </strong> {notification.current} <br />
-                        </React.Fragment>
-                    )
-                })
+        // if its mobile and menu not expanded then save some time with not rendering messages
+        if ((showFunctionsMobile && isMobile) || !isMobile) {
+            if (this.props.ordersPageStore.warehouseNotifications.data) {
+                if (this.props.ordersPageStore.warehouseNotifications.data.length > 0) {
+                    var message = this.props.ordersPageStore.warehouseNotifications.data.map((notification, i) => {
+                        return (
+                            <React.Fragment key={i}>
+                                <strong>{notification.product}: </strong> {notification.current} <br />
+                            </React.Fragment>
+                        )
+                    })
 
-                warehouseNotificationsMessage = (
-                    <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}
-                        <Link to="/warehouse">Go to Warehouse</Link></Message>
-                )
-            }
-            else {
-                warehouseNotificationsMessage = null
-            }
-        }
-        else {
-            warehouseNotificationsMessage = (
-                <Message warning icon>
-                    <Icon name='circle notched' loading />
-                    <Message.Content>
-                        <Message.Header>Checking what's missing in warehouse</Message.Header>
-                    </Message.Content>
-                </Message>
-            )
-        }
-
-        if (this.props.ordersPageStore.isNotPaidNotificationsDone) {
-            if (this.props.ordersPageStore.notPaidNotifications.length > 0) {
-                var VSs = this.props.ordersPageStore.notPaidNotifications.map(notification => {
-                    return (
-                        <span key={notification.vs} onClick={() => this.handleNotPaidVs(notification.vs.toString())} style={{ padding: '0.2em', cursor: "pointer" }}>
-                            <strong>
-                                {notification.vs} <br />
-                            </strong>
-                        </span>
-                    )
-                })
-
-                if (this.props.ordersPageStore.notPaidNotifications.length > 1) {
-                    notPaidNotificationsMessage = (
-                        <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br />{VSs}</Message>
+                    warehouseNotificationsMessage = (
+                        <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}
+                            <Link to="/warehouse">Go to Warehouse</Link></Message>
                     )
                 }
                 else {
-                    notPaidNotificationsMessage = (
-                        <Message style={{ textAlign: 'center' }} warning>
-                            Order is delivered but not paid: <br />
-                            <strong>{VSs}</strong>
-                        </Message>
-                    )
+                    warehouseNotificationsMessage = null
                 }
             }
-            else if (this.props.ordersPageStore.notPaidNotifications.length === 0) {
-                notPaidNotificationsMessage = null
+            else {
+                warehouseNotificationsMessage = (
+                    <Message warning icon>
+                        <Icon name='circle notched' loading />
+                        <Message.Content>
+                            <Message.Header>Checking what's missing in warehouse</Message.Header>
+                        </Message.Content>
+                    </Message>
+                )
+            }
+
+            if (this.props.ordersPageStore.notPaidNotifications.data) {
+                if (this.props.ordersPageStore.notPaidNotifications.data.length > 0) {
+                    var VSs = this.props.ordersPageStore.notPaidNotifications.data.map(notification => {
+                        return (
+                            <span key={notification.vs} onClick={() => this.handleNotPaidVSOnClick(notification.vs.toString())} style={{ padding: '0.2em', cursor: "pointer" }}>
+                                <strong>
+                                    {notification.vs} <br />
+                                </strong>
+                            </span>
+                        )
+                    })
+
+                    if (this.props.ordersPageStore.notPaidNotifications.data.length > 1) {
+                        notPaidNotificationsMessage = (
+                            <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br />{VSs}</Message>
+                        )
+                    }
+                    else {
+                        notPaidNotificationsMessage = (
+                            <Message style={{ textAlign: 'center' }} warning>
+                                Order is delivered but not paid: <br />
+                                <strong>{VSs}</strong>
+                            </Message>
+                        )
+                    }
+                }
+                else {
+                    notPaidNotificationsMessage = null
+                }
+            }
+            else {
+                notPaidNotificationsMessage = (
+                    <Message warning icon>
+                        <Icon name='circle notched' loading />
+                        <Message.Content>
+                            <Message.Header>Findind not paid orders</Message.Header>
+                        </Message.Content>
+                    </Message>
+                )
             }
         }
-        else {
-            notPaidNotificationsMessage = (
-                <Message warning icon>
-                    <Icon name='circle notched' loading />
-                    <Message.Content>
-                        <Message.Header>Findind not paid orders</Message.Header>
-                    </Message.Content>
-                </Message>
-            )
-        }
-        var grid;
+
+        var orderPageHeader;
         if (isMobile) {
-            grid = (
+            orderPageHeader = (
                 <Grid stackable>
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
                                 Orders
-                                <Button toggle onClick={() => this.setState({ showFunctionsMobile: !this.state.showFunctionsMobile })} floated='right' style={{ backgroundColor: this.state.showFunctionsMobile ? '#f2005696' : '#f20056', color: 'white' }} content={this.state.showFunctionsMobile ? 'Hide' : 'Show'} />
+                                <Button toggle onClick={() => this.toggleShowFunctionsMobile()} floated='right' style={{ backgroundColor: this.state.showFunctionsMobile ? '#f2005696' : '#f20056', color: 'white' }} content={this.state.showFunctionsMobile ? 'Hide' : 'Show'} />
                             </Header>
                         </Grid.Column>
                     </Grid.Row>
-                    <Transition.Group animation='drop' duration={500} style={{ width: '100%' }}>
+                    <Transition.Group animation='drop' duration={500}>
                         {this.state.showFunctionsMobile && (
                             <>
                                 <Grid.Row style={{ paddingTop: '1em', paddingBottom: '1em' }}>
@@ -884,39 +698,13 @@ class Orders extends React.Component {
 
                                 <Grid.Row>
                                     <Grid.Column>
-                                        <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
-                                            <Input
-                                                style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
-                                                ref={this.handleRef}
-                                                fluid
-                                                name="multiSearchInput"
-                                                // icon={
-                                                //     <Icon
-                                                //         name='delete'
-                                                //         style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                                //         circular
-                                                //         link
-                                                //         onClick={() => this.handleChange({}, {})} />
-                                                // }
-                                                placeholder='Search...'
-                                                onChange={this.handleFilterChange} />
-                                        </Transition>
-                                        {
-                                            this.state.showMultiSearchFilter ? (
-                                                null
-                                            ) : (
-                                                    <div style={{ textAlign: 'right' }}>
-                                                        <Icon
-                                                            name='search'
-                                                            style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                                            circular
-                                                            link
-                                                            onClick={this.showFilter} />
-                                                    </div>
-
-                                                )
-                                        }
-
+                                        <Input
+                                            style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
+                                            ref={this.handleRef}
+                                            fluid
+                                            name="multiSearchInput"
+                                            placeholder='Search...'
+                                            onChange={this.handleFilterChange} />
                                         <Button
                                             fluid
                                             size="small"
@@ -936,7 +724,7 @@ class Orders extends React.Component {
             )
         }
         else {
-            grid = (
+            orderPageHeader = (
                 <Grid>
                     <Grid.Row columns={5} style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
@@ -987,7 +775,7 @@ class Orders extends React.Component {
                                                 style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                 circular
                                                 link
-                                                onClick={this.showFilter} />
+                                                onClick={() => this.showFilter()} />
                                         </div>
 
                                     )
@@ -1010,62 +798,45 @@ class Orders extends React.Component {
                 </Grid>
             )
         }
+
         // desktop return
         return (
-            <div>
+            <>
                 {
-                    orders.length > 0 && !_.isEmpty(grid) && !_.isEmpty(table) ? (
-                        <>
-                            {
-                                this.state.generateInvoice.generateInvoiceDone === false ? (
-                                    <div className="messageBox">
-                                        <Message info icon>
-                                            <Icon name='circle notched' loading />
-                                            <Message.Content>
-                                                <Message.Header>
-                                                    {
-                                                        !_.isEmpty(this.state.generateInvoice.orderToGenerateInvoice) ? (
-                                                            this.state.generateInvoice.orderToGenerateInvoice.payment.vs || (this.state.generateInvoice.orderToGenerateInvoice.address.lastName ? this.state.generateInvoice.orderToGenerateInvoice.address.lastName : "") + " " + (this.state.generateInvoice.orderToGenerateInvoice.address.firstName ? this.state.generateInvoice.orderToGenerateInvoice.address.firstName : "")
+                    this.state.generateInvoice.generateInvoiceDone === false ? (
+                        <div className="messageBox">
+                            <Message info icon>
+                                <Icon name='circle notched' loading />
+                                <Message.Content>
+                                    <Message.Header>
+                                        {
+                                            !_.isEmpty(this.state.generateInvoice.orderToGenerateInvoice) ? (
+                                                this.state.generateInvoice.orderToGenerateInvoice.payment.vs || (this.state.generateInvoice.orderToGenerateInvoice.address.lastName ? this.state.generateInvoice.orderToGenerateInvoice.address.lastName : "") + " " + (this.state.generateInvoice.orderToGenerateInvoice.address.firstName ? this.state.generateInvoice.orderToGenerateInvoice.address.firstName : "")
 
-                                                        ) : (
-                                                                null
-                                                            )
-                                                    }
-                                                    {
-                                                        " : Generating pdf"
-                                                    }
-                                                </Message.Header>
-                                            </Message.Content>
-                                        </Message>
-                                    </div>
-                                ) : (
-                                        null
-                                    )}
-                            {grid}
-                            {table}
-                            {
-                                multiSearchInput !== "" ? (
-                                    null
-                                ) : (
-                                        <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
-                                    )
-                            }
-                        </>
+                                            ) : (
+                                                    null
+                                                )
+                                        }
+                                        {
+                                            " : Generating pdf"
+                                        }
+                                    </Message.Header>
+                                </Message.Content>
+                            </Message>
+                        </div>
                     ) : (
-                            <div className="centered">
-                                <Message positive icon>
-                                    <Icon name='circle notched' loading />
-                                    <Message.Content>
-                                        <Message.Header>
-                                            Loading orders
-                                        </Message.Header>
-                                    </Message.Content>
-                                    {isMobile ? null : <Image size='tiny' src={logo} />}
-                                </Message>
-                            </div>
+                            null
+                        )}
+                {orderPageHeader}
+                {table}
+                {
+                    multiSearchInput !== "" ? (
+                        null
+                    ) : (
+                            <Button onClick={() => this.loadMoreOrders()} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                         )
                 }
-            </div>
+            </>
         )
     }
 }
@@ -1084,8 +855,6 @@ function mapDispatchToProps(dispatch) {
         openOrderDetailsAction,
         getNotPaidNotificationsAction,
         getWarehouseNotificationsAction,
-        isGettingWarehouseNotificationsDoneAction: isGettingWarehouseNotificationsDoneAction,
-        isGettingNotPaidNotificationsDoneAction,
         getMoreOrdersAction,
         showGenericModalAction,
         getAllZaslatOrdersAction

@@ -1,4 +1,4 @@
-import { LOCALSTORAGE_NAME } from "../appConfig";
+import { LOCALSTORAGE_NAME, successColor, warningColor, errorColor, notActiveColor } from "../appConfig";
 import axios from 'axios';
 import moment from "moment";
 import React from 'react';
@@ -107,6 +107,33 @@ export const filterInArrayOfObjects = (toSearch, array, keys) => {
         }
         return false;
     });
+}
+
+/**
+ *
+ * @param {object} order
+ */
+export const getOrderTableRowStyle = (order) => {
+    var backgroundColor;
+
+    if (!order) {
+        return null
+    }
+
+    if (order.payment.paid) {
+        backgroundColor = successColor
+    }
+    else if (order.zaslatDate && !order.payment.paid) {
+        backgroundColor = warningColor
+    }
+    else if (!order.zaslatDate && order.state === "active") {
+        backgroundColor = errorColor
+    }
+    else {
+        backgroundColor = notActiveColor
+    }
+
+    return { backgroundColor: backgroundColor }
 }
 
 // -------------------------------------------------------------------------

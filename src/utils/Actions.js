@@ -81,20 +81,6 @@ export function getWarehouseNotificationsAction(payload) {
     }
 }
 
-export function isGettingWarehouseNotificationsDoneAction(payload) {
-    return {
-        payload,
-        type: 'IS_GET_WAREHOUSE_NOTIFICATIONS'
-    }
-}
-
-export function isGettingNotPaidNotificationsDoneAction(payload) {
-    return {
-        payload,
-        type: 'IS_GET_NOT_PAID_NOTIFICATIONS'
-    }
-}
-
 export function getMoreOrdersAction(payload) {
     return {
         payload,
