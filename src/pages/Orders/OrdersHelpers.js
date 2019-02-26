@@ -16,6 +16,13 @@ export const handleOrder = async (order, mode, props) => {
         order.payment.vs = res.data
     }
 
+    order.products.forEach(x => {
+        delete x.product
+    })
+
+    // TODO: add branch picker
+    order.branch = order.branch ? order.branch : "VN"
+
     order.address.street = document.getElementById("hiddenStreet").value
     order.address.city = document.getElementById("city").value
     order.address.psc = document.getElementById("zip").value
@@ -28,7 +35,7 @@ export const handleOrder = async (order, mode, props) => {
     order.address.phone = document.getElementById("phone").value
     order.address.company = document.getElementById("company").value
 
-    order.payment.price = document.getElementById("deliveryPrice").value
+    order.payment.price = document.getElementById("deliveryPrice").value ? parseInt(document.getElementById("deliveryPrice").value) : null
     order.note = document.getElementById("note").value
 
     var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
@@ -40,8 +47,12 @@ export const handleOrder = async (order, mode, props) => {
             .then(() => {
                 props.history.push('/orders')
             })
-            .catch((res) => {
-                alert(res)
+            .catch((err) => {
+                props.showGenericModalAction({
+                    header: 'Failed to create order',
+                    parentProps: this.props,
+                    err: err
+                })
             })
     }
     else {
@@ -49,8 +60,12 @@ export const handleOrder = async (order, mode, props) => {
             .then(() => {
                 props.history.push('/orders')
             })
-            .catch((res) => {
-                alert(res)
+            .catch((err) => {
+                props.showGenericModalAction({
+                    header: 'Failed to update order: ' + order.id,
+                    parentProps: this.props,
+                    err: err
+                })
             })
     }
 }
@@ -100,9 +115,9 @@ export const handleInputChangeHelper = (name, value, prop, stateOrder) => {
 export const getTotalPriceHelper = (raw, orderState) => {
     var sum = 0;
 
-    if(document.getElementById("deliveryPrice")) {
+    if (document.getElementById("deliveryPrice")) {
         var parsed = parseInt(document.getElementById("deliveryPrice").value)
-        if (parsed !== NaN) {
+        if (!isNaN(parsed)) {
             sum = parsed
         }
     }
@@ -122,7 +137,7 @@ export const getTotalPriceHelper = (raw, orderState) => {
 
 export const handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
     var o = Object.assign({}, stateOrder)
-    if (prop === "deliveryType" && type === deliveryTypes[0].type || prop === "deliveryCompany" && type === deliveryCompanies[0].company) {
+    if ((prop === "deliveryType" && type === deliveryTypes[0].type) || (prop === "deliveryCompany" && type === deliveryCompanies[0].company)) {
         o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
     }
     else {

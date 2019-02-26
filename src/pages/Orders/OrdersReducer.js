@@ -5,7 +5,7 @@ const ordersPageInitialState = {
     notPaidNotifications: { success: true },
     isLoadingDone: false,
     orderToEdit: {},
-    products: []
+    products: { success: true }
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -21,8 +21,8 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { notPaidNotifications: action.payload })
         case 'GET_MORE_ORDERS':
+            var temp = Object.assign([], state.orders)
             if (action.payload.success) {
-                var temp = Object.assign([], state.orders)
 
                 if (temp.data) {
                     temp.data = temp.data.concat(action.payload.data)
@@ -30,9 +30,8 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
                 else {
                     temp.data = action.payload.data
                 }
-
-                return Object.assign({}, state, { orders: temp })
             }
+            return Object.assign({}, state, { orders: temp })
         default:
             return state;
     }

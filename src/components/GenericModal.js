@@ -8,7 +8,7 @@ import { errorColor } from '../appConfig';
 
 class GenericModal extends React.Component {
 
-    state = { active: false }
+    state = { active: true }
 
     close = () => {
         this.props.closeGenericModalAction()

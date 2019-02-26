@@ -14,13 +14,13 @@ export const errorColor = '#f2005614'
 export const notActiveColor = '#bfbfbf'
 
 export const deliveryCompanies = [
-    { company: "gls" },
-    { company: "cp" }
+    { company: "GLS" },
+    { company: "CP" }
 ]
 
 export const deliveryTypes = [
-    { type: "vs" },
-    { type: "cash" }
+    { type: "VS" },
+    { type: "CASH" }
 ]
 
 export const DEFAULT_ORDER_LOCK_SECONDS = 10

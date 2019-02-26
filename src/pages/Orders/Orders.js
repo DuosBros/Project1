@@ -207,8 +207,8 @@ class Orders extends React.Component {
         if (this.state.orderLabelsToPrint.length > 0) {
             var foundIZs = [];
 
-            this.state.orderLabelsToPrint.map(x => {
-                foundIZs.push(this.props.zaslatPageStore.zaslatOrders.data.filter(y => {
+            this.state.orderLabelsToPrint.forEach(x => {
+                foundIZs.push(this.props.zaslatPageStore.zaslatOrders.data.forEach(y => {
                     if (y.id === x) { return y.zaslatShipmentId }
                 }))
             })
@@ -661,7 +661,7 @@ class Orders extends React.Component {
                                                 fluid
                                                 size='small'
                                                 compact
-                                                content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
+                                                content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
                                                 color={this.state.orderLabelsToPrint.length > 0 ? "green" : null} />
                                         ) : (
                                                 <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
@@ -740,7 +740,7 @@ class Orders extends React.Component {
                                         fluid
                                         size='small'
                                         compact
-                                        content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels " + "(" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
+                                        content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
                                         color={this.state.orderLabelsToPrint.length > 0 ? "green" : null} />
                                 ) : (
                                         <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />

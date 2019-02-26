@@ -1,31 +1,93 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Message, Icon, Segment, Form, Dropdown, Divider, Label, Table } from 'semantic-ui-react';
-import _ from 'lodash';
+import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, getOrder, createOrder, getHighestVS } from '../../utils/requests';
+import { getAllProducts } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
-import moment from 'moment';
-import { getGLSDeliveryPrice } from '../../utils/helpers';
-import { handleOrder, handleProductDropdownOnChangeHelper, getTotalPriceHelper, handleInputChangeHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
+import { handleOrder, handleProductDropdownOnChangeHelper, getTotalPriceHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
 import ProductRow from '../../components/ProductRow';
-import GenericModal from '../../components/GenericModal';
+
+const DeliveryCompanyButtonGroup = (props) => {
+    return (
+        <Button.Group fluid size='medium'>
+            <Button
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[0].company)}
+                id={props.deliveryCompany === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
+                GLS
+            </Button>
+            <Button.Or text='OR' />
+            <Button
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[1].company)}
+                id={props.deliveryCompany === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
+                Česká Pošta
+            </Button>
+        </Button.Group>
+    )
+}
+
+const BankAccountPaymentButtonGroup = (props) => {
+    return (
+        <Button.Group fluid size='medium'>
+            <Button
+                onClick={() => props.handleToggleBankAccountPaymentButtons(false)}
+                id={props.cashOnDelivery ? "secondaryButton" : "primaryButton"}>
+                Yes
+            </Button>
+            <Button.Or text='OR' />
+            <Button
+                onClick={() => props.handleToggleBankAccountPaymentButtons(true)}
+                id={props.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
+                NO
+            </Button>
+        </Button.Group>
+    )
+}
+
+const PaymentTypeButtonGroup = (props) => {
+    return (
+        <Button.Group fluid size='medium'>
+            <Button
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[0].type)}
+                id={props.deliveryType === deliveryTypes[0].type ? "primaryButton" : "secondaryButton"}>
+                VS
+        </Button>
+            <Button.Or text='OR' />
+            <Button
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[1].type)}
+                id={props.deliveryType === deliveryTypes[0].type ? "secondaryButton" : "primaryButton"}>
+                Cash
+        </Button>
+        </Button.Group>
+    )
+}
+
+const TotalPriceForm = (props) => {
+    return (
+        <Form className='form' size='large'>
+            <Form.Input onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+            <label><b>Total price [CZK]</b></label>
+            <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
+            <Form.Input id='note' label='Note' fluid name='note' />
+        </Form>
+    )
+}
 
 class AddOrder extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
+            isMobile: this.props.isMobile,
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
             orderToAdd: {
                 address: {},
                 state: "active",
                 products: [],
-                deliveryType: 'vs',
-                deliveryCompany: 'gls',
+                deliveryType: 'VS',
+                deliveryCompany: 'GLS',
                 totalPrice: 0,
                 payment: {
                     price: 0,
@@ -43,10 +105,13 @@ class AddOrder extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.ordersPageStore.products.length === 0) {
-            getAllProducts()
-                .then(res => this.props.getAllProductsAction(res.data))
-        }
+        getAllProducts()
+            .then(res => {
+                this.props.getAllProductsAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.getAllProductsAction({ error: err, success: false })
+            })
 
         this.smartformInterval = setInterval(() => {
             if (window.smartform && !window.smartformReloaded) {
@@ -54,11 +119,10 @@ class AddOrder extends React.Component {
                 window.smartform.rebindAllForms(true);
             }
         }, 5000);
-
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
-        product.product = this.props.ordersPageStore.products[product.productName]
+        product.product = this.props.ordersPageStore.products.data[product.productName]
         var temp = handleProductDropdownOnChangeHelper(
             product, this.state.orderToAdd, i)
 
@@ -77,8 +141,7 @@ class AddOrder extends React.Component {
         this.setState({ orderToAdd: o });
     }
 
-
-    renderProducts = () => {
+    renderProductsForMobile = () => {
 
         var result = []
 
@@ -87,7 +150,7 @@ class AddOrder extends React.Component {
             return (
                 <React.Fragment key={i}>
                     <ProductRow
-                        allProducts={this.props.ordersPageStore.products}
+                        allProducts={this.props.ordersPageStore.products.data}
                         i={i}
                         product={product}
                         handleProductDropdownOnChange={this.handleProductDropdownOnChange} />
@@ -96,16 +159,21 @@ class AddOrder extends React.Component {
         })
 
         // add new product
-        let i = this.state.orderToAdd.products.length + 1;
-
         result.push(
-            <React.Fragment key={i}>
+            <React.Fragment key={-1}>
                 <Form.Field>
                     <label><Icon name='add' />Product Name</label>
                     <Dropdown
                         selection
-                        onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, { productName: m.value, count: 1, pricePerOne: this.props.ordersPageStore.products[m.value].price })}
-                        options={Object.keys(this.props.ordersPageStore.products).map(x =>
+                        onChange={(e, m) => this.handleProductDropdownOnChange(
+                            null,
+                            null,
+                            this.state.orderToAdd.products.length, {
+                                productName: m.value,
+                                count: 1,
+                                pricePerOne: this.props.ordersPageStore.products.data[m.value].price
+                            })}
+                        options={Object.keys(this.props.ordersPageStore.products.data ? this.props.ordersPageStore.products.data : {}).map(x =>
                             ({
                                 value: x,
                                 text: x
@@ -124,7 +192,7 @@ class AddOrder extends React.Component {
         return result;
     }
 
-    handleToggleDeliveryButtons = (prop, type) => {
+    handleToggleDeliveryAndPaymentTypeButtons = (prop, type) => {
         var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.orderToAdd);
 
         this.setState({ orderToAdd: temp });
@@ -152,21 +220,23 @@ class AddOrder extends React.Component {
     }
 
     render() {
-        if (this.props.baseStore.showGenericModal) {
-            return (
-                <GenericModal
-                    show={this.props.baseStore.showGenericModal}
-                    header={this.props.baseStore.modal.modalHeader}
-                    content={this.props.baseStore.modal.modalContent}
-                    redirectTo={this.props.baseStore.modal.redirectTo}
-                    parentProps={this.props.baseStore.modal.parentProps}
-                    err={this.props.baseStore.modal.err} />)
-        }
-
         var grid;
-        const { orderToAdd } = this.state;
+        const { orderToAdd, isMobile } = this.state;
 
-        if (this.props.isMobile) {
+        var headerButtons = (
+            <Grid.Column width={isMobile ? null : 13} style={isMobile ? { paddingTop: '1em', paddingBottom: '1em' } : null}>
+                <Button onClick={() => handleOrder(orderToAdd, "create", this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
+                <Button style={{ marginTop: '0.5em' }} fluid={isMobile} size='medium' compact content='Save Draft' id="tercialButton" />
+                <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
+                    <Button
+                        style={{ marginTop: '0.5em' }} id="secondaryButton" fluid={isMobile} size='small'
+                        compact content='Back'
+                    />
+                </Link>
+            </Grid.Column>
+        )
+
+        if (isMobile) {
             // mobile
             grid = (
                 <Grid stackable>
@@ -176,22 +246,12 @@ class AddOrder extends React.Component {
                                 {'Add Order'}
                             </Header>
                         </Grid.Column>
-                        <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                            <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} fluid size='medium' compact content='Save' id="primaryButton" />
-                            <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
-                                <Button
-                                    style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                                    compact content='Back'
-                                />
-                            </Link>
-                        </Grid.Column>
+                        {headerButtons}
                     </Grid.Row>
                     <Grid.Row columns='equal'>
                         <Grid.Column>
                             <Header block attached='top' as='h4'>
                                 Contact Info
-                                {/* <Button content='Save' /> */}
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
@@ -199,7 +259,7 @@ class AddOrder extends React.Component {
                                         <label>
                                             Street and number
                                         </label>
-                                        <input id="streetAndNumber" className="smartform-street-and-number"></input>
+                                        <input name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                     </Form.Field>
@@ -211,10 +271,10 @@ class AddOrder extends React.Component {
                                         <label>ZIP</label>
                                         <input readOnly id="zip" className="smartform-zip"></input>
                                     </Form.Field>
-                                    <Form.Input id='firstName' label='First Name' fluid name='nope' />
-                                    <Form.Input id='lastName' label='Last Name' fluid name='lastName' />
-                                    <Form.Input id='phone' label='Phone Number' fluid name='phone' />
-                                    <Form.Input id='company' label='Company' fluid name='company' />
+                                    <Form.Input id='firstName' label='First Name' fluid name='nope' name='nope' />
+                                    <Form.Input id='lastName' label='Last Name' fluid name='lastName' name='nope' />
+                                    <Form.Input id='phone' label='Phone Number' fluid name='phone' name='nope' />
+                                    <Form.Input id='company' label='Company' fluid name='company' name='nope' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -226,19 +286,7 @@ class AddOrder extends React.Component {
                                 <Form className='form' size='large'>
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><b>Payment type</b></label>
-                                        <Button.Group fluid size='medium'>
-                                            <Button
-                                                onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[0].type)}
-                                                id={orderToAdd.deliveryType.toLowerCase() === deliveryTypes[0].type ? "primaryButton" : "secondaryButton"}>
-                                                VS
-                                            </Button>
-                                            <Button.Or text='OR' />
-                                            <Button
-                                                onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[1].type)}
-                                                id={orderToAdd.deliveryType.toLowerCase() === deliveryTypes[0].type ? "secondaryButton" : "primaryButton"}>
-                                                Cash
-                                            </Button>
-                                        </Button.Group>
+                                        <PaymentTypeButtonGroup deliveryType={orderToAdd.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                     </div>
                                     {
                                         orderToAdd.deliveryType === deliveryTypes[1].type ? (
@@ -247,35 +295,11 @@ class AddOrder extends React.Component {
                                                 <>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                                         <label><b>Delivery company</b></label>
-                                                        <Button.Group fluid size='medium'>
-                                                            <Button
-                                                                onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[0].company)}
-                                                                id={orderToAdd.deliveryCompany.toLowerCase() === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
-                                                                GLS
-                                                            </Button>
-                                                            <Button.Or text='OR' />
-                                                            <Button
-                                                                onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[1].company)}
-                                                                id={orderToAdd.deliveryCompany.toLowerCase() === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
-                                                                Česká Pošta
-                                                            </Button>
-                                                        </Button.Group>
+                                                        <DeliveryCompanyButtonGroup deliveryCompany={orderToAdd.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                     </div>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                                         <label><b>Bank account payment</b></label>
-                                                        <Button.Group fluid size='medium'>
-                                                            <Button
-                                                                onClick={() => this.handleToggleBankAccountPaymentButtons(false)}
-                                                                id={orderToAdd.payment.cashOnDelivery ? "secondaryButton" : "primaryButton"}>
-                                                                Yes
-                                                            </Button>
-                                                            <Button.Or text='OR' />
-                                                            <Button
-                                                                onClick={() => this.handleToggleBankAccountPaymentButtons(true)}
-                                                                id={orderToAdd.payment.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
-                                                                NO
-                                                            </Button>
-                                                        </Button.Group>
+                                                        <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={orderToAdd.payment.cashOnDelivery} />
                                                     </div>
                                                 </>
                                             )
@@ -291,7 +315,7 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    {this.renderProducts()}
+                                    {this.renderProductsForMobile()}
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -300,26 +324,12 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <Form className='form' size='large'>
-                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
-                                    <label><b>Total price [CZK]</b></label>
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
-                                    <Form.Input id='note' label='Note' fluid name='note' />
-                                </Form>
+                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={orderToAdd.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
-                        <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
-                            <Button fluid size='medium' compact content='Save' id="primaryButton" />
-                            <Button style={{ marginTop: '0.5em' }} fluid size='medium' compact content='Save Draft' id="tercialButton" />
-                            <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
-                                <Button
-                                    style={{ marginTop: '0.5em' }} id="secondaryButton" fluid size='small'
-                                    compact content='Back'
-                                />
-                            </Link>
-                        </Grid.Column>
+                        {headerButtons}
                     </Grid.Row>
                 </Grid >
             )
@@ -353,7 +363,17 @@ class AddOrder extends React.Component {
                 }
             ];
 
-            var productsTableRow = this.state.orderToAdd.products.map((product, i) => {
+            var mappedAllProductsForDropdown = []
+            if (this.props.ordersPageStore.products.data) {
+                mappedAllProductsForDropdown = Object.keys(this.props.ordersPageStore.products.data).map(x =>
+                    ({
+                        value: x,
+                        text: x
+                    })
+                )
+            }
+
+            var productsTableRow = orderToAdd.products.map((product, i) => {
                 return (
                     <Table.Row key={i} >
                         <Table.Cell collapsing>
@@ -363,19 +383,14 @@ class AddOrder extends React.Component {
                             <Dropdown
                                 selection
                                 onChange={(e, m) => this.handleProductDropdownOnChange(
-                                    e, m, i,
+                                    null, null, i,
                                     {
                                         productName: m.value,
                                         count: 1,
-                                        pricePerOne: this.props.ordersPageStore.products[m.value].price,
-                                        product: this.props.ordersPageStore.products[m.value]
+                                        pricePerOne: this.props.ordersPageStore.products.data[m.value].price,
+                                        product: this.props.ordersPageStore.products.data[m.value]
                                     })}
-                                options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                    ({
-                                        value: x,
-                                        text: x
-                                    })
-                                )}
+                                options={mappedAllProductsForDropdown}
                                 defaultValue={product.productName}
                                 fluid
                                 selectOnBlur={false}
@@ -388,7 +403,7 @@ class AddOrder extends React.Component {
                             <Form.Input
                                 fluid
                                 value={product.pricePerOne}
-                                onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
+                                onChange={(e, m) => this.handleProductDropdownOnChange(null, null, i, {
                                     pricePerOne: m.value,
                                     productName: product.productName,
                                     count: product.count
@@ -398,7 +413,7 @@ class AddOrder extends React.Component {
                             <Form.Input
                                 fluid
                                 value={product.count}
-                                onChange={(e, m) => this.handleProductDropdownOnChange(e, m, i, {
+                                onChange={(e, m) => this.handleProductDropdownOnChange(null, null, i, {
                                     pricePerOne: product.pricePerOne,
                                     productName: product.productName,
                                     count: parseInt(m.value)
@@ -415,26 +430,19 @@ class AddOrder extends React.Component {
             })
 
             // add new product
-            let i = this.state.orderToAdd.products.length + 1;
-
             productsTableRow.push(
-                <Table.Row key={i}>
+                <Table.Row key={-1}>
                     <Table.Cell colSpan={6}>
                         <Dropdown
                             selection
                             onChange={(e, m) => this.handleProductDropdownOnChange(
-                                e, m, i - 1, {
+                                null, null, orderToAdd.products.length, {
                                     productName: m.value,
                                     count: 1,
-                                    pricePerOne: this.props.ordersPageStore.products[m.value].price,
-                                    product: this.props.ordersPageStore.products[m.value]
+                                    pricePerOne: this.props.ordersPageStore.products.data[m.value].price,
+                                    product: this.props.ordersPageStore.products.data[m.value]
                                 })}
-                            options={Object.keys(this.props.ordersPageStore.products).map(x =>
-                                ({
-                                    value: x,
-                                    text: x
-                                })
-                            )}
+                            options={mappedAllProductsForDropdown}
                             fluid
                             selectOnBlur={false}
                             selectOnNavigation={false}
@@ -445,28 +453,15 @@ class AddOrder extends React.Component {
                 </Table.Row>
             )
 
-            var buttons = (
-                <Grid.Column width={13}>
-                    <Button onClick={() => handleOrder(this.state.orderToAdd, "create", this.props)} size='medium' compact content='Save' id="primaryButton" />
-                    <Button style={{ marginTop: '0.5em' }} size='medium' compact content='Save Draft' id="tercialButton" />
-                    <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
-                        <Button
-                            style={{ marginTop: '0.5em' }} id="secondaryButton" size='small'
-                            compact content='Back'
-                        />
-                    </Link>
-                </Grid.Column>
-            )
-
             grid = (
                 <Grid stackable>
                     <Grid.Row>
-                        <Grid.Column width={2}>
+                        <Grid.Column width={3}>
                             <Header as='h1'>
-                                {'Add Order'}
+                                Add Order
                             </Header>
                         </Grid.Column>
-                        {buttons}
+                        {headerButtons}
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column width={7}>
@@ -570,25 +565,13 @@ class AddOrder extends React.Component {
                             <Segment attached='bottom'>
                                 <Grid>
                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                        <Grid.Column width={4}>
+                                        <Grid.Column width={5}>
                                             <strong>
                                                 Payment type
                                             </strong>
                                         </Grid.Column>
-                                        <Grid.Column width={7}>
-                                            <Button.Group fluid size='medium'>
-                                                <Button
-                                                    onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[0].type)}
-                                                    id={orderToAdd.deliveryType.toLowerCase() === deliveryTypes[0].type ? "primaryButton" : "secondaryButton"}>
-                                                    VS
-                                            </Button>
-                                                <Button.Or text='OR' />
-                                                <Button
-                                                    onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[1].type)}
-                                                    id={orderToAdd.deliveryType.toLowerCase() === deliveryTypes[0].type ? "secondaryButton" : "primaryButton"}>
-                                                    Cash
-                                            </Button>
-                                            </Button.Group>
+                                        <Grid.Column width={10}>
+                                            <PaymentTypeButtonGroup deliveryType={orderToAdd.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                         </Grid.Column>
                                     </Grid.Row>
                                     {
@@ -597,47 +580,23 @@ class AddOrder extends React.Component {
                                         ) : (
                                                 <>
                                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                                        <Grid.Column width={4}>
+                                                        <Grid.Column width={5}>
                                                             <strong>
                                                                 Delivery company
                                                             </strong>
                                                         </Grid.Column>
-                                                        <Grid.Column width={7}>
-                                                            <Button.Group fluid size='medium'>
-                                                                <Button
-                                                                    onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[0].company)}
-                                                                    id={orderToAdd.deliveryCompany.toLowerCase() === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
-                                                                    GLS
-                                                            </Button>
-                                                                <Button.Or text='OR' />
-                                                                <Button
-                                                                    onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[1].company)}
-                                                                    id={orderToAdd.deliveryCompany.toLowerCase() === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
-                                                                    Česká Pošta
-                                                            </Button>
-                                                            </Button.Group>
+                                                        <Grid.Column width={10}>
+                                                            <DeliveryCompanyButtonGroup deliveryCompany={orderToAdd.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                                        <Grid.Column width={4}>
+                                                        <Grid.Column width={5}>
                                                             <strong>
                                                                 Bank account payment
                                                             </strong>
                                                         </Grid.Column>
-                                                        <Grid.Column width={7}>
-                                                            <Button.Group fluid size='medium'>
-                                                                <Button
-                                                                    onClick={() => this.handleToggleBankAccountPaymentButtons(false)}
-                                                                    id={orderToAdd.payment.cashOnDelivery ? "secondaryButton" : "primaryButton"}>
-                                                                    Yes
-                                                            </Button>
-                                                                <Button.Or text='OR' />
-                                                                <Button
-                                                                    onClick={() => this.handleToggleBankAccountPaymentButtons(true)}
-                                                                    id={orderToAdd.payment.cashOnDelivery ? "primaryButton" : "secondaryButton"}>
-                                                                    NO
-                                                            </Button>
-                                                            </Button.Group>
+                                                        <Grid.Column width={10}>
+                                                            <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={orderToAdd.payment.cashOnDelivery} />
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                 </>
@@ -657,12 +616,7 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <Form className='form' size='small'>
-                                    <Form.Input onChange={() => this.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
-                                    <label><b>Total price [CZK]</b></label>
-                                    <input style={{ marginBottom: '0.5em' }} readOnly value={this.state.orderToAdd.totalPrice} ></input>
-                                    <Form.Input label='Note' fluid id='note' name='note' />
-                                </Form>
+                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={orderToAdd.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -670,9 +624,9 @@ class AddOrder extends React.Component {
             )
         }
         return (
-            <div>
+            <>
                 {grid}
-            </div>
+            </>
         )
     }
 }
