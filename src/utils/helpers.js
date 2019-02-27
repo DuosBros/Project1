@@ -64,7 +64,7 @@ export const handleVerifyLockError = (parentProps, error, currentUser) => {
                     parentProps.showGenericModalAction({
                         modalContent: (
                             <span>
-                                This order is locked by <b>{error.response.data.message.lockedBy}</b>!
+                                This order is locked by <strong>{error.response.data.message.lockedBy}</strong>!
                     </span>
                         ),
                         modalHeader: "Locked order",

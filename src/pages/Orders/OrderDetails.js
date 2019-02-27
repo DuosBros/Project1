@@ -13,104 +13,40 @@ import SimpleTable from '../../components/SimpleTable';
 import { handleOrder, handleProductDropdownOnChangeHelper, handleInputChangeHelper, getTotalPriceHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
 import ProductRow from '../../components/ProductRow';
 import OrderDetailsButtons from '../../components/OrderDetailsButtons';
+import { handleVerifyLockError } from '../../utils/helpers';
 
 class OrderDetails extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            orderToEdit: this.props.ordersPageStore.orderToEdit.data ? this.props.ordersPageStore.orderToEdit.data : null,
             streetAndNumberInput: null,
-            dropdownAddressSugestionInput: "",
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
         }
 
-        // check if order is locked
-        verifyLock(this.props.match.params.id, this.state.user)
-            .then(res => {
-                this.getOrderDetails()
-            })
-            .catch(err => {
-                if (err.response) {
-                    if (err.response.data) {
-                        if (err.response.data.message) {
-                            if (err.response.data.message.lockedBy !== this.state.user) {
-                                this.props.showGenericModalAction({
-                                    modalContent: (
-                                        <span>
-                                            This order is locked by <b>{err.response.data.message.lockedBy}</b>!
-                                        </span>
-                                    ),
-                                    modalHeader: "Locked order",
-                                    redirectTo: '/orders',
-                                    parentProps: props
-                                })
-                            }
-                            else {
-                                this.getOrderDetails()
-                            }
-                        }
-                    }
-                }
-                else {
-                    this.props.showGenericModalAction({
-                        modalContent: (
-                            <span>
-                                Details:
-                            </span>
-                        ),
-                        modalHeader: "Something happened",
-                        redirectTo: '/orders',
-                        parentProps: props,
-                        err: err
-                    })
-                }
-            })
+
     }
 
 
     getOrderDetails = () => {
-        if (_.isEmpty(this.props.ordersPageStore.orderToEdit)) {
-            getOrder(this.props.match.params.id)
-                .then(res => {
-                    if (res.data === null) {
-                        this.props.showGenericModalAction({
-                            modalContent: (
-                                <span>
-                                    Could not open order <b>{this.props.match.params.id}</b>!
-                                </span>
-                            ),
-                            modalHeader: "Failed to open!",
-                            redirectTo: '/orders',
-                            parentProps: this.props
-                        })
-                    }
+        getOrder(this.props.match.params.id)
+            .then(res => {
+                this.setState({ orderToEdit: res.data });
 
-                    this.setState({ orderToEdit: res.data });
-
-                    this.props.openOrderDetailsAction(res.data)
+                this.props.openOrderDetailsAction({ data: res.data, success: true })
+            })
+            .catch(err => {
+                this.props.showGenericModalAction({
+                    redirectTo: '/orders',
+                    parentProps: this.props,
+                    err: err
                 })
-                .catch(err => {
-                    this.props.showGenericModalAction({
-                        modalContent: (
-                            <span>
-                                Could not open order <b>{this.props.match.params.id}</b>!
-                                {err.data ? err.data.message : err.message}
-                            </span>
-                        ),
-                        modalHeader: "Failed to open!",
-                        redirectTo: '/orders',
-                        parentProps: this.props,
-                        err: err
-                    })
-                })
-        }
-        else {
-            this.setState({ orderToEdit: this.props.ordersPageStore.orderToEdit });
-        }
+            })
     }
 
-    componentDidUpdate(prevProps, prevState) {
+    componentDidUpdate() {
         if (this.props.match && this.props.match.params) {
-            if (!_.isEmpty(this.state.orderToEdit) && !_.isEmpty(document.getElementById("streetAndNumber"))) {
+            if (!this.state.orderToEdit && !_.isEmpty(document.getElementById("streetAndNumber"))) {
                 document.getElementById("streetAndNumber").value = this.state.orderToEdit.address.street + " " + this.state.orderToEdit.address.streetNumber
                 document.getElementById("city").value = this.state.orderToEdit.address.city
                 document.getElementById("zip").value = this.state.orderToEdit.address.psc
@@ -119,18 +55,40 @@ class OrderDetails extends React.Component {
     }
 
     componentWillUnmount() {
+        this.props.openOrderDetailsAction({ success: true })
+
         clearInterval(this.intervalId);
         clearInterval(this.smartformInterval)
         window.smartformReloaded = false
+
+        this.isCancelled = true;
     }
 
-    componentDidMount() {
-        // fire immediately after mounting
-        lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+    async componentDidMount() {
+        // check if order is locked
+        try {
+            await verifyLock(this.props.match.params.id, this.state.user)
+        }
+        catch (err) {
+            handleVerifyLockError(this.props, err, this.state.user)
+        }
 
-        if (this.props.ordersPageStore.products.length === 0) {
-            getAllProducts()
-                .then(res => this.props.getAllProductsAction(res.data))
+        // if the order to edit is not in store
+        if (!this.props.ordersPageStore.orderToEdit.data) {
+            this.getOrderDetails()
+        }
+
+        // fire immediately after mounting
+        await lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+
+        if (!this.props.ordersPageStore.products.data) {
+            try {
+                var res = await getAllProducts()
+                this.props.getAllProductsAction({ success: true, data: res.data })
+            }
+            catch (err) {
+                this.props.getAllProductsAction({ success: false, error: err })
+            }
         }
 
         this.smartformInterval = setInterval(() => {
@@ -140,18 +98,15 @@ class OrderDetails extends React.Component {
             }
         }, 5000);
 
-
         this.intervalId = setInterval(() => {
-
             lockOrder(this.props.ordersPageStore.orderToEdit.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
         }, DEFAULT_ORDER_LOCK_SECONDS * 1000)
-
-
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
         product.product = this.props.ordersPageStore.products[product.productName]
-        var temp = handleProductDropdownOnChangeHelper(product, this.state.orderToEdit, i);
+        var temp = handleProductDropdownOnChangeHelper(
+            product, this.state.orderToEdit, i);
 
         this.setState(() => ({
             orderToEdit: temp
@@ -310,7 +265,7 @@ class OrderDetails extends React.Component {
                                     <Form.Input label='Delivery Price [CZK]' fluid value={orderToEdit.payment.price} name='price' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
                                     <Form.Input label='VS' fluid value={orderToEdit.payment.vs} name='vs' onChange={(e, m) => this.handleInputChange(e, m, "payment")} />
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                        <label><b>Payment type</b></label>
+                                        <label><strong>Payment type</strong></label>
                                         <Button.Group fluid size='medium'>
                                             <Button
                                                 onClick={() => this.handleToggleDeliveryButtons("deliveryType", deliveryTypes[0].type)}
@@ -331,7 +286,7 @@ class OrderDetails extends React.Component {
                                         ) : (
                                                 <>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><b>Delivery company</b></label>
+                                                        <label><strong>Delivery company</strong></label>
                                                         <Button.Group fluid size='medium'>
                                                             <Button
                                                                 onClick={() => this.handleToggleDeliveryButtons("deliveryCompany", deliveryCompanies[0].company)}
@@ -347,7 +302,7 @@ class OrderDetails extends React.Component {
                                                         </Button.Group>
                                                     </div>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><b>Bank account payment</b></label>
+                                                        <label><strong>Bank account payment</strong></label>
                                                         <Button.Group fluid size='medium'>
                                                             <Button
                                                                 onClick={() => this.handleToggleBankAccountPaymentButtons(false)}
@@ -386,8 +341,8 @@ class OrderDetails extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    <label><b>Total price [CZK]</b></label>
-                                    {/* <label style={{marginBottom: '0.5em'}} ><b>Total price [CZK]</b></label> */}
+                                    <label><strong>Total price [CZK]</strong></label>
+                                    {/* <label style={{marginBottom: '0.5em'}} ><strong>Total price [CZK]</strong></label> */}
                                     <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice(false)} ></input>
                                     <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
                                 </Form>
@@ -751,7 +706,7 @@ class OrderDetails extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='small'>
-                                    <label><b>Total price [CZK]</b></label>
+                                    <label><strong>Total price [CZK]</strong></label>
                                     <input style={{ marginBottom: '0.5em' }} readOnly value={this.getTotalPrice(false)} ></input>
                                     <Form.Input label='Note' fluid value={orderToEdit.note ? orderToEdit.note : ""} name='note' onChange={(e, m) => this.handleInputChange(e, m)} />
                                 </Form>

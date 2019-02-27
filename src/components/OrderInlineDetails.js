@@ -10,18 +10,18 @@ const OrderInlineDetails = (props) => {
                 <Grid style={{ marginTop: '0.5em' }}>
                     <Grid.Row textAlign='left' columns='equal' style={{ paddingTop: '0px' }}>
                         <Grid.Column>
-                            <b>First name:</b> {props.order.address.firstName} <br />
-                            <b>Last name:</b> {props.order.address.lastName} <br />
-                            <b>Phone:</b> {props.order.address.phone} <br />
-                            <b>Street:</b> {props.order.address.street} <br />
-                            <b>City:</b> {props.order.address.city} <br />
-                            <b>Street number:</b> {props.order.address.streetNumber} <br />
-                            <b>ZIP:</b> {props.order.address.psc} <br />
+                            <strong>First name:</strong> {props.order.address.firstName} <br />
+                            <strong>Last name:</strong> {props.order.address.lastName} <br />
+                            <strong>Phone:</strong> {props.order.address.phone} <br />
+                            <strong>Street:</strong> {props.order.address.street} <br />
+                            <strong>City:</strong> {props.order.address.city} <br />
+                            <strong>Street number:</strong> {props.order.address.streetNumber} <br />
+                            <strong>ZIP:</strong> {props.order.address.psc} <br />
                         </Grid.Column>
                         <Grid.Column textAlign='left'>
-                            <b>Company:</b> {props.order.address.company} <br />
-                            <b>Bank payment:</b> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                            <b>Delivery:</b> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
+                            <strong>Company:</strong> {props.order.address.company} <br />
+                            <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                            <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
 
                         </Grid.Column>
                     </Grid.Row>
@@ -52,7 +52,7 @@ const OrderInlineDetails = (props) => {
                                     {product.pricePerOne}
                                 </Grid.Column>
                                 <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
-                                    <b>{product.totalPricePerProduct}</b>
+                                    <strong>{product.totalPricePerProduct}</strong>
                                 </Grid.Column>
 
                             </Grid.Row>
@@ -63,13 +63,13 @@ const OrderInlineDetails = (props) => {
                             {
                                 props.order.payment.price ? (
                                     <>
-                                        <b>Delivery price:</b> {props.order.payment.price} Kč<br />
+                                        <strong>Delivery price:</strong> {props.order.payment.price} Kč<br />
                                     </>
                                 ) : (
                                         null
                                     )
                             }
-                            <b>Total Price: {props.order.totalPrice} Kč</b>
+                            <strong>Total Price: {props.order.totalPrice} Kč</strong>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -97,16 +97,16 @@ const OrderInlineDetails = (props) => {
                         </Grid.Row>
                         <Grid.Row>
                             <Grid.Column width={4}>
-                                <b>First name:</b> {props.order.address.firstName} <br />
-                                <b>Last name:</b> {props.order.address.lastName} <br />
-                                <b>Phone:</b> {props.order.address.phone} <br />
-                                <b>Company:</b> {props.order.address.company} <br />
+                                <strong>First name:</strong> {props.order.address.firstName} <br />
+                                <strong>Last name:</strong> {props.order.address.lastName} <br />
+                                <strong>Phone:</strong> {props.order.address.phone} <br />
+                                <strong>Company:</strong> {props.order.address.company} <br />
                             </Grid.Column>
                             <Grid.Column width={4}>
-                                <b>Street:</b> {props.order.address.street} <br />
-                                <b>City:</b> {props.order.address.city} <br />
-                                <b>Street number:</b> {props.order.address.streetNumber} <br />
-                                <b>ZIP:</b> {props.order.address.psc} <br />
+                                <strong>Street:</strong> {props.order.address.street} <br />
+                                <strong>City:</strong> {props.order.address.city} <br />
+                                <strong>Street number:</strong> {props.order.address.streetNumber} <br />
+                                <strong>ZIP:</strong> {props.order.address.psc} <br />
                             </Grid.Column>
                             <Grid.Column width={8}>
                                 <SimpleTable showHeader={true} columnProperties={
@@ -141,12 +141,12 @@ const OrderInlineDetails = (props) => {
                                 <Grid>
                                     <Grid.Row columns='equal' style={{ padding: '0px', borderBottom: '0px' }}>
                                         <Grid.Column>
-                                            <b>Bank account payment:</b> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
-                                            <b>Delivery:</b> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
+                                            <strong>Bank account payment:</strong> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                            <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
                                         </Grid.Column>
                                         <Grid.Column style={{ paddingLeft: '0px' }}>
-                                            <b>Delivery price:</b> {props.order.payment.price} Kč<br />
-                                            <b>Total Price: {props.order.totalPrice} Kč</b>
+                                            <strong>Delivery price:</strong> {props.order.payment.price} Kč<br />
+                                            <strong>Total Price: {props.order.totalPrice} Kč</strong>
                                         </Grid.Column>
                                     </Grid.Row>
                                 </Grid>

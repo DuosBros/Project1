@@ -1,6 +1,6 @@
 const ordersPageInitialState = {
     orders: { success: true },
-    ordersDetails: [],
+    ordersDetails: { success: true },
     warehouseNotifications: { success: true },
     notPaidNotifications: { success: true },
     isLoadingDone: false,

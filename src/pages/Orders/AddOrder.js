@@ -68,7 +68,7 @@ const TotalPriceForm = (props) => {
     return (
         <Form className='form' size='large'>
             <Form.Input onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
-            <label><b>Total price [CZK]</b></label>
+            <label><strong>Total price [CZK]</strong></label>
             <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
             <Form.Input id='note' label='Note' fluid name='note' />
         </Form>
@@ -79,10 +79,15 @@ class AddOrder extends React.Component {
     constructor(props) {
         super(props);
 
+        var hasId = this.props.match.params.id ? true : false
+        var isInStore = this.props.ordersPageStore.orderToEdit.data ? true : false
+        var isEdit = hasId || isInStore
+        console.log("isEdit: ", isEdit)
+
         this.state = {
             isMobile: this.props.isMobile,
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
-            orderToAdd: {
+            order: {
                 address: {},
                 state: "active",
                 products: [],
@@ -95,6 +100,8 @@ class AddOrder extends React.Component {
                 }
             }
         }
+
+
     }
 
     componentWillUnmount() {
@@ -124,21 +131,21 @@ class AddOrder extends React.Component {
     handleProductDropdownOnChange = (e, m, i, product) => {
         product.product = this.props.ordersPageStore.products.data[product.productName]
         var temp = handleProductDropdownOnChangeHelper(
-            product, this.state.orderToAdd, i)
+            product, this.state.order, i)
 
-        temp.totalPrice = getTotalPriceHelper(false, this.state.orderToAdd);
+        temp.totalPrice = getTotalPriceHelper(false, this.state.order);
 
         if (!this.isCancelled) {
             this.setState(() => ({
-                orderToAdd: temp
+                order: temp
             }))
         }
     }
 
     getTotalPrice = (raw) => {
-        var o = Object.assign({}, this.state.orderToAdd)
-        o.totalPrice = getTotalPriceHelper(raw, this.state.orderToAdd);
-        this.setState({ orderToAdd: o });
+        var o = Object.assign({}, this.state.order)
+        o.totalPrice = getTotalPriceHelper(raw, this.state.order);
+        this.setState({ order: o });
     }
 
     renderProductsForMobile = () => {
@@ -146,7 +153,7 @@ class AddOrder extends React.Component {
         var result = []
 
         // map existing products
-        result = this.state.orderToAdd.products.map((product, i) => {
+        result = this.state.order.products.map((product, i) => {
             return (
                 <React.Fragment key={i}>
                     <ProductRow
@@ -168,7 +175,7 @@ class AddOrder extends React.Component {
                         onChange={(e, m) => this.handleProductDropdownOnChange(
                             null,
                             null,
-                            this.state.orderToAdd.products.length, {
+                            this.state.order.products.length, {
                                 productName: m.value,
                                 count: 1,
                                 pricePerOne: this.props.ordersPageStore.products.data[m.value].price
@@ -193,21 +200,21 @@ class AddOrder extends React.Component {
     }
 
     handleToggleDeliveryAndPaymentTypeButtons = (prop, type) => {
-        var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.orderToAdd);
+        var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.order);
 
-        this.setState({ orderToAdd: temp });
+        this.setState({ order: temp });
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var temp = handleToggleBankAccountPaymentButtonsHelper(type, this.state.orderToAdd);
+        var temp = handleToggleBankAccountPaymentButtonsHelper(type, this.state.order);
 
-        this.setState({ orderToAdd: temp });
+        this.setState({ order: temp });
     }
 
     removeProductFromOrder = (index) => {
-        var temp = removeProductFromOrder(index, this.state.orderToAdd);
+        var temp = removeProductFromOrder(index, this.state.order);
 
-        this.setState({ orderToAdd: temp });
+        this.setState({ order: temp });
     }
 
     // needed to make smartform working
@@ -221,11 +228,11 @@ class AddOrder extends React.Component {
 
     render() {
         var grid;
-        const { orderToAdd, isMobile } = this.state;
+        const { order, isMobile } = this.state;
 
         var headerButtons = (
             <Grid.Column width={isMobile ? null : 13} style={isMobile ? { paddingTop: '1em', paddingBottom: '1em' } : null}>
-                <Button onClick={() => handleOrder(orderToAdd, "create", this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
+                <Button onClick={() => handleOrder(order, "create", this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
                 <Button style={{ marginTop: '0.5em' }} fluid={isMobile} size='medium' compact content='Save Draft' id="tercialButton" />
                 <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                     <Button
@@ -243,7 +250,7 @@ class AddOrder extends React.Component {
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
-                                {'Add Order'}
+                                Add Order
                             </Header>
                         </Grid.Column>
                         {headerButtons}
@@ -285,21 +292,21 @@ class AddOrder extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                        <label><b>Payment type</b></label>
-                                        <PaymentTypeButtonGroup deliveryType={orderToAdd.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                        <label><strong>Payment type</strong></label>
+                                        <PaymentTypeButtonGroup deliveryType={order.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                     </div>
                                     {
-                                        orderToAdd.deliveryType === deliveryTypes[1].type ? (
+                                        order.deliveryType === deliveryTypes[1].type ? (
                                             null
                                         ) : (
                                                 <>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><b>Delivery company</b></label>
-                                                        <DeliveryCompanyButtonGroup deliveryCompany={orderToAdd.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                                        <label><strong>Delivery company</strong></label>
+                                                        <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                     </div>
                                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><b>Bank account payment</b></label>
-                                                        <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={orderToAdd.payment.cashOnDelivery} />
+                                                        <label><strong>Bank account payment</strong></label>
+                                                        <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
                                                     </div>
                                                 </>
                                             )
@@ -324,7 +331,7 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={orderToAdd.totalPrice} />
+                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -373,7 +380,7 @@ class AddOrder extends React.Component {
                 )
             }
 
-            var productsTableRow = orderToAdd.products.map((product, i) => {
+            var productsTableRow = order.products.map((product, i) => {
                 return (
                     <Table.Row key={i} >
                         <Table.Cell collapsing>
@@ -436,7 +443,7 @@ class AddOrder extends React.Component {
                         <Dropdown
                             selection
                             onChange={(e, m) => this.handleProductDropdownOnChange(
-                                null, null, orderToAdd.products.length, {
+                                null, null, order.products.length, {
                                     productName: m.value,
                                     count: 1,
                                     pricePerOne: this.props.ordersPageStore.products.data[m.value].price,
@@ -456,7 +463,7 @@ class AddOrder extends React.Component {
             grid = (
                 <Grid stackable>
                     <Grid.Row>
-                        <Grid.Column width={3}>
+                        <Grid.Column width={2}>
                             <Header as='h1'>
                                 Add Order
                             </Header>
@@ -571,11 +578,11 @@ class AddOrder extends React.Component {
                                             </strong>
                                         </Grid.Column>
                                         <Grid.Column width={10}>
-                                            <PaymentTypeButtonGroup deliveryType={orderToAdd.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                            <PaymentTypeButtonGroup deliveryType={order.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                         </Grid.Column>
                                     </Grid.Row>
                                     {
-                                        orderToAdd.deliveryType === deliveryTypes[1].type ? (
+                                        order.deliveryType === deliveryTypes[1].type ? (
                                             null
                                         ) : (
                                                 <>
@@ -586,7 +593,7 @@ class AddOrder extends React.Component {
                                                             </strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={10}>
-                                                            <DeliveryCompanyButtonGroup deliveryCompany={orderToAdd.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                                            <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
@@ -596,7 +603,7 @@ class AddOrder extends React.Component {
                                                             </strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={10}>
-                                                            <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={orderToAdd.payment.cashOnDelivery} />
+                                                            <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                 </>
@@ -616,7 +623,7 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={orderToAdd.totalPrice} />
+                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>

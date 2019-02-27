@@ -105,7 +105,7 @@ class Orders extends React.Component {
     openOrderDetails = (order) => {
         this.verifyLockAndHandleError(order.id)
 
-        this.props.openOrderDetailsAction(order);
+        this.props.openOrderDetailsAction({ success: true, data: order });
         this.props.history.push("/orders/" + order.id);
     }
 
@@ -396,7 +396,7 @@ class Orders extends React.Component {
                     <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
                         textAlign='center'>
                         <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                        <Table.Cell style={{ color: 'black' }}>{order.payment.vs ? order.payment.vs : "cash"} <b>|</b> {moment(order.payment.orderDate).format("DD.MM")} <b>|</b> <b>{order.totalPrice} Kč</b></Table.Cell>
+                        <Table.Cell style={{ color: 'black' }}>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
                         <Table.Cell>
                             {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
@@ -464,7 +464,7 @@ class Orders extends React.Component {
                             <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}><b>{order.totalPrice} Kč</b></Table.Cell>
+                            <Table.Cell style={{ color: 'black' }}><strong>{order.totalPrice} Kč</strong></Table.Cell>
                             <Table.Cell style={{ color: 'black' }}>{order.note}</Table.Cell>
                             <Table.Cell>
                                 {
