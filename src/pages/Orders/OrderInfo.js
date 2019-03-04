@@ -1,27 +1,29 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table } from 'semantic-ui-react';
+import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts } from '../../utils/requests';
+import { getAllProducts, verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
-import { handleOrder, handleProductDropdownOnChangeHelper, getTotalPriceHelper, handleToggleDeliveryButtonsHelper, handleToggleBankAccountPaymentButtonsHelper, removeProductFromOrder } from './OrdersHelpers';
 import ProductRow from '../../components/ProductRow';
+import { handleVerifyLockError, getGLSDeliveryPrice, contains } from '../../utils/helpers';
+import _ from 'lodash';
+import moment from 'moment';
 
 const DeliveryCompanyButtonGroup = (props) => {
     return (
         <Button.Group fluid size='medium'>
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[0].company)}
-                id={props.deliveryCompany === deliveryCompanies[0].company ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryCompany, deliveryCompanies[0].company) ? "primaryButton" : "secondaryButton"}>
                 GLS
             </Button>
             <Button.Or text='OR' />
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[1].company)}
-                id={props.deliveryCompany === deliveryCompanies[1].company ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryCompany, deliveryCompanies[1].company) ? "primaryButton" : "secondaryButton"}>
                 Česká Pošta
             </Button>
         </Button.Group>
@@ -51,13 +53,13 @@ const PaymentTypeButtonGroup = (props) => {
         <Button.Group fluid size='medium'>
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[0].type)}
-                id={props.deliveryType === deliveryTypes[0].type ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryType, deliveryTypes[0].type) ? "primaryButton" : "secondaryButton"}>
                 VS
         </Button>
             <Button.Or text='OR' />
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[1].type)}
-                id={props.deliveryType === deliveryTypes[0].type ? "secondaryButton" : "primaryButton"}>
+                id={contains(props.deliveryType, deliveryTypes[0].type) ? "secondaryButton" : "primaryButton"}>
                 Cash
         </Button>
         </Button.Group>
@@ -67,15 +69,15 @@ const PaymentTypeButtonGroup = (props) => {
 const TotalPriceForm = (props) => {
     return (
         <Form className='form' size='large'>
-            <Form.Input onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+            <Form.Input value={props.isEdit ? props.deliveryPrice : ""} onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
             <label><strong>Total price [CZK]</strong></label>
             <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
-            <Form.Input id='note' label='Note' fluid name='note' />
+            <Form.Input value={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
         </Form>
     )
 }
 
-class AddOrder extends React.Component {
+class OrderInfo extends React.Component {
     constructor(props) {
         super(props);
 
@@ -85,9 +87,11 @@ class AddOrder extends React.Component {
         console.log("isEdit: ", isEdit)
 
         this.state = {
+            streetAndNumberInput: null,
+            isEdit: isEdit,
             isMobile: this.props.isMobile,
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
-            order: {
+            order: isEdit ? this.props.ordersPageStore.orderToEdit.data : {
                 address: {},
                 state: "active",
                 products: [],
@@ -100,26 +104,64 @@ class AddOrder extends React.Component {
                 }
             }
         }
-
-
     }
 
     componentWillUnmount() {
+        if (this.state.isEdit) {
+            this.props.openOrderDetailsAction({ success: true })
+            clearInterval(this.intervalId);
+        }
+
         clearInterval(this.smartformInterval)
         window.smartformReloaded = false
 
         this.isCancelled = true;
     }
 
-    componentDidMount() {
-        getAllProducts()
-            .then(res => {
-                this.props.getAllProductsAction({ data: res.data, success: true })
-            })
-            .catch(err => {
-                this.props.getAllProductsAction({ error: err, success: false })
-            })
+    async componentDidMount() {
+        if (!this.props.ordersPageStore.products.data) {
+            try {
+                var res = await getAllProducts()
+                this.props.getAllProductsAction({ success: true, data: res.data })
+            }
+            catch (err) {
+                this.props.getAllProductsAction({ success: false, error: err })
+            }
+        }
 
+        if (this.state.isEdit) {
+            // check if order is locked
+            try {
+                await verifyLock(this.props.match.params.id, this.state.user)
+            }
+            catch (err) {
+                handleVerifyLockError(this.props, err, this.state.user)
+            }
+
+            // if the order to edit is not in store
+            // temp needed to set the value of address elements
+            let temp;
+            if (!this.props.ordersPageStore.orderToEdit.data) {
+                temp = await this.getOrderDetails()
+            }
+            else {
+                temp = this.props.ordersPageStore.orderToEdit.data
+            }
+
+            // fire immediately after mounting
+            await lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+
+            this.intervalId = setInterval(() => {
+                lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+            }, DEFAULT_ORDER_LOCK_SECONDS * 1000)
+
+            // mapping for calculating the total delivery price
+            temp.products.map(x => {
+                x.product = this.props.ordersPageStore.products.data[x.productName]
+            })
+        }
+
+        // run regardless if its add or edit
         this.smartformInterval = setInterval(() => {
             if (window.smartform && !window.smartformReloaded) {
                 window.smartformReloaded = true
@@ -128,24 +170,95 @@ class AddOrder extends React.Component {
         }, 5000);
     }
 
+    componentDidUpdate() {
+        if (!_.isEmpty(this.state.order) && document.getElementById("streetAndNumber")) {
+            var temp = this.state.order
+            document.getElementById("streetAndNumber").value = temp.address.street + " " + temp.address.streetNumber
+            document.getElementById("city").value = temp.address.city ? temp.address.city : ""
+            document.getElementById("zip").value = temp.address.psc ? temp.address.psc : ""
+            document.getElementById("firstName").value = temp.address.firstName ? temp.address.firstName : ""
+            document.getElementById("lastName").value = temp.address.lastName ? temp.address.lastName : ""
+            document.getElementById("phone").value = temp.address.phone ? temp.address.phone : ""
+            document.getElementById("company").value = temp.address.company ? temp.address.company : ""
+            document.getElementById("deliveryPrice").value = temp.payment.price ? temp.payment.price : ""
+            document.getElementById("vs").value = temp.payment.vs
+        }
+    }
+
+    getOrderDetails = async () => {
+        try {
+            var res = await getOrder(this.props.match.params.id)
+            this.setState({ order: res.data });
+            this.props.openOrderDetailsAction({ data: res.data, success: true })
+            return res.data;
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                redirectTo: '/orders',
+                parentProps: this.props,
+                err: err
+            })
+        }
+    }
+
     handleProductDropdownOnChange = (e, m, i, product) => {
-        product.product = this.props.ordersPageStore.products.data[product.productName]
-        var temp = handleProductDropdownOnChangeHelper(
-            product, this.state.order, i)
-
-        temp.totalPrice = getTotalPriceHelper(false, this.state.order);
-
+        product.product = this.props.ordersPageStore.products.data[product.productName];
+        var temp = this.handleProductDropdownOnChangeHelper(product, this.state.order, i);
+        temp.totalPrice = this.getTotalPriceHelper(false, this.state.order);
         if (!this.isCancelled) {
             this.setState(() => ({
                 order: temp
-            }))
+            }));
         }
+    };
+
+    handleProductDropdownOnChangeHelper = (product, stateOrder, i) => {
+        if (_.isNaN(product.count)) {
+            product.count = ""
+        }
+
+        if (_.isNumber(product.count) || _.isNumber(product.pricePerOne)) {
+            product.totalPricePerProduct = product.pricePerOne * product.count
+        }
+        else {
+            product.totalPricePerProduct = ""
+        }
+
+        var o = Object.assign({}, stateOrder)
+        o.products[i] = product;
+        document.getElementById("deliveryPrice").value = getGLSDeliveryPrice(
+            o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
+
+        return o;
     }
 
     getTotalPrice = (raw) => {
         var o = Object.assign({}, this.state.order)
-        o.totalPrice = getTotalPriceHelper(raw, this.state.order);
+        o.totalPrice = this.getTotalPriceHelper(raw, this.state.order);
         this.setState({ order: o });
+    }
+
+    getTotalPriceHelper = (raw, orderState) => {
+        var sum = 0;
+
+        if (document.getElementById("deliveryPrice")) {
+            var parsed = parseInt(document.getElementById("deliveryPrice").value)
+            if (!isNaN(parsed)) {
+                sum = parsed
+            }
+        }
+
+        orderState.products.forEach(product => {
+            sum += product.count * product.pricePerOne
+        });
+
+        if (raw) {
+            return sum
+        }
+        else {
+            // adding space after 3 digits
+            return sum.toLocaleString('cs-CZ');
+        }
     }
 
     renderProductsForMobile = () => {
@@ -157,7 +270,7 @@ class AddOrder extends React.Component {
             return (
                 <React.Fragment key={i}>
                     <ProductRow
-                        allProducts={this.props.ordersPageStore.products.data}
+                        allProducts={this.props.ordersPageStore.products.data ? this.props.ordersPageStore.products.data : {}}
                         i={i}
                         product={product}
                         handleProductDropdownOnChange={this.handleProductDropdownOnChange} />
@@ -200,21 +313,37 @@ class AddOrder extends React.Component {
     }
 
     handleToggleDeliveryAndPaymentTypeButtons = (prop, type) => {
-        var temp = handleToggleDeliveryButtonsHelper(prop, type, this.state.order);
+        var temp = this.handleToggleDeliveryButtonsHelper(prop, type, this.state.order);
 
         this.setState({ order: temp });
+    }
+
+    handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
+        var o = Object.assign({}, stateOrder)
+        if ((prop === "deliveryType" && type === deliveryTypes[0].type) || (prop === "deliveryCompany" && type === deliveryCompanies[0].company)) {
+            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
+        }
+        else {
+            o.payment.price = 0
+        }
+
+        o[prop] = type
+
+        return o;
     }
 
     handleToggleBankAccountPaymentButtons = (type) => {
-        var temp = handleToggleBankAccountPaymentButtonsHelper(type, this.state.order);
+        var o = Object.assign({}, this.state.order)
+        o.payment.cashOnDelivery = type
 
-        this.setState({ order: temp });
+        this.setState({ order: o });
     }
 
     removeProductFromOrder = (index) => {
-        var temp = removeProductFromOrder(index, this.state.order);
+        var o = Object.assign({}, this.state.order)
+        o.products.splice(index, 1);
 
-        this.setState({ order: temp });
+        this.setState({ order: o });
     }
 
     // needed to make smartform working
@@ -226,14 +355,109 @@ class AddOrder extends React.Component {
         }
     }
 
+    handleOrder = async (order, props) => {
+        if (contains(order.deliveryType, deliveryTypes[1].type)) {
+            delete order.deliveryCompany
+            delete order.payment.cashOnDelivery
+            delete order.payment.vs
+            delete order.payment.price
+        }
+        else {
+            let res = await getHighestVS();
+            order.payment.vs = res.data
+        }
+
+        order.products.forEach(x => {
+            delete x.product
+        })
+
+        // TODO: add branch picker
+        order.branch = order.branch ? order.branch : "VN"
+
+        order.address.street = document.getElementById("hiddenStreet").value
+        order.address.city = document.getElementById("city").value
+        order.address.psc = document.getElementById("zip").value
+        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+
+        order.totalPrice = this.getTotalPriceHelper(true, order);
+
+        order.address.firstName = document.getElementById("firstName").value
+        order.address.lastName = document.getElementById("lastName").value
+        order.address.phone = document.getElementById("phone").value
+        order.address.company = document.getElementById("company").value
+
+        order.payment.price = document.getElementById("deliveryPrice").value ? parseInt(document.getElementById("deliveryPrice").value) : null
+        order.note = document.getElementById("note").value
+
+        var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+
+        if (this.state.isEdit) {
+            saveOrder(order, user)
+                .then(() => {
+                    props.history.push('/orders')
+                })
+                .catch((err) => {
+                    props.showGenericModalAction({
+                        header: 'Failed to update order: ' + order.id,
+                        parentProps: this.props,
+                        err: err
+                    })
+                })
+        }
+        else {
+            order.payment.orderDate = moment().toISOString()
+
+            createOrder(order, user)
+                .then(() => {
+                    props.history.push('/orders')
+                })
+                .catch((err) => {
+                    props.showGenericModalAction({
+                        header: 'Failed to create order',
+                        parentProps: this.props,
+                        err: err
+                    })
+                })
+        }
+    }
+
+    handleStreetInput = (e) => {
+        this.setState({ streetAndNumberInput: e.target.value })
+    }
+
+    handleStreetInputOnChange = (e) => {
+        console.log("fired");
+
+        this.scrollToTop()
+        if (this.state.isEdit) {
+            this.handleStreetInput(e);
+        }
+
+    }
+
     render() {
         var grid;
-        const { order, isMobile } = this.state;
+        const { order, isMobile, isEdit } = this.state;
+
+        if (isEdit) {
+            if (!this.state.order) {
+                return (
+                    <div className="centered">
+                        <Message info icon>
+                            <Icon name='circle notched' loading />
+                            <Message.Content>
+                                <Message.Header>Loading order details</Message.Header>
+                            </Message.Content>
+                        </Message>
+                    </div>
+                )
+            }
+        }
 
         var headerButtons = (
             <Grid.Column width={isMobile ? null : 13} style={isMobile ? { paddingTop: '1em', paddingBottom: '1em' } : null}>
-                <Button onClick={() => handleOrder(order, "create", this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
-                <Button style={{ marginTop: '0.5em' }} fluid={isMobile} size='medium' compact content='Save Draft' id="tercialButton" />
+                <Button onClick={() => this.handleOrder(order, this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
+                {/* <Button style={{ marginTop: '0.5em' }} fluid={isMobile} size='medium' compact content='Save Draft' id="tercialButton" /> */}
                 <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                     <Button
                         style={{ marginTop: '0.5em' }} id="secondaryButton" fluid={isMobile} size='small'
@@ -250,7 +474,7 @@ class AddOrder extends React.Component {
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
-                                Add Order
+                                {isEdit ? 'Edit Order' : 'Add Order'}
                             </Header>
                         </Grid.Column>
                         {headerButtons}
@@ -266,7 +490,12 @@ class AddOrder extends React.Component {
                                         <label>
                                             Street and number
                                         </label>
-                                        <input name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>
+                                        {isEdit ?
+                                            <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
+                                                this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
+                                            } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
+                                            <input onChange={() => this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                     </Form.Field>
@@ -291,25 +520,29 @@ class AddOrder extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
+                                    {isEdit ? (
+                                        <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                            <label><strong>VS</strong></label>
+                                            <input readOnly id='vs' label='VS' name='vs' />
+                                        </div>
+                                    ) : null}
                                     <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
                                         <label><strong>Payment type</strong></label>
                                         <PaymentTypeButtonGroup deliveryType={order.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                     </div>
                                     {
-                                        order.deliveryType === deliveryTypes[1].type ? (
-                                            null
-                                        ) : (
-                                                <>
-                                                    <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><strong>Delivery company</strong></label>
-                                                        <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
-                                                    </div>
-                                                    <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
-                                                        <label><strong>Bank account payment</strong></label>
-                                                        <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
-                                                    </div>
-                                                </>
-                                            )
+                                        contains(order.deliveryType, deliveryTypes[0].type) ? (
+                                            <>
+                                                <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                                    <label><strong>Delivery company</strong></label>
+                                                    <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                                </div>
+                                                <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                                    <label><strong>Bank account payment</strong></label>
+                                                    <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
+                                                </div>
+                                            </>
+                                        ) : null
                                     }
                                 </Form>
                             </Segment>
@@ -331,7 +564,7 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
+                                <TotalPriceForm note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -465,7 +698,7 @@ class AddOrder extends React.Component {
                     <Grid.Row>
                         <Grid.Column width={2}>
                             <Header as='h1'>
-                                Add Order
+                                {isEdit ? 'Edit Order' : 'Add Order'}
                             </Header>
                         </Grid.Column>
                         {headerButtons}
@@ -487,7 +720,12 @@ class AddOrder extends React.Component {
                                             <Grid.Column width={12}>
                                                 <Form.Field>
                                                     <Form.Input >
-                                                        <input id="streetAndNumber" name="nope" type="text" className="smartform-street-and-number"></input>
+                                                        {isEdit ?
+                                                            <input onChange={() => this.scrollToTop()} name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
+                                                                this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
+                                                            } onChange={(e) => this.handleStreetInput(e)}></input> :
+                                                            <input onChange={() => this.scrollToTop()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+
                                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
                                                     </Form.Input>
@@ -582,32 +820,30 @@ class AddOrder extends React.Component {
                                         </Grid.Column>
                                     </Grid.Row>
                                     {
-                                        order.deliveryType === deliveryTypes[1].type ? (
-                                            null
-                                        ) : (
-                                                <>
-                                                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                                        <Grid.Column width={5}>
-                                                            <strong>
-                                                                Delivery company
+                                        contains(order.deliveryType, deliveryTypes[0].type) ? (
+                                            <>
+                                                <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                                    <Grid.Column width={5}>
+                                                        <strong>
+                                                            Delivery company
                                                             </strong>
-                                                        </Grid.Column>
-                                                        <Grid.Column width={10}>
-                                                            <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
-                                                        </Grid.Column>
-                                                    </Grid.Row>
-                                                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
-                                                        <Grid.Column width={5}>
-                                                            <strong>
-                                                                Bank account payment
+                                                    </Grid.Column>
+                                                    <Grid.Column width={10}>
+                                                        <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
+                                                    </Grid.Column>
+                                                </Grid.Row>
+                                                <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                                    <Grid.Column width={5}>
+                                                        <strong>
+                                                            Bank account payment
                                                             </strong>
-                                                        </Grid.Column>
-                                                        <Grid.Column width={10}>
-                                                            <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
-                                                        </Grid.Column>
-                                                    </Grid.Row>
-                                                </>
-                                            )
+                                                    </Grid.Column>
+                                                    <Grid.Column width={10}>
+                                                        <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
+                                                    </Grid.Column>
+                                                </Grid.Row>
+                                            </>
+                                        ) : null
                                     }
                                 </Grid>
                             </Segment>
@@ -623,7 +859,7 @@ class AddOrder extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
+                                <TotalPriceForm note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -653,4 +889,4 @@ function mapDispatchToProps(dispatch) {
     }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddOrder);
+export default connect(mapStateToProps, mapDispatchToProps)(OrderInfo);

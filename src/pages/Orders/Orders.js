@@ -403,8 +403,8 @@ class Orders extends React.Component {
                                     null
                                 ) : (
                                         <>
-                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='big' icon='edit' />
-                                            <Button style={{ padding: '0.3em' }} size='big' icon={
+                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='huge' icon='edit' />
+                                            <Button style={{ padding: '0.3em' }} size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -416,14 +416,14 @@ class Orders extends React.Component {
                                     )
                             }
 
-                            <Button style={{ padding: '0.3em' }} size='big' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                            <Button style={{ padding: '0.3em' }} size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                             {
                                 order.payment.paid ? (
                                     null
                                 ) : (
                                         <>
-                                            <Button style={{ padding: '0.3em' }} size='big' icon='shipping fast' />
-                                            <Button style={{ padding: '0.3em' }} size='big' icon={<Icon name='close' color='red' />} />
+                                            <Button style={{ padding: '0.3em' }} size='huge' icon='shipping fast' />
+                                            <Button style={{ padding: '0.3em' }} size='huge' icon={<Icon name='close' color='red' />} />
 
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate ? (

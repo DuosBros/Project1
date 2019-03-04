@@ -22,7 +22,7 @@ const OrderInlineDetails = (props) => {
                             <strong>Company:</strong> {props.order.address.company} <br />
                             <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
                             <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
-
+                            <strong>Note:</strong> {props.order.note} <br />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row style={{ fontWeight: 'bold', fontSize: '0.8em', paddingTop: '0px', paddingBottom: '0px' }}>

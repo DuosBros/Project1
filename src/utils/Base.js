@@ -14,8 +14,7 @@ import { authenticateAction, authenticationInProgressAction, authenticateSucceed
 import { LOCALSTORAGE_NAME } from '../appConfig'
 import Bank from '../pages/Bank/Bank';
 
-import OrderDetails from '../pages/Orders/OrderDetails';
-import AddOrder from '../pages/Orders/AddOrder';
+import OrderInfo from '../pages/Orders/OrderInfo';
 import { validateToken } from './requests';
 import ErrorBoundary from '../components/ErrorBoundary';
 import logo from '../assets/logo.png';
@@ -97,8 +96,8 @@ class Base extends React.Component {
                 <Switch>
                     <Redirect exact from='/' to='/orders' />
                     <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
-                    <Route path='/orders/new' render={(props) => <AddOrder {...props} isMobile={isMobile} />} />
-                    <Route path='/orders/:id' render={(props) => <AddOrder {...props} isMobile={isMobile} key={props.match.params.id} isMobile={isMobile} />} />
+                    <Route path='/orders/new' render={(props) => <OrderInfo {...props} isMobile={isMobile} />} />
+                    <Route path='/orders/:id' render={(props) => <OrderInfo {...props} isMobile={isMobile} key={props.match.params.id} isMobile={isMobile} />} />
                     <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
                     <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
                 </Switch>

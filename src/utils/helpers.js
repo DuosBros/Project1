@@ -90,6 +90,15 @@ export const handleVerifyLockError = (parentProps, error, currentUser) => {
     }
 }
 
+/**
+ *
+ * @param {string} sourceString
+ * @param {string} pattern
+ */
+export const contains = (sourceString, pattern) => {
+    return sourceString.search(new RegExp(pattern, "i")) >= 0
+}
+
 /*
  * "keys" (optional) Specifies which properties of objects should be inspected.
  *                   If omitted, all properties will be inspected.

@@ -34,5 +34,6 @@ export const DEFAULT_ORDER_LOCK_SECONDS = 10
 // 27.12. 3892
 // 04.02. 4453
 // 18.02. 4454
+// 04.03  3809
 
 // zbarvit backgorund red když product neni už ve WH
