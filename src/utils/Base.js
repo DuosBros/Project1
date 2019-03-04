@@ -97,7 +97,7 @@ class Base extends React.Component {
                     <Redirect exact from='/' to='/orders' />
                     <Route path='/login' render={(props) => <Login {...props} isMobile={isMobile} />} />
                     <Route path='/orders/new' render={(props) => <OrderInfo {...props} isMobile={isMobile} />} />
-                    <Route path='/orders/:id' render={(props) => <OrderInfo {...props} isMobile={isMobile} key={props.match.params.id} isMobile={isMobile} />} />
+                    <Route path='/orders/:id' render={(props) => <OrderInfo {...props} key={props.match.params.id} isMobile={isMobile} />} />
                     <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
                     <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
                 </Switch>

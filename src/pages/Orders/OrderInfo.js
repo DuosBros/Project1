@@ -72,7 +72,7 @@ const TotalPriceForm = (props) => {
             <Form.Input value={props.isEdit ? props.deliveryPrice : ""} onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
             <label><strong>Total price [CZK]</strong></label>
             <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
-            <Form.Input value={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
+            <Form.Input value={props.isEdit ? props.note : ""} id='note' label='Note' fluid name='note' />
         </Form>
     )
 }
@@ -101,7 +101,8 @@ class OrderInfo extends React.Component {
                 payment: {
                     price: 0,
                     cashOnDelivery: true
-                }
+                },
+                note: ""
             }
         }
     }
@@ -156,7 +157,7 @@ class OrderInfo extends React.Component {
             }, DEFAULT_ORDER_LOCK_SECONDS * 1000)
 
             // mapping for calculating the total delivery price
-            temp.products.map(x => {
+            temp.products.forEach(x => {
                 x.product = this.props.ordersPageStore.products.data[x.productName]
             })
         }
@@ -171,7 +172,7 @@ class OrderInfo extends React.Component {
     }
 
     componentDidUpdate() {
-        if (!_.isEmpty(this.state.order) && document.getElementById("streetAndNumber")) {
+        if (this.state.isEdit && this.state.order && document.getElementById("streetAndNumber")) {
             var temp = this.state.order
             document.getElementById("streetAndNumber").value = temp.address.street + " " + temp.address.streetNumber
             document.getElementById("city").value = temp.address.city ? temp.address.city : ""
@@ -494,7 +495,7 @@ class OrderInfo extends React.Component {
                                             <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
                                                 this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
                                             } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
-                                            <input onChange={() => this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+                                            <input onChange={() => this.handleStreetInputOnChange()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
@@ -507,10 +508,10 @@ class OrderInfo extends React.Component {
                                         <label>ZIP</label>
                                         <input readOnly id="zip" className="smartform-zip"></input>
                                     </Form.Field>
-                                    <Form.Input id='firstName' label='First Name' fluid name='nope' name='nope' />
-                                    <Form.Input id='lastName' label='Last Name' fluid name='lastName' name='nope' />
-                                    <Form.Input id='phone' label='Phone Number' fluid name='phone' name='nope' />
-                                    <Form.Input id='company' label='Company' fluid name='company' name='nope' />
+                                    <Form.Input id='firstName' label='First Name' fluid name='nope' />
+                                    <Form.Input id='lastName' label='Last Name' fluid name='nope' />
+                                    <Form.Input id='phone' label='Phone Number' fluid name='nope' />
+                                    <Form.Input id='company' label='Company' fluid name='nope' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -721,10 +722,10 @@ class OrderInfo extends React.Component {
                                                 <Form.Field>
                                                     <Form.Input >
                                                         {isEdit ?
-                                                            <input onChange={() => this.scrollToTop()} name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
+                                                            <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
                                                                 this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
-                                                            } onChange={(e) => this.handleStreetInput(e)}></input> :
-                                                            <input onChange={() => this.scrollToTop()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+                                                            } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
+                                                            <input onChange={() => this.handleStreetInputOnChange()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
                                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
