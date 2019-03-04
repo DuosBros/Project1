@@ -69,10 +69,10 @@ const PaymentTypeButtonGroup = (props) => {
 const TotalPriceForm = (props) => {
     return (
         <Form className='form' size='large'>
-            <Form.Input value={props.isEdit ? props.deliveryPrice : ""} onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
             <label><strong>Total price [CZK]</strong></label>
             <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
-            <Form.Input value={props.isEdit ? props.note : ""} id='note' label='Note' fluid name='note' />
+            <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
         </Form>
     )
 }
@@ -580,27 +580,27 @@ class OrderInfo extends React.Component {
             var productsTableColumnProperties = [
                 {
                     name: "#",
-                    collapsing: true
+                    width: 1,
                 },
                 {
                     name: "Product Name",
-                    width: 14,
+                    width: 7,
                 },
                 {
                     name: "Product Price [CZK]",
-                    collapsing: true
+                    width: 2,
                 },
                 {
                     name: "Product Count [Pcs]",
-                    collapsing: true
+                    width: 2,
                 },
                 {
                     name: "Total Product Price [CZK]",
-                    collapsing: true
+                    width: 3,
                 },
                 {
                     name: "Remove",
-                    collapsing: true
+                    width: 1,
                 }
             ];
 
@@ -810,6 +810,18 @@ class OrderInfo extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Grid>
+                                    <Grid.Row>
+                                        <Grid.Column width={5}>
+                                            <strong>
+                                                VS
+                                            </strong>
+                                        </Grid.Column>
+                                        <Grid.Column width={10}>
+                                            <Form>
+                                                <input readOnly id='vs' label='VS' name='vs' />
+                                            </Form>
+                                        </Grid.Column>
+                                    </Grid.Row>
                                     <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
                                         <Grid.Column width={5}>
                                             <strong>

@@ -1,9 +1,15 @@
 import React from 'react';
-import { Grid, Table, Header } from 'semantic-ui-react'
+import { Grid, Table, Header, Divider } from 'semantic-ui-react'
 import SimpleTable from './SimpleTable';
 import { getOrderTableRowStyle } from '../utils/helpers';
 const OrderInlineDetails = (props) => {
     let result;
+    let totalProductCount = 0
+
+    props.order.products.map((product) => {
+        totalProductCount += product.count
+    })
+
     if (props.isMobile) {
         result = (
             <Table.Cell>
@@ -28,16 +34,16 @@ const OrderInlineDetails = (props) => {
                     <Grid.Row style={{ fontWeight: 'bold', fontSize: '0.8em', paddingTop: '0px', paddingBottom: '0px' }}>
                         <Grid.Column width={9}>
                             Product
-                    </Grid.Column>
+                        </Grid.Column>
                         <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
                             Count
-                    </Grid.Column>
+                        </Grid.Column>
                         <Grid.Column width={3}>
                             Price/piece [CZK]
-                    </Grid.Column>
+                        </Grid.Column>
                         <Grid.Column width={3}>
                             Sum [CZK]
-                    </Grid.Column>
+                        </Grid.Column>
                     </Grid.Row>
                     {props.order.products.map((product, index) => {
                         return (
@@ -45,7 +51,7 @@ const OrderInlineDetails = (props) => {
                                 <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
                                     {product.productName}
                                 </Grid.Column>
-                                <Grid.Column width={1} style={{fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
+                                <Grid.Column width={1} style={{ fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
                                     {product.count}
                                 </Grid.Column>
                                 <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
@@ -54,10 +60,22 @@ const OrderInlineDetails = (props) => {
                                 <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
                                     <strong>{product.totalPricePerProduct}</strong>
                                 </Grid.Column>
-
                             </Grid.Row>
                         )
                     })}
+                    <Divider fitted style={{ marginTop: '0px', marginBottom: '0px' }} />
+                    <Grid.Row style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                        <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
+                            Total product count
+                        </Grid.Column>
+                        <Grid.Column width={1} style={{ fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
+                            {totalProductCount}
+                        </Grid.Column>
+                        <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
+                        </Grid.Column>
+                        <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
+                        </Grid.Column>
+                    </Grid.Row>
                     <Grid.Row>
                         <Grid.Column textAlign='left'>
                             {
@@ -77,6 +95,30 @@ const OrderInlineDetails = (props) => {
         )
     }
     else {
+        let productTableBody = props.order.products.map((product, index) => {
+            return (
+                <Table.Row key={index}>
+                    <Table.Cell >{product.productName}</Table.Cell>
+                    <Table.Cell >{product.count}</Table.Cell>
+                    <Table.Cell >{product.pricePerOne} Kč</Table.Cell>
+                    <Table.Cell>{product.totalPricePerProduct} Kč</Table.Cell>
+                </Table.Row>
+            )
+        })
+        productTableBody.push(
+            <Table.Row>
+                <Table.Cell>
+                </Table.Cell>
+                <Table.Cell>
+                    {totalProductCount + " Total product count"}
+                </Table.Cell>
+                <Table.Cell>
+
+                </Table.Cell>
+                <Table.Cell>
+                </Table.Cell>
+            </Table.Row>
+        )
         result = (
             <Table.Row>
                 <Table.Cell style={getOrderTableRowStyle(props.order)} colSpan={9}>
@@ -128,16 +170,7 @@ const OrderInlineDetails = (props) => {
                                             width: 4,
                                         }
                                     ]
-                                } body={props.order.products.map((product, index) => {
-                                    return (
-                                        <Table.Row key={index}>
-                                            <Table.Cell >{product.productName}</Table.Cell>
-                                            <Table.Cell >{product.count}</Table.Cell>
-                                            <Table.Cell >{product.pricePerOne} Kč</Table.Cell>
-                                            <Table.Cell>{product.totalPricePerProduct} Kč</Table.Cell>
-                                        </Table.Row>
-                                    )
-                                })} />
+                                } body={productTableBody} />
                                 <Grid>
                                     <Grid.Row columns='equal' style={{ padding: '0px', borderBottom: '0px' }}>
                                         <Grid.Column>
