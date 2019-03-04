@@ -5,13 +5,6 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
-export function getAddressSuggestionsAction(payload) {
-    return {
-        payload,
-        type: 'GET_ADDRESS_SUGGESTIONS'
-    }
-}
-
 export function showGenericModalAction(payload) {
     return {
         payload,
@@ -39,27 +32,17 @@ export function authenticateAction(payload) {
     }
 }
 
-export function authenticationStartedAction() {
+export function authenticateSucceededAction(payload) {
     return {
-        type: 'AUTHENTICATION_STARTED'
+        payload,
+        type: 'AUTHENTICATION_SUCCEEDED'
     }
 }
 
-export function authenticateEndedAction() {
+export function authenticationInProgressAction(payload) {
     return {
-        type: 'AUTHENTICATION_ENDED'
-    }
-}
-
-export function authenticateOKAction() {
-    return {
-        type: 'AUTHENTICATION_OK'
-    }
-}
-
-export function authenticationFailedAction() {
-    return {
-        type: 'AUTHENTICATION_FAIL'
+        payload,
+        type: 'AUTHENTICATION_IN_PROGRESS'
     }
 }
 
@@ -95,20 +78,6 @@ export function getWarehouseNotificationsAction(payload) {
     return {
         payload,
         type: 'GET_WAREHOUSE_NOTIFICATIONS'
-    }
-}
-
-export function isGetWarehouseNotificationsAction(payload) {
-    return {
-        payload,
-        type: 'IS_GET_WAREHOUSE_NOTIFICATIONS'
-    }
-}
-
-export function isGetNotPaidNotificationsAction(payload) {
-    return {
-        payload,
-        type: 'IS_GET_NOT_PAID_NOTIFICATIONS'
     }
 }
 

@@ -3,10 +3,11 @@ import { Button, Form, Grid, Image, Message, Segment } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import _ from 'lodash';
+import { withRouter } from 'react-router-dom';
 
 import logo from '../../assets/logo.png';
-import { authenticateAction, authenticationStartedAction, authenticateEndedAction, authenticateOKAction, authenticationFailedAction } from '../../utils/actions'
-import { sendAuthenticationData, validateToken } from '../../utils/requests'
+import { authenticateAction, authenticateSucceededAction, authenticationInProgressAction } from '../../utils/actions'
+import { sendAuthenticationData } from '../../utils/requests'
 
 class Login extends React.Component {
     constructor(props) {
@@ -15,32 +16,14 @@ class Login extends React.Component {
         this.state = {
             username: "",
             password: "",
-            authExceptionMessage: "",
-            authExceptionResponse: "",
-            isMobile : this.props.isMobile
+            authExceptionMessage: this.props.ex ? this.props.ex.authExceptionMessage : "",
+            isMobile: this.props.isMobile,
+            backgroundColor: '#336699'
         }
-
-        props.authenticationStartedAction();
-
-        validateToken()
-            .then(() => {
-                    this.props.authenticateEndedAction();
-                    this.props.authenticateOKAction();
-                    this.props.history.push('/orders')
-                })
-            .catch((err) => {
-                if (err.response.status >= 400 && err.response.status < 500) {
-                    this.props.history.push('/login');
-                }
-                this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response ? err.response : '' })
-
-                this.props.authenticationFailedAction();
-                this.props.authenticateEndedAction();
-            })
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if(prevProps.isMobile !== this.props.isMobile) {
+        if (prevProps.isMobile !== this.props.isMobile) {
             this.setState({ isMobile: this.props.isMobile });
         }
     }
@@ -50,7 +33,7 @@ class Login extends React.Component {
     }
 
     auth = () => {
-        this.props.authenticationStartedAction();
+        this.props.authenticationInProgressAction(true);
 
         var payload = {
             username: this.state.username,
@@ -59,47 +42,48 @@ class Login extends React.Component {
 
         sendAuthenticationData(payload)
             .then(res => {
-
                 this.props.authenticateAction(res.data)
-                this.props.authenticateEndedAction();
-                this.props.authenticateOKAction();
+                this.props.authenticateSucceededAction(true);
 
                 this.props.history.push('/orders')
             })
             .catch((err) => {
-                if (err.response.status === 403) {
-                    this.setState({ authExceptionMessage: 'Wrong username or password' })
-                } else {
-                    this.setState({ authExceptionMessage: err.message ? err.message : '', authExceptionResponse: err.response.statusText ? err.response.statusText : '' })
+                if (err.response) {
+                    if (err.response.status >= 400 && err.response.status < 500) {
+                        this.setState({ authExceptionMessage: 'Wrong username or password' })
+                    }
+                    else {
+                        this.setState({ authExceptionMessage: JSON.stringify(err) })
+                    }
                 }
 
-                this.props.authenticationFailedAction();
-                this.props.authenticateEndedAction();
+                this.props.authenticateSucceededAction(false);
+            })
+            .finally(() => {
+                this.props.authenticationInProgressAction(false);
             })
     }
 
     render() {
 
-        var errorMessage
+        var errorMessage = null
 
-        if (_.isEmpty(this.state.authExceptionMessage) && _.isEmpty(this.state.authExceptionResponse)) {
-            errorMessage = (<div></div>)
+        if (!_.isEmpty(this.state.authExceptionMessage)) {
+            errorMessage = (
+                <Message error floating>
+                    Failed to log in:
+                    <br />
+                    {this.state.authExceptionMessage}
+                </Message>
+            )
         }
-        else {
-            errorMessage = (<Message error floating>
-                Failed to log in:
-                                <br />
-                {this.state.authExceptionMessage} <br />
-                {this.state.authExceptionResponse}
-            </Message>)
-        }
+
         return (
-            // TODO if is mobile then 1 columns otherwise 2
             <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle' columns={this.state.isMobile ? 1 : 2}>
                 <Grid.Column>
                     {errorMessage}
-                    <Image verticalAlign='middle'  size='large' src={logo}/>
-                    <Form loading={!(this.props.loginPageStore.authenticationDone)} size='large'>
+                    <Image verticalAlign='middle' size='large' src={logo} />
+                    <Form loading={this.props.loginPageStore.authenticationInProgress} size='large'>
                         <Segment raised stacked>
                             <Form.Input
                                 fluid
@@ -118,7 +102,7 @@ class Login extends React.Component {
                                 onChange={this.handleChange} />
                             <Button
                                 onClick={() => this.auth()}
-                                style={{ backgroundColor: '#336699' }}
+                                className='loginButton'
                                 primary
                                 fluid
                                 size='large'
@@ -126,7 +110,7 @@ class Login extends React.Component {
                         </Segment>
                     </Form>
                 </Grid.Column>
-            </Grid>
+            </Grid >
         )
     }
 }
@@ -139,12 +123,10 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        authenticateAction: authenticateAction,
-        authenticationStartedAction: authenticationStartedAction,
-        authenticateEndedAction: authenticateEndedAction,
-        authenticateOKAction: authenticateOKAction,
-        authenticationFailedAction: authenticationFailedAction
+        authenticateAction,
+        authenticateSucceededAction,
+        authenticationInProgressAction
     }, dispatch);
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Login));

@@ -1,13 +1,17 @@
 html, body {
     /* background-color: rgb(245, 243, 241) !important; */
-    width: 100%;   
-    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+    width: 100%;
+    font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 
 #header {
     background-color: #55535e;
-    color: white
-    
+    color: white;
+    border-radius: 0px;
+}
+
+.ui.tiny.inverted.pointing.secondary.stackable.borderlessMenu.menu {
+    border: 0px
 }
 
 .messageBox {
@@ -16,6 +20,11 @@ html, body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.pointerCursor:before {
+    cursor: pointer;
+    margin: 0 0 0 0.5em
 }
 
 .ui.fluid.input > input {
@@ -52,6 +61,14 @@ html, body {
 #secondaryButton {
     background-color: #76767691;
     color: white
+}
+
+.ui.large.fluid.primary.button.loginButton {
+    background-color: #336699;
+}
+
+.ui.large.fluid.primary.button.loginButton:hover {
+    background-color: #336699c4;
 }
 
 dl {

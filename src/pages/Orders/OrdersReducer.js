@@ -1,14 +1,11 @@
 const ordersPageInitialState = {
-    orders: [],
-    ordersDetails: [],
-    warehouseNotifications: [],
-    notPaidNotifications: [],
-    isWarehouseNotificationsDone: false,
-    isNotPaidNotificationsDone: false,
+    orders: { success: true },
+    ordersDetails: { success: true },
+    warehouseNotifications: { success: true },
+    notPaidNotifications: { success: true },
     isLoadingDone: false,
     orderToEdit: {},
-    products: [],
-    addressSuggestions: []
+    products: { success: true }
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -23,17 +20,18 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
             return Object.assign({}, state, { warehouseNotifications: action.payload })
         case 'GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { notPaidNotifications: action.payload })
-        case 'IS_GET_WAREHOUSE_NOTIFICATIONS':
-            return Object.assign({}, state, { isWarehouseNotificationsDone: action.payload })
-        case 'IS_GET_NOT_PAID_NOTIFICATIONS':
-            return Object.assign({}, state, { isNotPaidNotificationsDone: action.payload })
         case 'GET_MORE_ORDERS':
-            return {
-                ...state,
-                orders: [...state.orders, ...action.payload]
+            var temp = Object.assign([], state.orders)
+            if (action.payload.success) {
+
+                if (temp.data) {
+                    temp.data = temp.data.concat(action.payload.data)
+                }
+                else {
+                    temp.data = action.payload.data
+                }
             }
-        case 'GET_ADDRESS_SUGGESTIONS':
-            return Object.assign({}, state, { addressSuggestions: action.payload })
+            return Object.assign({}, state, { orders: temp })
         default:
             return state;
     }

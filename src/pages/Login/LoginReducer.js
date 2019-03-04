@@ -1,29 +1,20 @@
-import axios from 'axios';
-import { LOCALSTORAGE_NAME } from '../../appConfig';
+import { handleLocalStorageToken } from '../../utils/helpers';
 
-const loginPageInitialState = {
+const initialState = {
     currentUser: {},
-    authenticationDone: true,
-    authenticationFailed: true
+    authenticationInProgress: true,
+    authenticationSucceeded: false
 }
 
-const LoginReducer = (state = loginPageInitialState, action) => {
+const LoginReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'AUTHENTICATE':
             return Object.assign({}, state, { currentUser: action.payload })
-        case 'AUTHENTICATION_STARTED':
-            return Object.assign({}, state, { authenticationDone: false })
-        case 'AUTHENTICATION_ENDED':
-            return Object.assign({}, state, { authenticationDone: true })
-        case 'AUTHENTICATION_OK':
-            if(!localStorage.getItem(LOCALSTORAGE_NAME)) {
-                localStorage.setItem(LOCALSTORAGE_NAME, state.currentUser.token)
-                axios.defaults.headers.common['x-access-token'] = localStorage.getItem(LOCALSTORAGE_NAME);
-            }
-            return Object.assign({}, state, { authenticationFailed: false })
-        case 'AUTHENTICATION_FAIL':
-            localStorage.setItem(LOCALSTORAGE_NAME, "")
-            return Object.assign({}, state, { authenticationFailed: true })
+        case 'AUTHENTICATION_IN_PROGRESS':
+            return Object.assign({}, state, { authenticationInProgress: action.payload })
+        case 'AUTHENTICATION_SUCCEEDED':
+            handleLocalStorageToken(action.payload, state.currentUser.token)
+            return Object.assign({}, state, { authenticationSucceeded: action.payload })
         default:
             return state;
     }
