@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -213,15 +213,29 @@ class Orders extends React.Component {
             var foundIZs = [];
 
             this.state.orderLabelsToPrint.forEach(x => {
-                foundIZs.push(this.props.zaslatPageStore.zaslatOrders.data.forEach(y => {
-                    if (y.id === x) { return y.zaslatShipmentId }
-                }))
+                foundIZs.push(this.props.zaslatPageStore.zaslatOrders.data.find(y => {
+                    return y.id === x
+                }).zaslatShipmentId)
             })
+
+            printLabels(foundIZs)
+                .then((resp) => {
+                    var iframe = "<iframe width='100%' height='100%' src='" + resp.data + "'></iframe>";
+                    var win = window.open();
+                    win.document.write(iframe);
+                })
+                .catch((err) => {
+                    this.props.showGenericModalAction({
+                        err: err,
+                        header: "Failed to print Zaslat labels"
+                    })
+                })
         }
         else {
             this.getAllZaslatOrdersAndHandleResult()
             this.setState({ showPrintLabelsIcon: !this.state.showPrintLabelsIcon })
         }
+
     }
 
     getAllZaslatOrdersAndHandleResult = () => {
@@ -681,12 +695,12 @@ class Orders extends React.Component {
                                         this.props.zaslatPageStore.zaslatOrders.success ? (
                                             <Button
                                                 onClick={() => this.handlePrintLabelButtonOnClick()}
-                                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : "secondaryButton"}
+                                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
                                                 fluid
                                                 size='small'
                                                 compact
                                                 content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
-                                                color={this.state.orderLabelsToPrint.length > 0 ? "green" : null} />
+                                                color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                         ) : (
                                                 <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                             )
@@ -760,12 +774,12 @@ class Orders extends React.Component {
                                 this.props.zaslatPageStore.zaslatOrders.success ? (
                                     <Button
                                         onClick={() => this.handlePrintLabelButtonOnClick()}
-                                        style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : "secondaryButton"}
+                                        style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
                                         fluid
                                         size='small'
                                         compact
                                         content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
-                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : null} />
+                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                 ) : (
                                         <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                     )

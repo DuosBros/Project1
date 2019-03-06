@@ -78,16 +78,16 @@ class Base extends React.Component {
             return (<Login isMobile={isMobile} ex={{ authExceptionMessage: "Please login again" }} />);
         }
 
-        if (this.props.baseStore.showGenericModal) {
-            return (
-                <GenericModal
-                    show={this.props.baseStore.showGenericModal}
-                    header={this.props.baseStore.modal.modalHeader}
-                    content={this.props.baseStore.modal.modalContent}
-                    redirectTo={this.props.baseStore.modal.redirectTo}
-                    parentProps={this.props.baseStore.modal.parentProps}
-                    err={this.props.baseStore.modal.err} />)
-        }
+        // if (this.props.baseStore.showGenericModal) {
+        //     return (
+        //         <GenericModal
+        //             show={this.props.baseStore.showGenericModal}
+        //             header={this.props.baseStore.modal.modalHeader}
+        //             content={this.props.baseStore.modal.modalContent}
+        //             redirectTo={this.props.baseStore.modal.redirectTo}
+        //             parentProps={this.props.baseStore.modal.parentProps}
+        //             err={this.props.baseStore.modal.err} />)
+        // }
 
         var body, switchBody;
 
@@ -125,7 +125,13 @@ class Base extends React.Component {
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
                     />
-
+                    <GenericModal
+                        show={this.props.baseStore.showGenericModal}
+                        header={this.props.baseStore.modal.modalHeader}
+                        content={this.props.baseStore.modal.modalContent}
+                        redirectTo={this.props.baseStore.modal.redirectTo}
+                        parentProps={this.props.baseStore.modal.parentProps}
+                        err={this.props.baseStore.modal.err} />)
                     {body}
                 </>
             </BrowserRouter >

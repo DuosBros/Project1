@@ -43,6 +43,13 @@ export function getOrder(id) {
     return axios.get(MEDPHARMAVN_API + 'orders/' + id)
 }
 
+/**
+ *
+ * @param {object} payload
+ */
+export function printLabels(payload) {
+    return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/label', payload)
+}
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {
