@@ -1,7 +1,4 @@
 export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? "http://localhost:3000/rest/" : "https://medpharmavn.herokuapp.com/rest/"
-export const SMARTFORM_API = "http://smartform.cz/smartform-ws/oracle/v4"
-
-export const SMARTFORM_KEY = "KQVrc9iW"
 export const DEFAULT_SMARTFORM_LIMIT = 10
 
 export const LOCALSTORAGE_NAME = 'showBubsAndVagena'
@@ -25,6 +22,7 @@ export const deliveryTypes = [
 
 export const DEFAULT_ORDER_LOCK_SECONDS = 10
 
+export const APP_TITLE = "MedpharmaVN - "
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b
 
 // 14.11. 1627

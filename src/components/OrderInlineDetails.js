@@ -6,7 +6,7 @@ const OrderInlineDetails = (props) => {
     let result;
     let totalProductCount = 0
 
-    props.order.products.map((product) => {
+    props.order.products.forEach(product => {
         totalProductCount += product.count
     })
 
@@ -65,15 +65,13 @@ const OrderInlineDetails = (props) => {
                     })}
                     <Divider fitted style={{ marginTop: '0px', marginBottom: '0px' }} />
                     <Grid.Row style={{ paddingTop: '0px', paddingBottom: '0px' }}>
-                        <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
-                            Total product count
+                        <Grid.Column width={9}>
                         </Grid.Column>
                         <Grid.Column width={1} style={{ fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
                             {totalProductCount}
                         </Grid.Column>
-                        <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
-                        </Grid.Column>
-                        <Grid.Column style={{ fontSize: '0.8em' }} width={3}>
+                        <Grid.Column style={{ fontSize: '0.8em' }} width={6}>
+                            : Total product count
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -110,7 +108,7 @@ const OrderInlineDetails = (props) => {
                 <Table.Cell>
                 </Table.Cell>
                 <Table.Cell>
-                    {totalProductCount + " Total product count"}
+                    {totalProductCount + ": Total product count"}
                 </Table.Cell>
                 <Table.Cell>
 
@@ -122,8 +120,8 @@ const OrderInlineDetails = (props) => {
         result = (
             <Table.Row>
                 <Table.Cell style={getOrderTableRowStyle(props.order)} colSpan={9}>
-                    <Grid style={{ marginTop: '1.5em', marginBottom: '2em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
-                        <Grid.Row style={{ padding: '1em' }}>
+                    <Grid style={{ marginTop: '1em', marginBottom: '1.5em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
+                        <Grid.Row style={{ padding: '0.5em' }}>
                             <Grid.Column width={4}>
                                 <Header as='h4'>
                                     Customer info

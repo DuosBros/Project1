@@ -10,6 +10,16 @@ const ordersPageInitialState = {
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
     switch (action.type) {
+        case 'GET_ORDER':
+            var temp = Object.assign({}, state.orders)
+
+            if (temp.data && action.payload.success && action.payload.data) {
+                let index = temp.data.findIndex(x => x.id === action.payload.data.id)
+
+                temp.data[index] = action.payload.data
+            }
+
+            return Object.assign({}, state, { orders: temp })
         case 'GET_ALL_PRODUCTS':
             return Object.assign({}, state, { products: action.payload })
         case 'GET_ORDERS':
@@ -21,7 +31,7 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'GET_NOT_PAID_NOTIFICATIONS':
             return Object.assign({}, state, { notPaidNotifications: action.payload })
         case 'GET_MORE_ORDERS':
-            var temp = Object.assign([], state.orders)
+            temp = Object.assign([], state.orders)
             if (action.payload.success) {
 
                 if (temp.data) {

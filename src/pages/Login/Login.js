@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Form, Grid, Image, Message, Segment } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import _ from 'lodash';
 import { withRouter } from 'react-router-dom';
 
 import logo from '../../assets/logo.png';
@@ -68,7 +67,7 @@ class Login extends React.Component {
 
         var errorMessage = null
 
-        if (!_.isEmpty(this.state.authExceptionMessage)) {
+        if (this.state.authExceptionMessage) {
             errorMessage = (
                 <Message error floating>
                     Failed to log in:

@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Message } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS, APP_TITLE } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { getAllProducts, verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
@@ -120,6 +120,8 @@ class OrderInfo extends React.Component {
     }
 
     async componentDidMount() {
+        document.title = APP_TITLE + this.state.isEdit ? "Edit order" : "New order"
+
         if (!this.props.ordersPageStore.products.data) {
             try {
                 var res = await getAllProducts()

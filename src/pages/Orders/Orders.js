@@ -6,13 +6,16 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 
-import { getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications, getAllZaslatOrders, verifyLock, getInvoice } from '../../utils/requests';
+import {
+    getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder
+} from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction
+    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction
 } from '../../utils/actions';
 
-import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
+import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig'
 import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -47,6 +50,8 @@ class Orders extends React.Component {
     }
 
     componentDidMount() {
+
+        document.title = APP_TITLE + "Orders"
 
         // load current year orders when landing on orders for the first time
         // or there are no orders in store
@@ -318,6 +323,25 @@ class Orders extends React.Component {
             })
     }
 
+    handleToggleShowPaidOrders = async (order) => {
+        await lockOrder(order.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
+        let fetchedOrder = await getOrder(order.id);
+        fetchedOrder = fetchedOrder.data
+
+        // to not confuse user -> do the action based on what user currently see, not what is fetched from the server
+        if (order.payment.paid) {
+            delete fetchedOrder.payment.paymentDate
+            delete fetchedOrder.payment.paid
+        }
+        else {
+            fetchedOrder.payment.paid = true
+            fetchedOrder.payment.paymentDate = moment().toISOString()
+        }
+
+        await updateOrder(fetchedOrder, this.state.user)
+        this.props.getOrderAction({ success: true, data: fetchedOrder })
+    }
+
     render() {
 
         const { isMobile, orderIdsShowingDetails } = this.state;
@@ -404,7 +428,7 @@ class Orders extends React.Component {
                                 ) : (
                                         <>
                                             <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='huge' icon='edit' />
-                                            <Button style={{ padding: '0.3em' }} size='huge' icon={
+                                            <Button onClick={() => this.handleToggleShowPaidOrders(order)} style={{ padding: '0.3em' }} size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -473,7 +497,7 @@ class Orders extends React.Component {
                                     ) : (
                                             <>
                                                 <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                                                <Button style={{ padding: '0.3em' }} size='medium' icon={
+                                                <Button onClick={() => this.handleToggleShowPaidOrders(order)} style={{ padding: '0.3em' }} size='medium' icon={
                                                     <>
                                                         <Icon name='dollar' />
                                                         {
@@ -857,7 +881,8 @@ function mapDispatchToProps(dispatch) {
         getWarehouseNotificationsAction,
         getMoreOrdersAction,
         showGenericModalAction,
-        getAllZaslatOrdersAction
+        getAllZaslatOrdersAction,
+        getOrderAction
     }, dispatch);
 }
 

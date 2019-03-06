@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS, SMARTFORM_KEY, DEFAULT_SMARTFORM_LIMIT } from '../appConfig';
+import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
 /**
  * Send authentication payload
@@ -27,6 +27,22 @@ export function validateToken() {
         '&limit=1')
 }
 
+/**
+ *
+ * @param {object} order
+ */
+export function updateOrder(order, user) {
+    return axios.put(MEDPHARMAVN_API + 'orders/' + order.id + '?username=' + user, order)
+}
+
+/**
+ *
+ * @param {int} id
+ */
+export function getOrder(id) {
+    return axios.get(MEDPHARMAVN_API + 'orders/' + id)
+}
+
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {
@@ -39,22 +55,6 @@ export function getAllZaslatOrders() {
 
 export function getHighestVS() {
     return axios.get(MEDPHARMAVN_API + "orders/vs/next")
-}
-
-export function getAddressSuggestions(street) {
-    var payload = {
-        "fieldType": "STREET_AND_NUMBER",
-        "values": {
-            "STREET_AND_NUMBER": street,
-            "CITY": "",
-            "ZIP": "",
-            "COUNTRY": "CZ"
-        },
-        "limit": DEFAULT_SMARTFORM_LIMIT,
-        "password": SMARTFORM_KEY
-    }
-
-    return axios.post(MEDPHARMAVN_API + "smartform", payload)
 }
 
 export function verifyLock(orderId, user) {
@@ -83,10 +83,6 @@ export function createOrder(order, user) {
 
 export function getAllProducts() {
     return axios.get(MEDPHARMAVN_API + 'products/allproducts')
-}
-
-export function getOrder(id) {
-    return axios.get(MEDPHARMAVN_API + 'orders/' + id);
 }
 
 export function getCurrentYearOrders(limit, sinceId) {

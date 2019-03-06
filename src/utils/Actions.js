@@ -5,6 +5,13 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
+export function getOrderAction(payload) {
+    return {
+        payload,
+        type: 'GET_ORDER'
+    }
+}
+
 export function showGenericModalAction(payload) {
     return {
         payload,
