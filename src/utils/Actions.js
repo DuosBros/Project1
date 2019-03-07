@@ -5,6 +5,12 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
+export function deleteOrderAction(payload) {
+    return {
+        payload,
+        type: 'DELETE_ORDER'
+    }
+}
 export function getOrderAction(payload) {
     return {
         payload,

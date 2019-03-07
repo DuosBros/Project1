@@ -20,6 +20,16 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
             }
 
             return Object.assign({}, state, { orders: temp })
+        case 'DELETE_ORDER':
+            temp = Object.assign({}, state.orders)
+
+            if (temp.data && action.payload.success && action.payload.id) {
+                let index = temp.data.findIndex(x => x.id === action.payload.id)
+
+                temp.data.splice(index, 1)
+            }
+
+            return Object.assign({}, state, { orders: temp })
         case 'GET_ALL_PRODUCTS':
             return Object.assign({}, state, { products: action.payload })
         case 'GET_ORDERS':

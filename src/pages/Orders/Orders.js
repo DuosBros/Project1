@@ -8,11 +8,11 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels, deleteOrder
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction
+    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction, deleteOrderAction
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig'
@@ -205,7 +205,6 @@ class Orders extends React.Component {
             })
     }
 
-    // TODO: finish implementation of this
     handlePrintLabelButtonOnClick = () => {
         // if no orders are selected to print then get all zaslat orders
         // if yes then print labels
@@ -223,6 +222,8 @@ class Orders extends React.Component {
                     var iframe = "<iframe width='100%' height='100%' src='" + resp.data + "'></iframe>";
                     var win = window.open();
                     win.document.write(iframe);
+
+                    this.setState({ orderLabelsToPrint: [] });
                 })
                 .catch((err) => {
                     this.props.showGenericModalAction({
@@ -356,6 +357,30 @@ class Orders extends React.Component {
         this.props.getOrderAction({ success: true, data: fetchedOrder })
     }
 
+    handleDeleteOrder = async (id) => {
+        try {
+            await deleteOrder(id)
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                err: err,
+                header: "Failed to delete order"
+            })
+        }
+
+        try {
+            var res = await getOrder(id)
+            this.props.deleteOrderAction({ success: true, id: id })
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                err: err,
+                header: "Failed to get order after deletion"
+            })
+        }
+
+    }
+
     render() {
 
         const { isMobile, orderIdsShowingDetails } = this.state;
@@ -461,7 +486,7 @@ class Orders extends React.Component {
                                 ) : (
                                         <>
                                             <Button style={{ padding: '0.3em' }} size='huge' icon='shipping fast' />
-                                            <Button style={{ padding: '0.3em' }} size='huge' icon={<Icon name='close' color='red' />} />
+                                            <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='huge' icon={<Icon name='close' color='red' />} />
 
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate ? (
@@ -530,7 +555,7 @@ class Orders extends React.Component {
                                     ) : (
                                             <>
                                                 <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                                                <Button style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
+                                                <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
                                                 {
                                                     this.state.showPrintLabelsIcon && order.zaslatDate ? (
                                                         <Button onClick={() => this.togglePrintLabelIcon(order.id)} style={{ padding: '0.3em' }} size='medium'
@@ -699,7 +724,7 @@ class Orders extends React.Component {
                                                 fluid
                                                 size='small'
                                                 compact
-                                                content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
+                                                content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
                                                 color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                         ) : (
                                                 <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
@@ -778,7 +803,7 @@ class Orders extends React.Component {
                                         fluid
                                         size='small'
                                         compact
-                                        content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : "Print labels"}
+                                        content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
                                         color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                 ) : (
                                         <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
@@ -896,7 +921,8 @@ function mapDispatchToProps(dispatch) {
         getMoreOrdersAction,
         showGenericModalAction,
         getAllZaslatOrdersAction,
-        getOrderAction
+        getOrderAction,
+        deleteOrderAction
     }, dispatch);
 }
 

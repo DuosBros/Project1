@@ -50,6 +50,10 @@ export function getOrder(id) {
 export function printLabels(payload) {
     return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/label', payload)
 }
+
+export function deleteOrder(id) {
+    return axios.delete(MEDPHARMAVN_API + 'orders/' + id)
+}
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {
