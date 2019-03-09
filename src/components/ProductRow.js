@@ -41,9 +41,10 @@ const ProductRow = (props) => {
                     })} />
             </Form.Field>
             <Form.Input
+                readOnly={props.product.productName === 'Sleva' ? true : false}
                 label='Product Count [Pcs]'
                 fluid
-                value={props.product.count}
+                value={props.product.productName === 'Sleva' ? 1 : props.product.count}
                 onChange={(e, m) => props.handleProductDropdownOnChange(e, m, props.i, {
                     pricePerOne: props.product.pricePerOne,
                     productName: props.product.productName,

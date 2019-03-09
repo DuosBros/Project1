@@ -120,7 +120,7 @@ class OrderInfo extends React.Component {
     }
 
     async componentDidMount() {
-        document.title = APP_TITLE + this.state.isEdit ? "Edit order" : "New order"
+        document.title = APP_TITLE + (this.state.isEdit ? "Edit order" : "New order")
 
         if (!this.props.ordersPageStore.products.data) {
             try {
@@ -654,8 +654,9 @@ class OrderInfo extends React.Component {
                         </Table.Cell>
                         <Table.Cell collapsing>
                             <Form.Input
+                                readOnly={product.productName === 'Sleva' ? true : false}
                                 fluid
-                                value={product.count}
+                                value={product.productName === 'Sleva' ? 1 : product.count}
                                 onChange={(e, m) => this.handleProductDropdownOnChange(null, null, i, {
                                     pricePerOne: product.pricePerOne,
                                     productName: product.productName,

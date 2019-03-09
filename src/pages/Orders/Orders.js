@@ -493,9 +493,9 @@ class Orders extends React.Component {
                                                     <Button onClick={() => this.togglePrintLabelIcon(order.id)} style={{ padding: '0.3em' }} size='medium'
                                                         icon={
                                                             <>
-                                                                <Icon name='barcode' />
+                                                                <Icon name='barcode' size='huge'/>
                                                                 {
-                                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' size='huge' />) : (<Icon color="green" corner name='add' size='huge' />)
                                                                 }
                                                             </>
                                                         } >
