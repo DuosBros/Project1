@@ -387,8 +387,19 @@ class Orders extends React.Component {
         this.setState({ showCreateZaslatModal: false });
     }
 
-    handleOpenCreateZaslatModal = (order) => {
-        this.setState({ showCreateZaslatModal: true });
+    handleOpenCreateZaslatModal = async (order) => {
+        try {
+            var res = await getOrder(order.id)
+            this.props.openOrderDetailsAction({ data: res.data, success: true })
+            this.setState({ showCreateZaslatModal: true, createZaslatModalData: res.data });
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                err: err,
+                header: "Failed to get order details"
+            })
+        }
+
     }
     render() {
 
@@ -903,6 +914,7 @@ class Orders extends React.Component {
                 {
                     showCreateZaslatModal ? (
                         <CreateZaslatModal
+                            order={this.props.ordersPageStore.ordersDetails.data}
                             show={showCreateZaslatModal}
                             closeCreateZaslatModal={this.handleCloseCreateZaslatModal} />
                     ) : null

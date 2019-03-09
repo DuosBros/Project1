@@ -69,9 +69,9 @@ const PaymentTypeButtonGroup = (props) => {
 const TotalPriceForm = (props) => {
     return (
         <Form className='form' size='large'>
-            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={() => props.getTotalPrice(false)} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={() => props.getTotalPrice()} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
             <label><strong>Total price [CZK]</strong></label>
-            <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice} ></input>
+            <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
             <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
         </Form>
     )
@@ -207,7 +207,7 @@ class OrderInfo extends React.Component {
     handleProductDropdownOnChange = (e, m, i, product) => {
         product.product = this.props.ordersPageStore.products.data[product.productName];
         var temp = this.handleProductDropdownOnChangeHelper(product, this.state.order, i);
-        temp.totalPrice = this.getTotalPriceHelper(false, this.state.order);
+        temp.totalPrice = this.getTotalPriceHelper(this.state.order);
         if (!this.isCancelled) {
             this.setState(() => ({
                 order: temp
@@ -235,33 +235,22 @@ class OrderInfo extends React.Component {
         return o;
     }
 
-    getTotalPrice = (raw) => {
+    getTotalPrice = () => {
         var o = Object.assign({}, this.state.order)
-        o.totalPrice = this.getTotalPriceHelper(raw, this.state.order);
+        o.totalPrice = this.getTotalPriceHelper(this.state.order);
         this.setState({ order: o });
     }
 
-    getTotalPriceHelper = (raw, orderState) => {
+    getTotalPriceHelper = (orderState) => {
         var sum = 0;
 
-        if (document.getElementById("deliveryPrice")) {
-            var parsed = parseInt(document.getElementById("deliveryPrice").value)
-            if (!isNaN(parsed)) {
-                sum = parsed
-            }
-        }
+        sum = orderState.payment.price
 
         orderState.products.forEach(product => {
             sum += product.count * product.pricePerOne
         });
 
-        if (raw) {
-            return sum
-        }
-        else {
-            // adding space after 3 digits
-            return sum.toLocaleString('cs-CZ');
-        }
+        return sum;
     }
 
     renderProductsForMobile = () => {
@@ -318,7 +307,7 @@ class OrderInfo extends React.Component {
     handleToggleDeliveryAndPaymentTypeButtons = (prop, type) => {
         var temp = this.handleToggleDeliveryButtonsHelper(prop, type, this.state.order);
 
-        this.setState({ order: temp });
+        this.setState({ order: temp }, ()=> this.getTotalPrice());
     }
 
     handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
@@ -382,7 +371,7 @@ class OrderInfo extends React.Component {
         order.address.psc = document.getElementById("zip").value
         order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
 
-        order.totalPrice = this.getTotalPriceHelper(true, order);
+        order.totalPrice = this.getTotalPriceHelper(order);
 
         order.address.firstName = document.getElementById("firstName").value
         order.address.lastName = document.getElementById("lastName").value

@@ -35,7 +35,7 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'GET_ORDERS':
             return Object.assign({}, state, { orders: action.payload })
         case 'OPEN_ORDER_DETAILS':
-            return Object.assign({}, state, { orderToEdit: action.payload })
+            return Object.assign({}, state, { ordersDetails: action.payload })
         case 'GET_WAREHOUSE_NOTIFICATIONS':
             return Object.assign({}, state, { warehouseNotifications: action.payload })
         case 'GET_NOT_PAID_NOTIFICATIONS':
