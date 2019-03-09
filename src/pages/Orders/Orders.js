@@ -20,6 +20,7 @@ import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableR
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
+import CreateZaslatModal from '../../components/CreateZaslatModal';
 
 class Orders extends React.Component {
 
@@ -37,6 +38,7 @@ class Orders extends React.Component {
             showMultiSearchFilter: false,
             ordersLimit: this.props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             inputWidth: 0,
+            showCreateZaslatModal: false,
             generateInvoice: {
                 generateInvoiceDone: true,
                 orderToGenerateInvoice: {}
@@ -381,6 +383,13 @@ class Orders extends React.Component {
 
     }
 
+    handleCloseCreateZaslatModal = () => {
+        this.setState({ showCreateZaslatModal: false });
+    }
+
+    handleOpenCreateZaslatModal = (order) => {
+        this.setState({ showCreateZaslatModal: true });
+    }
     render() {
 
         const { isMobile, orderIdsShowingDetails } = this.state;
@@ -425,7 +434,8 @@ class Orders extends React.Component {
             showPaidOrders,
             multiSearchInput,
             orderLabelsToPrint,
-            showFunctionsMobile
+            showFunctionsMobile,
+            showCreateZaslatModal
         } = this.state;
         var rowCounter = 0;
         var filteredByMultiSearch, mappedOrders, sortedOrders;
@@ -485,7 +495,7 @@ class Orders extends React.Component {
                                     null
                                 ) : (
                                         <>
-                                            <Button style={{ padding: '0.3em' }} size='huge' icon='shipping fast' />
+                                            <Button onClick={() => this.handleOpenCreateZaslatModal(order)} style={{ padding: '0.3em' }} size='huge' icon='shipping fast' />
                                             <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='huge' icon={<Icon name='close' color='red' />} />
 
                                             {
@@ -493,7 +503,7 @@ class Orders extends React.Component {
                                                     <Button onClick={() => this.togglePrintLabelIcon(order.id)} style={{ padding: '0.3em' }} size='medium'
                                                         icon={
                                                             <>
-                                                                <Icon name='barcode' size='huge'/>
+                                                                <Icon name='barcode' size='huge' />
                                                                 {
                                                                     orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' size='huge' />) : (<Icon color="green" corner name='add' size='huge' />)
                                                                 }
@@ -554,7 +564,7 @@ class Orders extends React.Component {
                                         null
                                     ) : (
                                             <>
-                                                <Button style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
+                                                <Button onClick={() => this.handleOpenCreateZaslatModal(order)} style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
                                                 <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
                                                 {
                                                     this.state.showPrintLabelsIcon && order.zaslatDate ? (
@@ -890,6 +900,13 @@ class Orders extends React.Component {
                     ) : (
                             null
                         )}
+                {
+                    showCreateZaslatModal ? (
+                        <CreateZaslatModal
+                            show={showCreateZaslatModal}
+                            closeCreateZaslatModal={this.handleCloseCreateZaslatModal} />
+                    ) : null
+                }
                 {orderPageHeader}
                 {table}
                 {
