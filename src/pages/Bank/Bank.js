@@ -88,7 +88,7 @@ class Bank extends React.Component {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
                         transactionButton = (
-                            <Button id="buttonIconPadding">
+                            <Button className="buttonIconPadding">
                                 <Icon.Group>
                                     <Icon name='usd' />
                                     <Icon corner name='add' color="green" />
@@ -110,7 +110,7 @@ class Bank extends React.Component {
             }
             else {
                 transactionButton = (
-                    <Button id="buttonIconPadding">
+                    <Button className="buttonIconPadding">
                         <Icon.Group>
                             <Icon name='usd' />
                             <Icon corner name='minus' color="red" />

@@ -144,7 +144,7 @@ class Orders extends React.Component {
     toggleInlineOrderDetails = (orderId, e) => {
         // do not fire if onclick was triggered on child elements
         e.preventDefault();
-        if (e.target.className === "") {
+        if (e.target.className === "blackColor" || e.target.className === "") {
             if (this.state.orderIdsShowingDetails.indexOf(orderId) > -1) {
                 this.setState({
                     orderIdsShowingDetails: this.state.orderIdsShowingDetails.filter(id => {
@@ -479,16 +479,16 @@ class Orders extends React.Component {
                 return (
                     <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
                         textAlign='center'>
-                        <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                        <Table.Cell style={{ color: 'black' }}>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
+                        <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
+                        <Table.Cell>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
                         <Table.Cell>
                             {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
                                     null
                                 ) : (
                                         <>
-                                            <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='huge' icon='edit' />
-                                            <Button onClick={() => this.handleToggleShowPaidOrders(order)} style={{ padding: '0.3em' }} size='huge' icon={
+                                            <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
+                                            <Button onClick={() => this.handleToggleShowPaidOrders(order)} className="buttonIconPadding" size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -500,18 +500,18 @@ class Orders extends React.Component {
                                     )
                             }
 
-                            <Button style={{ padding: '0.3em' }} size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                            <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                             {
                                 order.payment.paid ? (
                                     null
                                 ) : (
                                         <>
-                                            <Button onClick={() => this.handleOpenCreateZaslatModal(order)} style={{ padding: '0.3em' }} size='huge' icon='shipping fast' />
-                                            <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='huge' icon={<Icon name='close' color='red' />} />
+                                            <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
+                                            <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
 
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate ? (
-                                                    <Button onClick={() => this.togglePrintLabelIcon(order.id)} style={{ padding: '0.3em' }} size='medium'
+                                                    <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='medium'
                                                         icon={
                                                             <>
                                                                 <Icon name='barcode' size='huge' />
@@ -544,20 +544,20 @@ class Orders extends React.Component {
                             style={getOrderTableRowStyle(order)}
                             textAlign='center'
                             key={order.id}>
-                            <Table.Cell style={{ color: 'black' }}>{rowCounter}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}>{order.payment.vs}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}><strong>{order.totalPrice} Kč</strong></Table.Cell>
-                            <Table.Cell style={{ color: 'black' }}>{order.note}</Table.Cell>
+                            <Table.Cell>{rowCounter}</Table.Cell>
+                            <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
+                            <Table.Cell>{order.payment.vs}</Table.Cell>
+                            <Table.Cell>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
+                            <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
+                            <Table.Cell>{order.note}</Table.Cell>
                             <Table.Cell>
                                 {
                                     moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? (
                                         null
                                     ) : (
                                             <>
-                                                <Button onClick={() => this.openOrderDetails(order)} style={{ padding: '0.3em' }} size='medium' icon='edit' />
-                                                <Button onClick={() => this.handleToggleShowPaidOrders(order)} style={{ padding: '0.3em' }} size='medium' icon={
+                                                <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='medium' icon='edit' />
+                                                <Button onClick={() => this.handleToggleShowPaidOrders(order)} className="buttonIconPadding" size='medium' icon={
                                                     <>
                                                         <Icon name='dollar' />
                                                         {
@@ -569,17 +569,17 @@ class Orders extends React.Component {
                                         )
                                 }
 
-                                <Button style={{ padding: '0.3em' }} size='medium' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                                <Button className="buttonIconPadding" size='medium' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                                 {
                                     order.payment.paid ? (
                                         null
                                     ) : (
                                             <>
-                                                <Button onClick={() => this.handleOpenCreateZaslatModal(order)} style={{ padding: '0.3em' }} size='medium' icon='shipping fast' />
-                                                <Button onClick={() => this.handleDeleteOrder(order.id)} style={{ padding: '0.3em' }} size='medium' icon={<Icon name='close' color='red' />} />
+                                                <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='medium' icon='shipping fast' />
+                                                <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='medium' icon={<Icon name='close' color='red' />} />
                                                 {
                                                     this.state.showPrintLabelsIcon && order.zaslatDate ? (
-                                                        <Button onClick={() => this.togglePrintLabelIcon(order.id)} style={{ padding: '0.3em' }} size='medium'
+                                                        <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='medium'
                                                             icon={
                                                                 <>
                                                                     <Icon name='barcode' />
@@ -610,7 +610,7 @@ class Orders extends React.Component {
             table = (
                 <Table compact basic='very'>
                     <Table.Header>
-                        <Table.Row style={{ textAlign: 'center' }}>
+                        <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={2}>Name</Table.HeaderCell>
                             <Table.HeaderCell width={1}>VS | Order Date | Price</Table.HeaderCell>
                             <Table.HeaderCell width={3}>Actions</Table.HeaderCell>
@@ -626,7 +626,7 @@ class Orders extends React.Component {
             table = (
                 <Table compact padded basic='very'>
                     <Table.Header>
-                        <Table.Row style={{ textAlign: 'center' }}>
+                        <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={1}>#</Table.HeaderCell>
                             <Table.HeaderCell width={2}>Name</Table.HeaderCell>
                             <Table.HeaderCell width={1}>VS</Table.HeaderCell>
@@ -659,7 +659,7 @@ class Orders extends React.Component {
                     })
 
                     warehouseNotificationsMessage = (
-                        <Message style={{ textAlign: 'center' }} warning>Some of the products are below treshold:<br />{message}
+                        <Message className="textAlignCenter" warning>Some of the products are below treshold:<br />{message}
                             <Link to="/warehouse">Go to Warehouse</Link></Message>
                     )
                 }
@@ -692,12 +692,12 @@ class Orders extends React.Component {
 
                     if (this.props.ordersPageStore.notPaidNotifications.data.length > 1) {
                         notPaidNotificationsMessage = (
-                            <Message style={{ textAlign: 'center' }} warning>Orders are delivered but not paid: <br />{VSs}</Message>
+                            <Message className="textAlignCenter" warning>Orders are delivered but not paid: <br />{VSs}</Message>
                         )
                     }
                     else {
                         notPaidNotificationsMessage = (
-                            <Message style={{ textAlign: 'center' }} warning>
+                            <Message className="textAlignCenter" warning>
                                 Order is delivered but not paid: <br />
                                 <strong>{VSs}</strong>
                             </Message>
@@ -735,7 +735,7 @@ class Orders extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {this.state.showFunctionsMobile && (
                             <>
-                                <Grid.Row style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                <Grid.Row>
                                     <Button onClick={() => this.props.history.push('orders/new')} fluid size='small' content='Add Order' id="primaryButton" />
                                     {
                                         this.props.zaslatPageStore.zaslatOrders.success ? (
@@ -762,7 +762,7 @@ class Orders extends React.Component {
                                                     warehouseNotificationsMessage === null ? (
                                                         null
                                                     ) : (
-                                                            <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                                            <Grid.Column>
                                                                 {warehouseNotificationsMessage}
                                                             </Grid.Column>
                                                         )
@@ -771,7 +771,7 @@ class Orders extends React.Component {
                                                     notPaidNotificationsMessage === null ? (
                                                         null
                                                     ) : (
-                                                            <Grid.Column style={{ paddingTop: '1em', paddingBottom: '1em' }}>
+                                                            <Grid.Column>
                                                                 {notPaidNotificationsMessage}
                                                             </Grid.Column>
                                                         )

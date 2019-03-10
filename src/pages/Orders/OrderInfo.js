@@ -453,7 +453,6 @@ class OrderInfo extends React.Component {
         var headerButtons = (
             <Grid.Column width={isMobile ? null : 13} style={isMobile ? { paddingTop: '1em', paddingBottom: '1em' } : null}>
                 <Button onClick={() => this.handleOrder(order, this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
-                {/* <Button style={{ marginTop: '0.5em' }} fluid={isMobile} size='medium' compact content='Save Draft' id="tercialButton" /> */}
                 <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                     <Button
                         style={{ marginTop: '0.5em' }} id="secondaryButton" fluid={isMobile} size='small'
@@ -517,23 +516,23 @@ class OrderInfo extends React.Component {
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
                                     {isEdit ? (
-                                        <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                        <div className="marginTopAndBottomBig">
                                             <label><strong>VS</strong></label>
                                             <input readOnly id='vs' label='VS' name='vs' />
                                         </div>
                                     ) : null}
-                                    <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                    <div className="marginTopAndBottomBig">
                                         <label><strong>Payment type</strong></label>
                                         <PaymentTypeButtonGroup deliveryType={order.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                     </div>
                                     {
                                         contains(order.deliveryType, deliveryTypes[0].type) ? (
                                             <>
-                                                <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                                <div className="marginTopAndBottomBig">
                                                     <label><strong>Delivery company</strong></label>
                                                     <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                 </div>
-                                                <div style={{ marginTop: '1.5em', marginBottom: '1.5em' }}>
+                                                <div className="marginTopAndBottomBig">
                                                     <label><strong>Bank account payment</strong></label>
                                                     <BankAccountPaymentButtonGroup handleToggleBankAccountPaymentButtons={this.handleToggleBankAccountPaymentButtons} cashOnDelivery={order.payment.cashOnDelivery} />
                                                 </div>
@@ -660,7 +659,7 @@ class OrderInfo extends React.Component {
                             <Form.Input fluid readOnly value={product.totalPricePerProduct}></Form.Input>
                         </Table.Cell>
                         <Table.Cell textAlign='center'>
-                            <Button onClick={() => this.removeProductFromOrder(i)} style={{ padding: '0.3em' }} icon="close"></Button>
+                            <Button onClick={() => this.removeProductFromOrder(i)} className="buttonIconPadding" icon="close"></Button>
                         </Table.Cell>
                     </Table.Row>
                 )
@@ -708,7 +707,7 @@ class OrderInfo extends React.Component {
                             <Segment attached='bottom'>
                                 <Form size='small'>
                                     <Grid>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Street and number
@@ -729,7 +728,7 @@ class OrderInfo extends React.Component {
                                                 </Form.Field>
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     City
@@ -743,7 +742,7 @@ class OrderInfo extends React.Component {
                                                 </Form.Field>
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     ZIP
@@ -758,7 +757,7 @@ class OrderInfo extends React.Component {
                                             </Grid.Column>
                                         </Grid.Row>
                                         <Divider></Divider>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     First Name
@@ -768,7 +767,7 @@ class OrderInfo extends React.Component {
                                                 <Form.Input fluid id="firstName" name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Last Name
@@ -778,7 +777,7 @@ class OrderInfo extends React.Component {
                                                 <Form.Input fluid id='lastName' name="nope" />
                                             </Grid.Column>
                                         </Grid.Row>
-                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '0.25em' }}>
+                                        <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                             <Grid.Column width={4}>
                                                 <strong>
                                                     Phone Number
@@ -818,7 +817,7 @@ class OrderInfo extends React.Component {
                                             </Form>
                                         </Grid.Column>
                                     </Grid.Row>
-                                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomMedium">
                                         <Grid.Column width={5}>
                                             <strong>
                                                 Payment type
@@ -831,7 +830,7 @@ class OrderInfo extends React.Component {
                                     {
                                         contains(order.deliveryType, deliveryTypes[0].type) ? (
                                             <>
-                                                <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomMedium">
                                                     <Grid.Column width={5}>
                                                         <strong>
                                                             Delivery company
@@ -841,7 +840,7 @@ class OrderInfo extends React.Component {
                                                         <DeliveryCompanyButtonGroup deliveryCompany={order.deliveryCompany} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                                     </Grid.Column>
                                                 </Grid.Row>
-                                                <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.5em', paddingBottom: '0.5em' }}>
+                                                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomMedium">
                                                     <Grid.Column width={5}>
                                                         <strong>
                                                             Bank account payment

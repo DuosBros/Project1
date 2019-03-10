@@ -14,7 +14,7 @@ const OrderInlineDetails = (props) => {
 
     if (props.isMobile) {
         result = (
-            <Table.Cell>
+            <Table.Cell className="inlineDetails">
                 <Grid style={{ marginTop: '0.5em' }}>
                     <Grid.Row textAlign='left' columns='equal' style={{ paddingTop: '0px' }}>
                         <Grid.Column>
@@ -166,7 +166,7 @@ const OrderInlineDetails = (props) => {
             </Table.Row>
         )
         result = (
-            <Table.Row>
+            <Table.Row className="inlineDetails">
                 <Table.Cell style={getOrderTableRowStyle(props.order)} colSpan={9}>
                     <Grid style={{ marginTop: '1em', marginBottom: '1.5em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
                         <Grid.Row style={{ padding: '0.5em' }}>
