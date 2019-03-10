@@ -184,7 +184,7 @@ class OrderInfo extends React.Component {
             document.getElementById("phone").value = temp.address.phone ? temp.address.phone : ""
             document.getElementById("company").value = temp.address.company ? temp.address.company : ""
             document.getElementById("deliveryPrice").value = temp.payment.price ? temp.payment.price : ""
-            document.getElementById("vs").value = temp.payment.vs
+            document.getElementById("vs").value = temp.payment.vs ? temp.payment.vs : ""
         }
     }
 
@@ -207,7 +207,7 @@ class OrderInfo extends React.Component {
     handleProductDropdownOnChange = (e, m, i, product) => {
         product.product = this.props.ordersPageStore.products.data[product.productName];
         var temp = this.handleProductDropdownOnChangeHelper(product, this.state.order, i);
-        temp.totalPrice = this.getTotalPriceHelper(this.state.order);
+        temp.totalPrice = this.getTotalPriceHelper(temp);
         if (!this.isCancelled) {
             this.setState(() => ({
                 order: temp
@@ -229,7 +229,7 @@ class OrderInfo extends React.Component {
 
         var o = Object.assign({}, stateOrder)
         o.products[i] = product;
-        document.getElementById("deliveryPrice").value = getGLSDeliveryPrice(
+        o.payment.price = getGLSDeliveryPrice(
             o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
 
         return o;
@@ -307,7 +307,7 @@ class OrderInfo extends React.Component {
     handleToggleDeliveryAndPaymentTypeButtons = (prop, type) => {
         var temp = this.handleToggleDeliveryButtonsHelper(prop, type, this.state.order);
 
-        this.setState({ order: temp }, ()=> this.getTotalPrice());
+        this.setState({ order: temp }, () => this.getTotalPrice());
     }
 
     handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
@@ -320,6 +320,10 @@ class OrderInfo extends React.Component {
         }
 
         o[prop] = type
+
+        if (o.deliveryType === deliveryTypes[0].type && !o.deliveryCompany) {
+            o.deliveryCompany = deliveryCompanies[0].company
+        }
 
         return o;
     }
