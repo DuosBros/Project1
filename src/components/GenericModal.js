@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Modal, Accordion, Icon } from 'semantic-ui-react';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
 import { closeGenericModalAction } from '../utils/actions';
 import { errorColor } from '../appConfig';
@@ -10,6 +11,13 @@ class GenericModal extends React.Component {
 
     state = { active: true }
 
+    componentDidMount() {
+        if (this.props.err.message) {
+            if (this.props.err.message.name === "TokenExpiredError") {
+                this.props.history.push('/login')
+            }
+        }
+    }
     close = () => {
         this.props.closeGenericModalAction()
         if (this.props.redirectTo) {
@@ -32,7 +40,7 @@ class GenericModal extends React.Component {
                         <Icon name='dropdown' />
                         Error details
                 </Accordion.Title>
-                    <Accordion.Content style={{overflowY: 'scroll'}} active={active}>
+                    <Accordion.Content style={{ overflowY: 'scroll' }} active={active}>
                         {this.props.err && this.props.err.toString()}
                         <br />
                         {this.props.err.stack}
@@ -51,7 +59,7 @@ class GenericModal extends React.Component {
                 closeIcon={true}
                 onClose={() => this.close()}
             >
-                <Modal.Header style={{backgroundColor: errorColor}}>{this.props.header || "Error"}</Modal.Header>
+                <Modal.Header style={{ backgroundColor: errorColor }}>{this.props.header || "Error"}</Modal.Header>
                 <Modal.Content>
                     {this.props.content || "Something happened!"}
                     {accordion}
@@ -75,4 +83,4 @@ function mapDispatchToProps(dispatch) {
     }, dispatch);
 }
 
-export default connect(null, mapDispatchToProps)(GenericModal);
+export default withRouter(connect(null, mapDispatchToProps)(GenericModal));

@@ -147,3 +147,17 @@ dd {
     padding-top: 0.5em;
     padding-bottom: 0.5em;
 }
+
+.ui.divider.marginTopAndBottomSmall {
+    margin-top: 0.2em !important;
+    margin-bottom: 0.2em !important;
+}
+
+.four.column.row.noPaddingTopAndBottom {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.column.smallFontSize {
+    font-size: 0.8em !important
+}

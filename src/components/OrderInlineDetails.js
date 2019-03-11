@@ -43,14 +43,14 @@ const OrderInlineDetails = (props) => {
                         <Grid.Column width={3}>
                             <Popup hideOnScroll className="popup" inverted trigger={<p className='popup'>PpU [CZK]</p>} openOnTriggerClick={true} content='Price per Unit [CZK]' />
                         </Grid.Column>
-                        <Grid.Column width={3} style={{bottom: '0.25em'}}>
+                        <Grid.Column width={3} style={{ bottom: '0.25em' }}>
                             Sum [CZK]
                         </Grid.Column>
                     </Grid.Row>
                     {props.order.products.map((product, index) => {
                         if (product.productName !== 'Sleva') {
                             return (
-                                <Grid.Row key={index} style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                                <Grid.Row key={index} className="noPaddingTopAndBottom">
                                     <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
                                         {product.productName}
                                     </Grid.Column>
@@ -68,7 +68,7 @@ const OrderInlineDetails = (props) => {
                         }
                         else {
                             return (
-                                <Grid.Row key={index} style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                                <Grid.Row key={index} className="noPaddingTopAndBottom">
                                     <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
                                         <i>{product.productName}</i>
                                     </Grid.Column>
@@ -83,7 +83,7 @@ const OrderInlineDetails = (props) => {
                             )
                         }
                     })}
-                    <Grid.Row style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                    <Grid.Row className="noPaddingTopAndBottom">
                         <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
                             <i>Delivery fee</i>
                         </Grid.Column>
@@ -96,7 +96,7 @@ const OrderInlineDetails = (props) => {
                         </Grid.Column>
                     </Grid.Row>
                     <Divider fitted style={{ marginTop: '0px', marginBottom: '0px' }} />
-                    <Grid.Row style={{ paddingTop: '0px', paddingBottom: '0px' }}>
+                    <Grid.Row className="noPaddingTopAndBottom">
                         <Grid.Column width={9}>
                             <strong>Total</strong>
                         </Grid.Column>

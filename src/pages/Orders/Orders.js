@@ -8,11 +8,12 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels, deleteOrder
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels, deleteOrder, getAllProducts
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
-    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction, deleteOrderAction
+    getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction, deleteOrderAction,
+    getAllProductsAction
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig'
@@ -66,6 +67,17 @@ class Orders extends React.Component {
             if (!this.props.location.state.isFromDetails) {
                 this.fetchAndHandleThisYearOrders()
             }
+        }
+
+        if (!this.props.ordersPageStore.products.data) {
+            getAllProducts()
+                .then(res => {
+                    this.props.getAllProductsAction({ success: true, data: res.data })
+                })
+                .catch(err => {
+
+                    this.props.getAllProductsAction({ success: false, error: err })
+                })
         }
 
         this.fetchAndHandleNotPaidNotifications()
@@ -371,7 +383,7 @@ class Orders extends React.Component {
         }
 
         try {
-            var res = await getOrder(id)
+            await getOrder(id)
             this.props.deleteOrderAction({ success: true, id: id })
         }
         catch (err) {
@@ -391,7 +403,7 @@ class Orders extends React.Component {
         try {
             var res = await getOrder(order.id)
             this.props.openOrderDetailsAction({ data: res.data, success: true })
-            this.setState({ showCreateZaslatModal: true, createZaslatModalData: res.data });
+            this.setState({ showCreateZaslatModal: true });
         }
         catch (err) {
             this.props.showGenericModalAction({
@@ -720,6 +732,16 @@ class Orders extends React.Component {
             }
         }
 
+        let totalWeight = 0
+        if (showCreateZaslatModal && this.props.ordersPageStore.products.data) {
+            this.props.ordersPageStore.ordersDetails.data.products.forEach(
+                x => totalWeight += this.props.ordersPageStore.products.data[x.productName].weight * x.count
+            )
+
+            totalWeight += 500
+            totalWeight = totalWeight / 1000
+        }
+
         var orderPageHeader;
         if (isMobile) {
             orderPageHeader = (
@@ -914,6 +936,8 @@ class Orders extends React.Component {
                 {
                     showCreateZaslatModal ? (
                         <CreateZaslatModal
+                            totalWeight={totalWeight}
+                            isMobile={isMobile}
                             order={this.props.ordersPageStore.ordersDetails.data}
                             show={showCreateZaslatModal}
                             closeCreateZaslatModal={this.handleCloseCreateZaslatModal} />
@@ -951,7 +975,8 @@ function mapDispatchToProps(dispatch) {
         showGenericModalAction,
         getAllZaslatOrdersAction,
         getOrderAction,
-        deleteOrderAction
+        deleteOrderAction,
+        getAllProductsAction
     }, dispatch);
 }
 
