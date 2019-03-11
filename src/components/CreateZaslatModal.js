@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, Message } from 'semantic-ui-react';
+import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, TextArea } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getAllProducts } from '../utils/requests';
@@ -26,6 +26,10 @@ class CreateZaslatModal extends React.PureComponent {
         document.getElementById("height").value = 20
         document.getElementById("length").value = 20
         document.getElementById("weight").value = this.props.totalWeight
+
+        document.getElementById("bankAccountPayment").value = this.props.order.payment.cashOnDelivery ? "No" : "Yes"
+        document.getElementById("totalPrice").value = this.props.order.totalPrice
+        document.getElementById("note").value = "POZOR: Prosím před příjezdem zavolejte příjemci na tel. " + this.props.order.address.phone + ". V případě problému, volejte odesílateli."
     }
 
     close = () => {
@@ -34,8 +38,7 @@ class CreateZaslatModal extends React.PureComponent {
 
     render() {
         let { isMobile } = this.state
-        var popupContentTable = null
-        var popup = null
+        var popupContentTable, popup, modalContent, packageSegment, deliverySegment, customerSegment = null
 
         if (this.props.ordersPageStore.products.data) {
             popupContentTable = this.props.order.products.map(
@@ -123,8 +126,6 @@ class CreateZaslatModal extends React.PureComponent {
             )
         }
 
-        var modalContent = null
-        var packageSegment = null
         if (isMobile) {
             packageSegment = (
                 <Form>
@@ -146,53 +147,181 @@ class CreateZaslatModal extends React.PureComponent {
                     </Form.Field>
                 </Form>
             )
+
+            deliverySegment = (
+                <Form>
+                    <Form.Field>
+                        <label>Note to Zaslat</label>
+                        <input id="note" ></input>
+                    </Form.Field>
+                    <Form.Field>
+                        <label>Bank account payment</label>
+                        <input readOnly id="bankAccountPayment" ></input>
+                    </Form.Field>
+                    <Form.Field>
+                        <label>Total price [CZK]</label>
+                        <input readOnly id="totalPrice" ></input>
+                    </Form.Field>
+                </Form>
+            )
         }
         else {
             packageSegment = (
                 <Grid>
                     <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
-                        <Grid.Column width={4}>
+                        <Grid.Column width={2}>
                             <strong>
                                 Width [cm]
                                         </strong>
                         </Grid.Column>
-                        <Grid.Column width={12}>
+                        <Grid.Column width={3}>
                             <Form.Input fluid id="width" />
+                        </Grid.Column>
+                        <Grid.Column width={3}>
+                            <strong>
+                                Total price [CZK]
+                                        </strong>
+                        </Grid.Column>
+                        <Grid.Column width={8}>
+                            <Form.Input disabled fluid id="totalPrice" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
-                        <Grid.Column width={4}>
+                        <Grid.Column width={2}>
                             <strong>
                                 Height [cm]
                                         </strong>
                         </Grid.Column>
-                        <Grid.Column width={12}>
+                        <Grid.Column width={3}>
                             <Form.Input fluid id="height" />
+                        </Grid.Column>
+                        <Grid.Column width={3}>
+                            <strong>
+                                Bank account payment
+                                        </strong>
+                        </Grid.Column>
+                        <Grid.Column width={8}>
+                            <Form.Input disabled fluid id="bankAccountPayment" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
-                        <Grid.Column width={4}>
+                        <Grid.Column width={2}>
                             <strong>
                                 Length [cm]
                                         </strong>
                         </Grid.Column>
-                        <Grid.Column width={12}>
+                        <Grid.Column width={3}>
                             <Form.Input fluid id="length" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
-                        <Grid.Column width={4}>
+                        <Grid.Column width={2}>
                             <strong>
                                 Weight [kg]
                                             {popup}
                             </strong>
                         </Grid.Column>
-                        <Grid.Column width={12}>
+                        <Grid.Column width={3}>
                             <Form.Input fluid id="weight" />
+                        </Grid.Column>
+                        <Grid.Column width={3}>
+                            <strong>
+                                Note to Zaslat
+                                        </strong>
+                        </Grid.Column>
+                        <Grid.Column width={8}>
+                            <Form>
+                                <TextArea autoHeight rows={2} id="note" />
+                            </Form>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
+            )
 
+            customerSegment = (
+                <Grid>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                Street
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input fluid id="street" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                Street number
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input fluid id="streetNumber" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                City
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input fluid id="city" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                ZIP
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input fluid id="zip" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Divider />
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                First Name
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input fluid id="firstName" name="nope" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                Last Name
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input id='lastName' fluid name="nope" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                        <Grid.Column width={5}>
+                            <strong>
+                                Phone Number
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input id='phone' fluid name="nope" />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '1em' }}>
+                        <Grid.Column width={5}>
+                            <strong>
+                                Company
+                                                </strong>
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            <Form.Input id='company' fluid name="nope" />
+                        </Grid.Column>
+                    </Grid.Row>
+                </Grid>
             )
         }
         modalContent = (
@@ -204,6 +333,35 @@ class CreateZaslatModal extends React.PureComponent {
                         </Header>
                         <Segment attached='bottom' >
                             {packageSegment}
+                        </Segment>
+                    </Grid.Column>
+                </Grid.Row>
+                {isMobile ? (
+                    <Grid.Row>
+                        <Grid.Column>
+                            <Header block attached='top' as='h4'>
+                                Delivery info
+                        </Header>
+                            <Segment attached='bottom' >
+                                {deliverySegment}
+                            </Segment>
+                        </Grid.Column>
+                    </Grid.Row>
+                ) : null}
+                <Grid.Row columns='equal'>
+                    <Grid.Column>
+                        <Header block attached='top' as='h4'>
+                            Customer info
+                        </Header>
+                        <Segment attached='bottom' >
+                            {customerSegment}
+                        </Segment>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <Header block attached='top' as='h4'>
+                            Sender info
+                        </Header>
+                        <Segment attached='bottom' >
                         </Segment>
                     </Grid.Column>
                 </Grid.Row>
