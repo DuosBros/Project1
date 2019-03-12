@@ -1,3 +1,5 @@
+import { isNull } from "util";
+
 export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? "http://localhost:3000/rest/" : "https://medpharmavn.herokuapp.com/rest/"
 export const DEFAULT_SMARTFORM_LIMIT = 10
 
@@ -23,6 +25,62 @@ export const deliveryTypes = [
 export const DEFAULT_ORDER_LOCK_SECONDS = 10
 
 export const APP_TITLE = "MedpharmaVN - "
+
+export const orderDeliveryJSON = {
+    "currency": "CZK",
+    "payment_type": "invoice",
+    "shipments": [
+        {
+            "type": "ONDEMAND",
+            "carrier": "GLS",
+            "reference": null,
+            "pickup_branch": "1",
+            "from": {
+                "id": 50470
+            },
+            "to": {
+                "firstname": nll,
+                "surname": null,
+                "street": null,
+                "city": null,
+                "zip": null,
+                "country": null,
+                "phone": null,
+                "company": null
+            },
+            "services": [
+                {
+                    "code": "ins",
+                    "data": {
+                        "currency": "CZK",
+                        "value": 6000
+                    }
+                },
+                {
+                    "code": "cod",
+                    "data": {
+                        "bank_account": "2401089228",
+                        "bank_code": "2010",
+                        "bank_variable": null,
+                        "value": {
+                            "currency": "CZK",
+                            "value": null
+                        }
+                    }
+                }
+            ],
+            "packages": [
+                {
+                    "weight": null,
+                    "width": null,
+                    "height": null,
+                    "length": null
+                }
+            ]
+        }
+    ]
+}
+
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b
 
 // 14.11. 1627
@@ -33,5 +91,4 @@ export const APP_TITLE = "MedpharmaVN - "
 // 04.02. 4453
 // 18.02. 4454
 // 04.03  3809
-
-// zbarvit backgorund red když product neni už ve WH
+// 12.03  4769
