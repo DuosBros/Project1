@@ -54,6 +54,14 @@ export function printLabels(payload) {
 export function deleteOrder(id) {
     return axios.delete(MEDPHARMAVN_API + 'orders/' + id)
 }
+
+/**
+ * Get the senders for Zaslat
+ */
+export function getSenders() {
+    return axios.get(MEDPHARMAVN_API + 'config/senders')
+}
+
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {

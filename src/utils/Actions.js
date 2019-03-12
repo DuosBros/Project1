@@ -5,6 +5,13 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
+export function getSendersAction(payload) {
+    return {
+        payload,
+        type: 'GET_SENDERS'
+    }
+}
+
 export function deleteOrderAction(payload) {
     return {
         payload,

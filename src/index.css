@@ -31,9 +31,9 @@ html, body {
     margin: 0 0 0 0.5em
 }
 
-.ui.fluid.input > input {
+.ui.fluid.input>input {
     width: auto !important
-  }
+}
 
 #bodyWrapper {
     /* margin-left: 1em;
@@ -45,7 +45,6 @@ html, body {
     padding-top: 0.5em;
     padding-bottom: 0.5em
 }
-
 
 .paddingTopAndBottomSmall {
     padding-top: 0.25em;
@@ -63,7 +62,6 @@ html, body {
 /* .buttonIconPadding:before {
     padding: 0.3em
 } */
-
 
 .centered {
     position: fixed;
@@ -114,9 +112,17 @@ dd {
     margin-left: 0;
 }
 
-.dl-horizontal dd:after,.dl-horizontal dd:before {
+.dl-horizontal dd:after, .dl-horizontal dd:before {
     display: table;
     content: " "
+}
+
+.ui.fluid.icon.positive.right.labeled.button {
+    margin-left: 0
+}
+
+.ui.fluid.icon.right.labeled.button {
+    margin-left: 0
 }
 
 .dl-horizontal dd:after {
