@@ -352,7 +352,7 @@ class Orders extends React.Component {
             })
     }
 
-    handleToggleShowPaidOrders = async (order) => {
+    handleToggleShowPaidOrder = async (order) => {
         await lockOrder(order.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
         let fetchedOrder = await getOrder(order.id);
         fetchedOrder = fetchedOrder.data
@@ -500,7 +500,7 @@ class Orders extends React.Component {
                                 ) : (
                                         <>
                                             <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
-                                            <Button onClick={() => this.handleToggleShowPaidOrders(order)} className="buttonIconPadding" size='huge' icon={
+                                            <Button onClick={() => this.handleToggleShowPaidOrder(order)} className="buttonIconPadding" size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -523,12 +523,12 @@ class Orders extends React.Component {
 
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate ? (
-                                                    <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='medium'
+                                                    <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                         icon={
                                                             <>
-                                                                <Icon name='barcode' size='huge' />
+                                                                <Icon name='barcode' />
                                                                 {
-                                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' size='huge' />) : (<Icon color="green" corner name='add' size='huge' />)
+                                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add'/>)
                                                                 }
                                                             </>
                                                         } >
@@ -568,8 +568,8 @@ class Orders extends React.Component {
                                         null
                                     ) : (
                                             <>
-                                                <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='medium' icon='edit' />
-                                                <Button onClick={() => this.handleToggleShowPaidOrders(order)} className="buttonIconPadding" size='medium' icon={
+                                                <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
+                                                <Button onClick={() => this.handleToggleShowPaidOrder(order)} className="buttonIconPadding" size='huge' icon={
                                                     <>
                                                         <Icon name='dollar' />
                                                         {
@@ -581,17 +581,17 @@ class Orders extends React.Component {
                                         )
                                 }
 
-                                <Button className="buttonIconPadding" size='medium' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                                <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                                 {
                                     order.payment.paid ? (
                                         null
                                     ) : (
                                             <>
-                                                <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='medium' icon='shipping fast' />
-                                                <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='medium' icon={<Icon name='close' color='red' />} />
+                                                <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
+                                                <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
                                                 {
                                                     this.state.showPrintLabelsIcon && order.zaslatDate ? (
-                                                        <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='medium'
+                                                        <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                             icon={
                                                                 <>
                                                                     <Icon name='barcode' />
@@ -816,7 +816,7 @@ class Orders extends React.Component {
                                             size="small"
                                             onClick={() => this.handleToggleShowPaidOrders()}
                                             compact
-                                            content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
+                                            content={showPaidOrders ? 'Show Paid Orders' : 'Hide Paid Orders'}
                                             style={{ padding: '0.3em', marginTop: '0.5em' }}
                                             id="secondaryButton"
                                             icon={showPaidOrders ? 'eye slash' : 'eye'}
@@ -837,7 +837,7 @@ class Orders extends React.Component {
                             <Header as='h1' content='Orders' />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <Button onClick={() => this.props.history.push('orders/new')} fluid size='medium' compact content='Add Order' id="primaryButton" />
+                            <Button onClick={() => this.props.history.push('orders/new')} fluid size='large' compact content='Add Order' id="primaryButton" />
                             {
                                 this.props.zaslatPageStore.zaslatOrders.success ? (
                                     <Button
@@ -894,7 +894,7 @@ class Orders extends React.Component {
                                 size="small"
                                 onClick={() => this.handleToggleShowPaidOrders()}
                                 compact
-                                content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
+                                content={showPaidOrders ? 'Show Paid Orders' : 'Hide Paid Orders'}
                                 style={{ padding: '0.3em', marginTop: '0.5em' }}
                                 id="secondaryButton"
                                 icon={showPaidOrders ? 'eye slash' : 'eye'}

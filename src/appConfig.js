@@ -26,7 +26,7 @@ export const DEFAULT_ORDER_LOCK_SECONDS = 10
 
 export const APP_TITLE = "MedpharmaVN - "
 
-export const orderDeliveryJSON = {
+export const ORDER_DELIVERY_JSON = {
     "currency": "CZK",
     "payment_type": "invoice",
     "shipments": [
@@ -36,15 +36,15 @@ export const orderDeliveryJSON = {
             "reference": null,
             "pickup_branch": "1",
             "from": {
-                "id": 50470
+                "id": 8
             },
             "to": {
-                "firstname": nll,
+                "firstname": null,
                 "surname": null,
                 "street": null,
                 "city": null,
                 "zip": null,
-                "country": null,
+                "country": "CZ",
                 "phone": null,
                 "company": null
             },

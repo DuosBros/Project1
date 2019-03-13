@@ -62,6 +62,14 @@ export function getSenders() {
     return axios.get(MEDPHARMAVN_API + 'config/senders')
 }
 
+/**
+ *
+ * @param {object} payload
+ */
+export function orderDelivery(payload) {
+    return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/create', payload)
+}
+
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {

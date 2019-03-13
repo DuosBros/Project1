@@ -26,6 +26,7 @@ class Base extends React.Component {
         super(props)
 
         axios.defaults.headers.post['Content-Type'] = 'application/json';
+
         axios.defaults.headers.common['x-access-token'] = localStorage.getItem(LOCALSTORAGE_NAME) ? localStorage.getItem(LOCALSTORAGE_NAME) : '';
 
         window.addEventListener('resize', this.handleWindowSizeChange);

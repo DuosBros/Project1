@@ -55,7 +55,7 @@ html, body {
     padding: 0.3em
 }
 
-.ui.medium.icon.button.buttonIconPadding {
+.ui.large.icon.button.buttonIconPadding {
     padding: 0.3em
 }
 
@@ -166,4 +166,8 @@ dd {
 
 .column.smallFontSize {
     font-size: 0.8em !important
+}
+
+div.actions.zaslatActions {
+    text-align: center !important;
 }
