@@ -69,7 +69,7 @@ const PaymentTypeButtonGroup = (props) => {
 const TotalPriceForm = (props) => {
     return (
         <Form className='form' size='large'>
-            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={() => props.getTotalPrice()} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={props.getTotalPrice} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
             <label><strong>Total price [CZK]</strong></label>
             <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
             <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
@@ -489,7 +489,7 @@ class OrderInfo extends React.Component {
                                             <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
                                                 this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
                                             } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
-                                            <input onChange={() => this.handleStreetInputOnChange()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+                                            <input onChange={this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />
@@ -720,7 +720,7 @@ class OrderInfo extends React.Component {
                                                             <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
                                                                 this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
                                                             } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
-                                                            <input onChange={() => this.handleStreetInputOnChange()} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
+                                                            <input onChange={this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
                                                         <input type="text" style={{ display: 'none' }} className="smartform-street" id="hiddenStreet" />
                                                         <input type="text" style={{ display: 'none' }} className="smartform-number" id="hiddenStreetNumber" />

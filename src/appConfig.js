@@ -1,5 +1,3 @@
-import { isNull } from "util";
-
 export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? "http://localhost:3000/rest/" : "https://medpharmavn.herokuapp.com/rest/"
 export const DEFAULT_SMARTFORM_LIMIT = 10
 

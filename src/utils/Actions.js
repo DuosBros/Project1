@@ -5,6 +5,12 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
+export function mapOrdersToTransactionsActions(payload) {
+    return {
+        payload,
+        type: 'MAP_ORDERS_TO_TRANSACTIONS'
+    }
+}
 export function getSendersAction(payload) {
     return {
         payload,

@@ -59,6 +59,39 @@ html, body {
     padding: 0.3em
 }
 
+div.generic.table {
+    overflow: hidden;
+
+    .RecordsPerPage > input {
+        width: 4.5em;
+    }
+
+    .column.toggles .label {
+        cursor: pointer;
+    }
+
+    .scroll-wrapper {
+        overflow: auto;
+        margin: 0.5em 0 0.8em;
+    }
+
+    table {
+        td {
+            white-space: nowrap;
+        }
+        ul {
+            margin: 0;
+            list-style: none;
+            padding: 0 0 0 1em;
+        }
+    }
+
+    .pagination {
+        position: sticky;
+        right: 0;
+    }
+}
+
 /* .buttonIconPadding:before {
     padding: 0.3em
 } */
@@ -170,4 +203,9 @@ dd {
 
 div.actions.zaslatActions {
     text-align: center !important;
+}
+
+div.column.bank {
+    padding-left: 3em;
+    padding-right: 3em
 }

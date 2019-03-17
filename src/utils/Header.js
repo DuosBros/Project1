@@ -99,11 +99,12 @@ class Header extends React.Component {
                     name='orders'
                     active={activeItem === 'orders'}
                     onClick={this.handleItemClick} />
-                {/* <Menu.Item
+                <Menu.Item
                     content='Bank'
                     name='bank'
                     active={activeItem === 'bank'}
                     onClick={this.handleItemClick} />
+                {/*
                 <Menu.Item
                     content='Costs'
                     name='costs'

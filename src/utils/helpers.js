@@ -103,15 +103,15 @@ export const contains = (sourceString, pattern) => {
  * "keys" (optional) Specifies which properties of objects should be inspected.
  *                   If omitted, all properties will be inspected.
  */
-export const filterInArrayOfObjects = (toSearch, array, keys) => {
-    toSearch = trimString(toSearch); // trim it
+export const filterInArrayOfObjects = (filter, array, keys) => {
     return array.filter(element => {
         let objk = keys ? keys : Object.keys(element);
         for (let key of objk) {
-            if (element[key]) { // fuken lodash returning isEmpty true for numbers
-                if (element[key].toString().toLowerCase().indexOf(toSearch.toString().toLowerCase()) !== -1) {
-                    return true
-                }
+            if (element[key] !== undefined &&
+                element[key] !== null &&
+                filter(element[key])
+            ) { // fuken lodash returning isEmpty true for numbers
+                return true;
             }
         }
         return false;
@@ -145,8 +145,9 @@ export const getOrderTableRowStyle = (order) => {
     return { backgroundColor: backgroundColor }
 }
 
-// -------------------------------------------------------------------------
-
+/**
+ * @param {number} weight
+ */
 export const getGLSDeliveryPrice = (weight) => {
     // weight of the box
     weight += 500
@@ -160,9 +161,36 @@ export const getGLSDeliveryPrice = (weight) => {
         return 139
 }
 
-function trimString(s) {
-    var l = 0, r = s.length - 1;
-    while (l < s.length && s[l] === ' ') l++;
-    while (r > l && s[r] === ' ') r -= 1;
-    return s.substring(l, r + 1);
+const REGEX_DIGITS = /^\d+$/;
+/**
+ *
+ * @param {*} value
+ */
+export const isNum = (value) => {
+    if (value === null || value === undefined) {
+        return false;
+    }
+    const valueString = value.toString();
+
+    const length = valueString.length;
+    var isNum = REGEX_DIGITS.test(valueString);
+
+    if (length > 0 && isNum) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/**
+ *
+ * @param {Array} array
+ * @param {Array} keys
+ */
+export const pick = (array, keys) => {
+    return array.map(x => {
+        return keys.map(k => k in x ? { [k]: x[k] } : {})
+            .reduce((res, o) => Object.assign(res, o), {})
+    })
 }
