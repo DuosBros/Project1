@@ -464,7 +464,7 @@ class Orders extends React.Component {
 
         // sort orders by order date and render orders count based by orderLimit
         sortedOrders = _.orderBy(orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
-        if (showPaidOrders) {
+        if (!showPaidOrders) {
             sortedOrders = sortedOrders.filter(order => {
                 return !order.payment.paid
             });
@@ -797,10 +797,10 @@ class Orders extends React.Component {
                                             size="small"
                                             onClick={this.handleToggleShowPaidOrders}
                                             compact
-                                            content={showPaidOrders ? 'Show Paid Orders' : 'Hide Paid Orders'}
+                                            content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
                                             style={{ padding: '0.3em', marginTop: '0.5em' }}
                                             id="secondaryButton"
-                                            icon={showPaidOrders ? 'eye slash' : 'eye'}
+                                            icon={showPaidOrders ? 'eye' : 'eye slash'}
                                             labelPosition='left' />
                                     </Grid.Column>
                                 </Grid.Row>
@@ -872,10 +872,10 @@ class Orders extends React.Component {
                                 size="small"
                                 onClick={this.handleToggleShowPaidOrders}
                                 compact
-                                content={showPaidOrders ? 'Show Paid Orders' : 'Hide Paid Orders'}
+                                content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
                                 style={{ padding: '0.3em', marginTop: '0.5em' }}
                                 id="secondaryButton"
-                                icon={showPaidOrders ? 'eye slash' : 'eye'}
+                                icon={showPaidOrders ? 'eye' : 'eye slash'}
                                 labelPosition='left' />
                         </Grid.Column>
                     </Grid.Row>
