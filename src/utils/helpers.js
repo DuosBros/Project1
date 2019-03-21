@@ -96,7 +96,7 @@ export const handleVerifyLockError = (parentProps, error, currentUser) => {
  * @param {string} pattern
  */
 export const contains = (sourceString, pattern) => {
-    return sourceString.search(new RegExp(pattern, "i")) >= 0
+    return sourceString.toString().search(new RegExp(pattern, "i")) >= 0
 }
 
 /*
@@ -109,7 +109,7 @@ export const filterInArrayOfObjects = (filter, array, keys) => {
         for (let key of objk) {
             if (element[key] !== undefined &&
                 element[key] !== null &&
-                filter(element[key])
+                contains(element[key], filter)
             ) { // fuken lodash returning isEmpty true for numbers
                 return true;
             }

@@ -320,7 +320,8 @@ class Orders extends React.Component {
                     street: order.address.street,
                     vs: order.payment.vs,
                     totalPrice: order.totalPrice,
-                    products: products
+                    products: products,
+                    note: order.note
                 }
             )
         })
@@ -335,7 +336,8 @@ class Orders extends React.Component {
                 "street",
                 "vs",
                 "totalPrice",
-                "products"
+                "products",
+                "note"
             ])
             .map(order => order.original)
     }

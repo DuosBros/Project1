@@ -212,7 +212,7 @@ class Bank extends React.Component {
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
-                        actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size='huge' icon='dollar sign' />
+                        actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
             }
@@ -352,7 +352,8 @@ class Bank extends React.Component {
                             <Transition animation='drop' duration={500} visible={showMultiSearchFilter}>
                                 <>
                                     <Input
-                                        style={{ width: inputWidth }}
+                                        fluid
+                                        // style={{ width: inputWidth }}
                                         ref={this.handleRef}
                                         name="multiSearchInput"
                                         placeholder='Search...'
