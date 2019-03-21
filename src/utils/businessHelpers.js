@@ -22,6 +22,8 @@ export const handleTogglePaidOrder = async (props) => {
 
     await updateOrder(fetchedOrder, user)
     props.getOrderAction({ success: true, data: fetchedOrder })
+
+    return fetchedOrder;
 }
 
 export const getOrderAndHandleResult = async (props) => {

@@ -608,7 +608,7 @@ class Orders extends React.Component {
                     <Table.Header>
                         <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={2}>Name</Table.HeaderCell>
-                            <Table.HeaderCell width={1}>VS | Order Date | Price</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>VS | Order Date | Price [CZK]</Table.HeaderCell>
                             <Table.HeaderCell width={3}>Actions</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>
