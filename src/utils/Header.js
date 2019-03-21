@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Segment, Icon, Container } from 'semantic-ui-react'
+import { Menu, Segment, Icon } from 'semantic-ui-react'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -125,9 +125,7 @@ class Header extends React.Component {
 
         return (
             <Segment id="header" inverted>
-                {/* <Container> */}
-                    {menu}
-                {/* </Container> */}
+                {menu}
             </Segment>
         );
     }

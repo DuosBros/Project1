@@ -125,7 +125,7 @@ class Bank extends React.Component {
     toggleInlineDetails = (id, e) => {
         // do not fire if onclick was triggered on child elements
         e.preventDefault();
-        if (e.target.className === "blackColor" || e.target.className === "") {
+        if (e.target.className.indexOf("column") > -1 || e.target.className === "") {
             if (this.state.rowIdsShowingDetails.indexOf(id) > -1) {
                 this.setState({
                     rowIdsShowingDetails: this.state.rowIdsShowingDetails.filter(x => {
@@ -193,15 +193,18 @@ class Bank extends React.Component {
                 }
                 else {
                     transactionInlineDetails = isMobile ? <Table.Cell>No order details mapped. Probably not an incoming transaction.</Table.Cell> : <Table.Row style={transaction.rowStyle}><Table.Cell colSpan='6'>No order details mapped. Probably not an incoming transaction.</Table.Cell></Table.Row>
-
                 }
             }
 
             if (transaction.isTransactionIncoming) {
-                actionButtons = <Button className="buttonIconPadding" size='huge' icon='file pdf' />
+                if (transaction.order) {
+                    if (!transaction.order.payment.paid) {
+                        actionButtons = <Button className="buttonIconPadding" size='huge' icon='dollar sign' />
+                    }
+                }
             }
             else {
-                actionButtons = <Button className="buttonIconPadding" size='huge' icon='barcode' />
+                actionButtons = <Button className="buttonIconPadding" size='huge' icon='dollar sign' />
             }
 
             if (isMobile) {
@@ -212,9 +215,25 @@ class Bank extends React.Component {
                         key={transaction.index}
                         style={transaction.rowStyle}
                         textAlign='center'>
-                        <Table.Cell>{transaction.note}</Table.Cell>
-                        <Table.Cell>{transaction.vs} <strong>|</strong> {moment(transaction.date, 'DD.MM.YYYY').format('DD.MM')} <strong>|</strong> {transaction.value} </Table.Cell>
-                        <Table.Cell>{actionButtons}</Table.Cell>
+                        <Table.Cell>
+                            <Grid style={{ marginTop: '0', marginBottom: '0', paddingLeft: '1em', paddingRight: '1em' }}>
+                                <Grid.Row style={{ padding: '0.5em' }}>
+                                    <Grid.Column width={13}>
+                                        {transaction.note}
+                                    </Grid.Column>
+                                    <Grid.Column style={{ textAlign: 'right' }} width={3}>
+                                        {actionButtons}
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row style={{ padding: '0.5em' }}>
+                                    <Grid.Column width={13}>
+                                        {transaction.vs} <strong>|</strong> {moment(transaction.date, 'DD.MM.YYYY').format('DD.MM')} <strong>|</strong> {transaction.value}
+                                    </Grid.Column>
+                                    <Grid.Column style={{ textAlign: 'right' }} width={3}>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Table.Cell>
                         {transactionInlineDetails}
                     </Table.Row>
                 )
@@ -248,8 +267,7 @@ class Bank extends React.Component {
                     <Table.Header>
                         <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={2}>Note</Table.HeaderCell>
-                            <Table.HeaderCell width={1}>VS | Date | Price</Table.HeaderCell>
-                            <Table.HeaderCell width={3}>Actions</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>VS | Date | Price [CZK]</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
