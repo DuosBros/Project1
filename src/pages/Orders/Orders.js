@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, updateOrder, lockOrder, printLabels, deleteOrder, getAllProducts
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -16,12 +16,13 @@ import {
     getAllProductsAction
 } from '../../utils/actions';
 
-import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, DEFAULT_ORDER_LOCK_SECONDS } from '../../appConfig'
+import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE } from '../../appConfig'
 import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import CreateZaslatModal from '../../components/CreateZaslatModal';
+import { handleTogglePaidOrder, getOrderAndHandleResult } from '../../utils/businessHelpers';
 
 class Orders extends React.Component {
 
@@ -29,7 +30,7 @@ class Orders extends React.Component {
         super(props);
 
         this.state = {
-            isMobile: this.props.isMobile,
+            isMobile: props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
             showPaidOrders: false,
@@ -37,7 +38,7 @@ class Orders extends React.Component {
             orderLabelsToPrint: [],
             showPrintLabelsIcon: false,
             showMultiSearchFilter: false,
-            ordersLimit: this.props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
+            ordersLimit: props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             inputWidth: 0,
             showCreateZaslatModal: false,
             generateInvoice: {
@@ -58,7 +59,7 @@ class Orders extends React.Component {
 
         // load current year orders when landing on orders for the first time
         // or there are no orders in store
-        if (!this.props.location.state || !this.props.ordersPageStore.orders.data) {
+        if (!this.props.location.state || !this.props.ordersStore.orders.data) {
             this.fetchAndHandleThisYearOrders()
         }
 
@@ -69,7 +70,7 @@ class Orders extends React.Component {
             }
         }
 
-        if (!this.props.ordersPageStore.products.data) {
+        if (!this.props.ordersStore.products.data) {
             getAllProducts()
                 .then(res => {
                     this.props.getAllProductsAction({ success: true, data: res.data })
@@ -135,8 +136,8 @@ class Orders extends React.Component {
     loadMoreOrders = () => {
         var currentLimit = this.state.ordersLimit + 100
 
-        var sinceId = this.props.ordersPageStore.orders.data[
-            this.props.ordersPageStore.orders.data.length - 1].id
+        var sinceId = this.props.ordersStore.orders.data[
+            this.props.ordersStore.orders.data.length - 1].id
 
         getCurrentYearOrders(currentLimit, sinceId)
             .then(res => {
@@ -226,7 +227,7 @@ class Orders extends React.Component {
             var foundIZs = [];
 
             this.state.orderLabelsToPrint.forEach(x => {
-                foundIZs.push(this.props.zaslatPageStore.zaslatOrders.data.find(y => {
+                foundIZs.push(this.props.zaslatStore.zaslatOrders.data.find(y => {
                     return y.id === x
                 }).zaslatShipmentId)
             })
@@ -352,23 +353,12 @@ class Orders extends React.Component {
             })
     }
 
-    handleToggleShowPaidOrder = async (order) => {
-        await lockOrder(order.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
-        let fetchedOrder = await getOrder(order.id);
-        fetchedOrder = fetchedOrder.data
-
-        // to not confuse user -> do the action based on what user currently see, not what is fetched from the server
-        if (order.payment.paid) {
-            delete fetchedOrder.payment.paymentDate
-            delete fetchedOrder.payment.paid
-        }
-        else {
-            fetchedOrder.payment.paid = true
-            fetchedOrder.payment.paymentDate = moment().toISOString()
-        }
-
-        await updateOrder(fetchedOrder, this.state.user)
-        this.props.getOrderAction({ success: true, data: fetchedOrder })
+    handleTogglePaidOrder = (order) => {
+        handleTogglePaidOrder({
+            order: order,
+            user: this.state.user,
+            getOrderAction: this.props.getOrderAction
+        })
     }
 
     handleDeleteOrder = async (id) => {
@@ -400,8 +390,15 @@ class Orders extends React.Component {
 
     handleOpenCreateZaslatModal = async (order) => {
         try {
-            var res = await getOrder(order.id)
-            this.props.openOrderDetailsAction({ data: res.data, success: true })
+            var res = await getOrderAndHandleResult({
+                id: order.id,
+                openOrderDetailsAction: this.props.openOrderDetailsAction
+            })
+
+            if(!res.success) {
+                throw res.error
+            }
+
             this.setState({ showCreateZaslatModal: true });
         }
         catch (err) {
@@ -417,7 +414,7 @@ class Orders extends React.Component {
         const { isMobile, orderIdsShowingDetails } = this.state;
 
         // in case of error
-        if (!this.props.ordersPageStore.orders.success) {
+        if (!this.props.ordersStore.orders.success) {
             return (
                 <Grid stackable={isMobile}>
                     <Grid.Row>
@@ -428,13 +425,13 @@ class Orders extends React.Component {
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
-                        <ErrorMessage handleRefresh={this.fetchAndHandleThisYearOrders} error={this.props.ordersPageStore.orders.error} />
+                        <ErrorMessage handleRefresh={this.fetchAndHandleThisYearOrders} error={this.props.ordersStore.orders.error} />
                     </Grid.Row>
                 </Grid>
             );
         }
 
-        var orders = this.props.ordersPageStore.orders.data;
+        var orders = this.props.ordersStore.orders.data;
         // in case it's still loading data
         if (!orders) {
             return (
@@ -482,7 +479,7 @@ class Orders extends React.Component {
             var orderInlineDetails = null
 
             if (orderIdsShowingDetails.indexOf(order.id) > -1) {
-                orderInlineDetails = <OrderInlineDetails order={order} isMobile={isMobile} />
+                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products}  order={order} isMobile={isMobile} />
             }
 
             if (isMobile) {
@@ -497,7 +494,7 @@ class Orders extends React.Component {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? null : (
                                     <>
                                         <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
-                                        <Button onClick={() => this.handleToggleShowPaidOrder(order)} className="buttonIconPadding" size='huge' icon={
+                                        <Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
                                             <>
                                                 <Icon name='dollar' />
                                                 {
@@ -560,7 +557,7 @@ class Orders extends React.Component {
                                     moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? null : (
                                         <>
                                             <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
-                                            <Button onClick={() => this.handleToggleShowPaidOrder(order)} className="buttonIconPadding" size='huge' icon={
+                                            <Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
@@ -647,9 +644,9 @@ class Orders extends React.Component {
 
         // if its mobile and menu not expanded then save some time with not rendering messages
         if ((showFunctionsMobile && isMobile) || !isMobile) {
-            if (this.props.ordersPageStore.warehouseNotifications.data) {
-                if (this.props.ordersPageStore.warehouseNotifications.data.length > 0) {
-                    var message = this.props.ordersPageStore.warehouseNotifications.data.map((notification, i) => {
+            if (this.props.ordersStore.warehouseNotifications.data) {
+                if (this.props.ordersStore.warehouseNotifications.data.length > 0) {
+                    var message = this.props.ordersStore.warehouseNotifications.data.map((notification, i) => {
                         return (
                             <React.Fragment key={i}>
                                 <strong>{notification.product}: </strong> {notification.current} <br />
@@ -677,9 +674,9 @@ class Orders extends React.Component {
                 )
             }
 
-            if (this.props.ordersPageStore.notPaidNotifications.data) {
-                if (this.props.ordersPageStore.notPaidNotifications.data.length > 0) {
-                    var VSs = this.props.ordersPageStore.notPaidNotifications.data.map(notification => {
+            if (this.props.ordersStore.notPaidNotifications.data) {
+                if (this.props.ordersStore.notPaidNotifications.data.length > 0) {
+                    var VSs = this.props.ordersStore.notPaidNotifications.data.map(notification => {
                         return (
                             <span key={notification.vs} onClick={() => this.handleNotPaidVSOnClick(notification.vs.toString())} style={{ padding: '0.2em', cursor: "pointer" }}>
                                 <strong>
@@ -689,7 +686,7 @@ class Orders extends React.Component {
                         )
                     })
 
-                    if (this.props.ordersPageStore.notPaidNotifications.data.length > 1) {
+                    if (this.props.ordersStore.notPaidNotifications.data.length > 1) {
                         notPaidNotificationsMessage = (
                             <Message className="textAlignCenter" warning>Orders are delivered but not paid: <br />{VSs}</Message>
                         )
@@ -720,9 +717,9 @@ class Orders extends React.Component {
         }
 
         let totalWeight = 0
-        if (showCreateZaslatModal && this.props.ordersPageStore.products.data) {
-            this.props.ordersPageStore.ordersDetails.data.products.forEach(
-                x => totalWeight += this.props.ordersPageStore.products.data[x.productName].weight * x.count
+        if (showCreateZaslatModal && this.props.ordersStore.products.data) {
+            this.props.ordersStore.ordersDetails.data.products.forEach(
+                x => totalWeight += this.props.ordersStore.products.data[x.productName].weight * x.count
             )
 
             totalWeight += 500
@@ -747,7 +744,7 @@ class Orders extends React.Component {
                                 <Grid.Row>
                                     <Button onClick={() => this.props.history.push('orders/new')} fluid size='small' content='Add Order' id="primaryButton" />
                                     {
-                                        this.props.zaslatPageStore.zaslatOrders.success ? (
+                                        this.props.zaslatStore.zaslatOrders.success ? (
                                             <Button
                                                 onClick={this.handlePrintLabelButtonOnClick}
                                                 style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
@@ -757,7 +754,7 @@ class Orders extends React.Component {
                                                 content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
                                                 color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                         ) : (
-                                                <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
+                                                <ErrorMessage stripImage={true} error={this.props.zaslatStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                             )
                                     }
 
@@ -820,7 +817,7 @@ class Orders extends React.Component {
                         <Grid.Column width={2}>
                             <Button onClick={() => this.props.history.push('orders/new')} fluid size='large' compact content='Add Order' id="primaryButton" />
                             {
-                                this.props.zaslatPageStore.zaslatOrders.success ? (
+                                this.props.zaslatStore.zaslatOrders.success ? (
                                     <Button
                                         onClick={this.handlePrintLabelButtonOnClick}
                                         style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
@@ -830,7 +827,7 @@ class Orders extends React.Component {
                                         content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
                                         color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                 ) : (
-                                        <ErrorMessage stripImage={true} error={this.props.zaslatPageStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
+                                        <ErrorMessage stripImage={true} error={this.props.zaslatStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                     )
                             }
 
@@ -913,7 +910,7 @@ class Orders extends React.Component {
                         <CreateZaslatModal
                             totalWeight={totalWeight}
                             isMobile={isMobile}
-                            order={this.props.ordersPageStore.ordersDetails.data}
+                            order={this.props.ordersStore.ordersDetails.data}
                             show={showCreateZaslatModal}
                             closeCreateZaslatModal={this.handleCloseCreateZaslatModal} />
                     ) : null
@@ -932,8 +929,8 @@ class Orders extends React.Component {
 
 function mapStateToProps(state) {
     return {
-        ordersPageStore: state.OrdersReducer,
-        zaslatPageStore: state.ZaslatReducer,
+        ordersStore: state.OrdersReducer,
+        zaslatStore: state.ZaslatReducer,
         baseStore: state.BaseReducer
     };
 }

@@ -64,7 +64,7 @@ class Header extends React.Component {
         // in case that the authentication failed and its done already
         if (!this.props.loginPageStore.authenticationSucceeded && this.props.loginPageStore.authenticationDone) {
             menuItems = (
-                <Menu stackable inverted className='borderlessMenu' pointing secondary size='tiny'>
+                <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
                     <Menu.Item name='MedpharmaVN' onClick={() => this.handleItemClick} />
                 </Menu>
             )
@@ -76,7 +76,7 @@ class Header extends React.Component {
         if (isMobile) {
             if (!showMobileMenu) {
                 menuItems = (
-                    <Menu stackable inverted className='borderlessMenu' pointing secondary size='tiny'>
+                    <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
                         <Menu.Item name='MedpharmaVN'>
                             Medpharma VN
                                 <Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />
@@ -89,7 +89,7 @@ class Header extends React.Component {
         }
 
         menuItems = (
-            <Menu stackable inverted className='borderlessMenu' pointing secondary size='tiny'>
+            <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
                 <Menu.Item name='MedpharmaVN'>
                     Medpharma VN
                         {isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}

@@ -6,15 +6,17 @@ const OrderInlineDetails = (props) => {
     let result;
     let totalProductCount = 0
 
-    props.order.products.forEach(product => {
-        if (product.productName !== 'Sleva') {
-            totalProductCount += product.count
-        }
-    })
+    if (Array.isArray(props.order.products)) {
+        props.order.products.forEach(product => {
+            if (props.products.data[product.productName].category !== 'Nonbillable') {
+                totalProductCount += product.count
+            }
+        })
+    }
 
     if (props.isMobile) {
         result = (
-            <Table.Cell className="inlineDetails">
+            <Table.Cell>
                 <Grid style={{ marginTop: '0.5em' }}>
                     <Grid.Row textAlign='left' columns='equal' style={{ paddingTop: '0px' }}>
                         <Grid.Column>
@@ -165,9 +167,12 @@ const OrderInlineDetails = (props) => {
                 </Table.Cell>
             </Table.Row>
         )
+        let style = getOrderTableRowStyle(props.order)
+        style.borderTopWidth = '0'
+
         result = (
-            <Table.Row className="inlineDetails">
-                <Table.Cell style={getOrderTableRowStyle(props.order)} colSpan={9}>
+            <Table.Row>
+                <Table.Cell style={style} colSpan={9}>
                     <Grid style={{ marginTop: '1em', marginBottom: '1.5em', paddingLeft: '1em', paddingRight: '1em', color: 'black' }}>
                         <Grid.Row style={{ padding: '0.5em' }}>
                             <Grid.Column width={4}>

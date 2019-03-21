@@ -65,6 +65,7 @@ class Login extends React.Component {
 
     render() {
 
+        let isMobile = this.props.isMobile
         var errorMessage = null
 
         if (this.state.authExceptionMessage) {
@@ -81,7 +82,7 @@ class Login extends React.Component {
             <Grid textAlign='center' style={{ height: '100%' }} verticalAlign='middle' columns={this.state.isMobile ? 1 : 2}>
                 <Grid.Column>
                     {errorMessage}
-                    <Image verticalAlign='middle' size='large' src={logo} />
+                    <Image verticalAlign='middle' size={isMobile ? 'medium' : 'large'} src={logo} />
                     <Form loading={this.props.loginPageStore.authenticationInProgress} size='large'>
                         <Segment raised stacked>
                             <Form.Input

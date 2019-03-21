@@ -67,14 +67,58 @@ const PaymentTypeButtonGroup = (props) => {
 }
 
 const TotalPriceForm = (props) => {
-    return (
-        <Form className='form' size='large'>
-            <Form.Input defaultValue={props.isEdit ? props.deliveryPrice : null} onChange={props.getTotalPrice} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
-            <label><strong>Total price [CZK]</strong></label>
-            <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
-            <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
-        </Form>
-    )
+    if (props.isMobile) {
+        return (
+            <Form className='form' size='large'>
+                <Form.Input onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+                <label><strong>Total price [CZK]</strong></label>
+                <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
+                <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
+            </Form>
+        )
+    }
+    else {
+        return (
+            <Grid>
+                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                    <Grid.Column width={4}>
+                        <strong>
+                            Delivery Price [CZK]
+                </strong>
+                    </Grid.Column>
+                    <Grid.Column width={12}>
+                        <Form.Field>
+                            <Form.Input onChange={props.handleDeliveryPriceOnChange} fluid id="deliveryPrice" />
+                        </Form.Field>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                    <Grid.Column width={4}>
+                        <strong>
+                            Total price [CZK]
+                </strong>
+                    </Grid.Column>
+                    <Grid.Column width={12}>
+                        <Form.Field>
+                            <Form.Input disabled fluid value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} />
+                        </Form.Field>
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                    <Grid.Column width={4}>
+                        <strong>
+                            Note
+                </strong>
+                    </Grid.Column>
+                    <Grid.Column width={12}>
+                        <Form.Field>
+                            <Form.Input disabled defaultValue={props.isEdit ? props.note : null} id='note' fluid />
+                        </Form.Field>
+                    </Grid.Column>
+                </Grid.Row>
+            </Grid>
+        )
+    }
 }
 
 class OrderInfo extends React.Component {
@@ -241,6 +285,13 @@ class OrderInfo extends React.Component {
         this.setState({ order: o });
     }
 
+    handleDeliveryPriceOnChange = (e, { value }) => {
+        var o = Object.assign({}, this.state.order)
+        o.payment.price = Number(value)
+        o.totalPrice = this.getTotalPriceHelper(o);
+
+        this.setState({ order: o });
+    }
     getTotalPriceHelper = (orderState) => {
         var sum = 0;
 
@@ -559,7 +610,7 @@ class OrderInfo extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
+                                <TotalPriceForm isMobile={isMobile} note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -867,7 +918,7 @@ class OrderInfo extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} getTotalPrice={this.getTotalPrice} totalPrice={order.totalPrice} />
+                                <TotalPriceForm isMobile={isMobile} note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} totalPrice={order.totalPrice} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
