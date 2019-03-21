@@ -59,95 +59,75 @@ class Header extends React.Component {
 
         const { activeItem, isMobile, showMobileMenu } = this.state
 
-        var menuItems;
+        let menu, menuItems, showMenuItems;
 
         // in case that the authentication failed and its done already
         if (!this.props.loginPageStore.authenticationSucceeded && this.props.loginPageStore.authenticationDone) {
             menuItems = (
-                <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
-                    <Menu.Item name='MedpharmaVN' onClick={() => this.handleItemClick} />
-                </Menu>
+                <Menu.Item name='MedpharmaVN' onClick={() => this.handleItemClick} />
             )
-
-            return menuItems;
         }
 
 
-        if (isMobile) {
-            if (!showMobileMenu) {
+        if (!showMobileMenu) {
+            if (isMobile) {
                 menuItems = (
-                    <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
-                        <Menu.Item name='MedpharmaVN'>
-                            Medpharma VN
-                                <Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />
-                        </Menu.Item>
-                    </Menu>
+                    <Menu.Item name='MedpharmaVN'>
+                        Medpharma VN
+                        <Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />
+                    </Menu.Item>
                 )
-
-                return menuItems;
+            }
+            else {
+                showMenuItems = true
             }
         }
+        else {
+            showMenuItems = true
+        }
 
-        menuItems = (
-            <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
-                <Menu.Item name='MedpharmaVN'>
-                    Medpharma VN
+        if (showMenuItems) {
+            menuItems = (
+                <>
+                    <Menu.Item name='MedpharmaVN'>
+                        Medpharma VN
                         {isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}
-                </Menu.Item>
-                <Menu.Item
-                    content='Orders'
-                    name='orders'
-                    active={activeItem === 'orders'}
-                    onClick={this.handleItemClick} />
-                <Menu.Item
-                    content='Bank'
-                    name='bank'
-                    active={activeItem === 'bank'}
-                    onClick={this.handleItemClick} />
-                {/*
-                <Menu.Item
-                    content='Costs'
-                    name='costs'
-                    active={activeItem === 'costs'}
-                    onClick={this.handleItemClick} />
-                <Menu.Item
-                    content='Warehouse'
-                    name='warehouse'
-                    active={activeItem === 'warehouse'}
-                    onClick={this.handleItemClick} />
-                <Menu.Item
-                    content='Summaries'
-                    name='summaries'
-                    active={activeItem === 'summaries'}
-                    onClick={this.handleItemClick} />
-                <Menu.Item
-                    content='Archive'
-                    name='archive'
-                    active={activeItem === 'archive'}
-                    onClick={this.handleItemClick} />
-                <Menu.Item
-                    content='Scripts'
-                    name='scripts'
-                    active={activeItem === 'scripts'}
-                    onClick={this.handleItemClick} /> */}
-                <Menu.Menu position='right'>
-                    {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
-                    <Menu.Item
-                        style={{ color: 'black' }}
-                        className='logout'
-                        name='logout'
-                        onClick={() => this.logout()}>
-                        Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
                     </Menu.Item>
-                </Menu.Menu>
+                    <Menu.Item
+                        content='Orders'
+                        name='orders'
+                        active={activeItem === 'orders'}
+                        onClick={this.handleItemClick} />
+                    <Menu.Item
+                        content='Bank'
+                        name='bank'
+                        active={activeItem === 'bank'}
+                        onClick={this.handleItemClick} />
+                    <Menu.Menu position='right'>
+                        {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
+                        <Menu.Item
+                            style={{ color: 'black' }}
+                            className='logout'
+                            name='logout'
+                            onClick={() => this.logout()}>
+                            Logout <Icon name='log out' style={{ marginLeft: '0.5em' }} />
+                        </Menu.Item>
+                    </Menu.Menu>
+                </>
+            )
+        }
+
+        menu = (
+            <Menu stackable inverted className='borderlessMenu' pointing secondary size='small'>
+                {menuItems}
             </Menu>
         )
 
         return (
             <Segment id="header" inverted>
-                <Container>
-                    {menuItems}
-                </Container>
+                {/* <Container> */}
+                    {menu}
+                {/* </Container> */}
             </Segment>
         );
     }
