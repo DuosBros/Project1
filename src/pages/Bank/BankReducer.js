@@ -54,6 +54,16 @@ const BankReducer = (state = initialState, action) => {
             }
 
             return Object.assign({}, state, { transactions: transactions })
+        case 'UPDATE_ORDER_IN_TRANSACTION':
+            transactions = Object.assign({}, state.transactions)
+            if (action.payload.data && action.payload.success) {
+                let updatedOrder = action.payload.data;
+
+                let index = transactions.data.findIndex(x => x.vs === updatedOrder.payment.vs);
+                transactions.data[index].order = updatedOrder;
+            }
+
+            return Object.assign({}, state, { transactions: transactions })
         default:
             return state;
     }

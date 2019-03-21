@@ -5,14 +5,16 @@ import { Icon, Message, Grid, Header, Table, Input, Button, Transition } from 's
 import moment from 'moment';
 
 import {
-    getBankTransactionsAction, getOrdersAction, mapOrdersToTransactionsActions,
-    showGenericModalAction, openOrderDetailsAction, getAllProductsAction
+    getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
+    showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
+    updateOrderInTransactionAction
 } from '../../utils/actions'
 import { getBankTransactions, getCurrentYearOrders, getAllProducts } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
-import { APP_TITLE, GET_ORDERS_LIMIT } from '../../appConfig';
+import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
+import { handleTogglePaidOrder } from '../../utils/businessHelpers';
 
 class Bank extends React.Component {
 
@@ -27,6 +29,7 @@ class Bank extends React.Component {
             showMultiSearchFilter: false,
             recordsLimit: props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             rowIdsShowingDetails: [],
+            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         }
 
         this.updateFilters = debounce(this.updateFilters, 1000);
@@ -141,6 +144,16 @@ class Bank extends React.Component {
         }
     }
 
+    handleTogglePaidOrder = async (order) => {
+        let updatedOrder = await handleTogglePaidOrder({
+            order: order,
+            user: this.state.user,
+            getOrderAction: this.props.getOrderAction
+        })
+
+        this.props.updateOrderInTransactionAction({ success: true, data: updatedOrder });
+    }
+
     render() {
         // in case of error
         if (!this.props.bankStore.transactions.success) {
@@ -173,7 +186,7 @@ class Bank extends React.Component {
         }
 
         let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, inputWidth, recordsLimit, rowIdsShowingDetails } = this.state;
-        let filteredByMultiSearch, mappedTransactions, actionButtons, table, pageHeader;
+        let filteredByMultiSearch, mappedTransactions, table, pageHeader;
         let transactions = this.props.bankStore.transactions.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
@@ -185,7 +198,7 @@ class Bank extends React.Component {
 
         mappedTransactions = filteredByMultiSearch.map(transaction => {
 
-            let transactionInlineDetails = null
+            let transactionInlineDetails, actionButtons = null
 
             if (rowIdsShowingDetails.indexOf(transaction.index) > -1) {
                 if (transaction.order) {
@@ -199,7 +212,7 @@ class Bank extends React.Component {
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
-                        actionButtons = <Button className="buttonIconPadding" size='huge' icon='dollar sign' />
+                        actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
             }
@@ -339,7 +352,8 @@ class Bank extends React.Component {
                             <Transition animation='drop' duration={500} visible={showMultiSearchFilter}>
                                 <>
                                     <Input
-                                        style={{ width: inputWidth }}
+                                        fluid
+                                        // style={{ width: inputWidth }}
                                         ref={this.handleRef}
                                         name="multiSearchInput"
                                         placeholder='Search...'
@@ -390,10 +404,12 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getBankTransactionsAction,
         getOrdersAction,
+        getOrderAction,
         mapOrdersToTransactionsActions,
         showGenericModalAction,
         openOrderDetailsAction,
-        getAllProductsAction
+        getAllProductsAction,
+        updateOrderInTransactionAction
     }, dispatch);
 }
 

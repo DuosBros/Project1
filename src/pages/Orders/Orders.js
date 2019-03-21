@@ -320,7 +320,8 @@ class Orders extends React.Component {
                     street: order.address.street,
                     vs: order.payment.vs,
                     totalPrice: order.totalPrice,
-                    products: products
+                    products: products,
+                    note: order.note
                 }
             )
         })
@@ -335,7 +336,8 @@ class Orders extends React.Component {
                 "street",
                 "vs",
                 "totalPrice",
-                "products"
+                "products",
+                "note"
             ])
             .map(order => order.original)
     }
@@ -608,7 +610,7 @@ class Orders extends React.Component {
                     <Table.Header>
                         <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={2}>Name</Table.HeaderCell>
-                            <Table.HeaderCell width={1}>VS | Order Date | Price</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>VS | Order Date | Price [CZK]</Table.HeaderCell>
                             <Table.HeaderCell width={3}>Actions</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>

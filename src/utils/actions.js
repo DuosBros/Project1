@@ -18,6 +18,13 @@ export function getSendersAction(payload) {
     }
 }
 
+export function updateOrderInTransactionAction(payload) {
+    return {
+        payload,
+        type: 'UPDATE_ORDER_IN_TRANSACTION'
+    }
+}
+
 export function deleteOrderAction(payload) {
     return {
         payload,
