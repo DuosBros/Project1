@@ -185,8 +185,8 @@ class Bank extends React.Component {
             )
         }
 
-        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, inputWidth, recordsLimit, rowIdsShowingDetails } = this.state;
-        let filteredByMultiSearch, mappedTransactions, table, pageHeader;
+        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails } = this.state;
+        let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrdersCounter;
         let transactions = this.props.bankStore.transactions.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
@@ -196,8 +196,8 @@ class Bank extends React.Component {
             filteredByMultiSearch = transactions.slice(0, recordsLimit);
         }
 
+        notPaidOrdersCounter = 0
         mappedTransactions = filteredByMultiSearch.map(transaction => {
-
             let transactionInlineDetails, actionButtons = null
 
             if (rowIdsShowingDetails.indexOf(transaction.index) > -1) {
@@ -212,12 +212,13 @@ class Bank extends React.Component {
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
+                        notPaidOrdersCounter++;
                         actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
             }
             else {
-                actionButtons = <Button className="buttonIconPadding" size='huge' icon='dollar sign' />
+                actionButtons = <Button className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
             }
 
             if (isMobile) {
@@ -302,6 +303,7 @@ class Bank extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
                             <Grid.Row>
+                                <Button fluid size='small' disabled={notPaidOrdersCounter > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrdersCounter + ')'} id="primaryButton" />
                                 <Grid.Column>
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
@@ -353,7 +355,6 @@ class Bank extends React.Component {
                                 <>
                                     <Input
                                         fluid
-                                        // style={{ width: inputWidth }}
                                         ref={this.handleRef}
                                         name="multiSearchInput"
                                         placeholder='Search...'

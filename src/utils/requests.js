@@ -70,6 +70,13 @@ export function orderDelivery(payload) {
     return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/create', payload)
 }
 
+/**
+ * Get all costs
+ */
+export function getCosts() {
+    return axios.get(MEDPHARMAVN_API + 'costs')
+}
+
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {

@@ -5,6 +5,13 @@ export function getAllZaslatOrdersAction(payload) {
     }
 }
 
+export function getCostsAction(payload) {
+    return {
+        payload,
+        type: 'GET_COSTS'
+    }
+}
+
 export function mapOrdersToTransactionsActions(payload) {
     return {
         payload,

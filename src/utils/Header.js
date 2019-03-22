@@ -96,12 +96,17 @@ class Header extends React.Component {
                     <Menu.Item
                         content='Orders'
                         name='orders'
-                        active={activeItem === 'orders'}
+                        active={activeItem === 'orders' || !activeItem}
                         onClick={this.handleItemClick} />
                     <Menu.Item
                         content='Bank'
                         name='bank'
                         active={activeItem === 'bank'}
+                        onClick={this.handleItemClick} />
+                    <Menu.Item
+                        content='Costs'
+                        name='costs'
+                        active={activeItem === 'costs'}
                         onClick={this.handleItemClick} />
                     <Menu.Menu position='right'>
                         {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
