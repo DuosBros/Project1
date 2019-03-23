@@ -11,7 +11,8 @@ const DEFAULT_COLUMN_PROPS = {
     sortable: true,
     searchable: true,
     visibleByDefault: true,
-    exportable: true
+    exportable: true,
+    skipRendering: false
 }
 
 export default class GenericTable extends Component {
@@ -21,6 +22,7 @@ export default class GenericTable extends Component {
             name: PropTypes.string.isRequired,
             collapsing: PropTypes.bool,
             exportable: PropTypes.bool,
+            skipRendering: PropTypes.bool,
             searchable: PropTypes.oneOfType([
                 PropTypes.bool,
                 PropTypes.oneOf(["distinct"])
@@ -107,7 +109,7 @@ export default class GenericTable extends Component {
             showTableHeader: props.tableHeader,
             sortColumn: null,
             sortDirection: null,
-            visibleColumnsList: columns.filter(c => c.visibleByDefault).map(c => c.prop),
+            visibleColumnsList: columns.filter(c => c.visibleByDefault  && !c.skipRendering).map(c => c.prop),
         }
 
         if (Array.isArray(this.state.data)) {
@@ -184,7 +186,7 @@ export default class GenericTable extends Component {
 
             let columnDistinctValues = this.generateDistinctValues(this.state.columns, data, nextProps.distinctValues)
             this.setState({ data, columnDistinctValues });
-        } else if (this.props.distictValues !== nextProps.distictValues) { // else if, so we don't generate distinct values twice
+        } else if (this.props.distinctValues !== nextProps.distinctValues) { // else if, so we don't generate distinct values twice
             let columnDistinctValues = this.generateDistinctValues(this.state.columns, this.state.data, nextProps.distinctValues)
             this.setState({ columnDistinctValues });
         }
