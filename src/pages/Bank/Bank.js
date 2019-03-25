@@ -7,9 +7,9 @@ import moment from 'moment';
 import {
     getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
     showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
-    updateOrderInTransactionAction, getCostsAction
+    updateOrderInTransactionAction, getCostsAction, addCostAction
 } from '../../utils/actions'
-import { getBankTransactions, getCurrentYearOrders, getAllProducts } from '../../utils/requests'
+import { getBankTransactions, getCurrentYearOrders, getAllProducts, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers';
@@ -165,6 +165,27 @@ class Bank extends React.Component {
         this.props.updateOrderInTransactionAction({ success: true, data: updatedOrder });
     }
 
+    handleAddTransactionToCost = async (transaction) => {
+        //TODO: check if the cost is already there
+        let payload = {
+            date: moment(transaction.date, "DD.MM.YYYY").toISOString(),
+            description: transaction.note,
+            cost: (transaction.value * -1),
+            note: "Generated from Bank page"
+        }
+
+        try {
+            await addCost(payload);
+            this.props.addCostAction(payload)
+            this.props.updateOrderInTransactionAction({ success: true, data: transaction.order });
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                err: err
+            })
+        }
+    }
+
     render() {
         // in case of error
         if (!this.props.bankStore.transactions.success) {
@@ -235,7 +256,7 @@ class Bank extends React.Component {
                 })
 
                 if (!found) {
-                    actionButtons = <Button className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                    actionButtons = <Button onClick={() => this.handleAddTransactionToCost(transaction)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                 }
             }
 
@@ -430,7 +451,8 @@ function mapDispatchToProps(dispatch) {
         openOrderDetailsAction,
         getAllProductsAction,
         updateOrderInTransactionAction,
-        getCostsAction
+        getCostsAction,
+        addCostAction
     }, dispatch);
 }
 

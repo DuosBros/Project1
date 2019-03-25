@@ -77,6 +77,14 @@ export function getCosts() {
     return axios.get(MEDPHARMAVN_API + 'costs')
 }
 
+/**
+ *
+ * @param {object} cost
+ */
+export function addCost(cost) {
+    return axios.post(MEDPHARMAVN_API + 'costs', cost)
+}
+
 // ----------------------------------------------------------------------------------------
 
 export function getInvoice(orderId) {

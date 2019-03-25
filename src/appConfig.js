@@ -79,7 +79,7 @@ export const ORDER_DELIVERY_JSON = {
     ]
 }
 
-// $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b
+// $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b | clip.exe
 
 // 14.11. 1627
 // 24.11. 2040
@@ -91,3 +91,4 @@ export const ORDER_DELIVERY_JSON = {
 // 04.03  3809
 // 12.03  4769
 // 22.03  6384
+// 25.03  6551
