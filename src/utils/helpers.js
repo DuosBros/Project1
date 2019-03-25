@@ -109,7 +109,7 @@ export const filterInArrayOfObjects = (filter, array, keys) => {
         for (let key of objk) {
             if (element[key] !== undefined &&
                 element[key] !== null &&
-                contains(element[key], filter)
+                filter(element[key])
             ) { // fuken lodash returning isEmpty true for numbers
                 return true;
             }

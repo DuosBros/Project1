@@ -8,30 +8,25 @@ import { getCosts } from '../../utils/requests';
 import { APP_TITLE } from '../../appConfig';
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
-import moment from 'moment';
+import EditCostsModal from '../../components/EditCostModal';
+import { fetchCostsAndHandleResult } from '../../utils/businessHelpers';
 
 class Costs extends React.Component {
 
+    state = {
+        showEditCostModal: false
+    }
+
     componentDidMount() {
-        this.fetchCostsAndHandleResult()
+        fetchCostsAndHandleResult({
+            getCostsAction: this.props.getCostsAction
+        })
 
         document.title = APP_TITLE + "Costs"
     }
 
-    fetchCostsAndHandleResult = () => {
-        getCosts()
-            .then(res => {
-
-                res.data.forEach(x => {
-                    x.category = x.category ? x.category : ""
-                    x.cost = x.cost ? x.cost : 0
-                    x.monthAndYear = moment(x.date).format('MM.YYYY')
-                })
-                this.props.getCostsAction({ success: true, data: res.data })
-            })
-            .catch(err => {
-                this.props.getCostsAction({ success: false, error: err })
-            })
+    handleToggleEditCostModal = () => {
+        this.setState({ showEditCostModal: true });
     }
 
     render() {
@@ -66,22 +61,32 @@ class Costs extends React.Component {
             )
         }
 
+        let modal = null
+        if (this.state.showEditCostModal) {
+            modal = (
+                <EditCostsModal
+                    handleToggleEditCostModal={this.handleToggleEditCostModal}
+                    show={true} />
+            )
+        }
+
         // render page
         return (
             <Grid stackable>
+                {modal}
                 <Grid.Row style={{ marginBottom: '1em' }}>
-                    <Grid.Column  width={2}>
+                    <Grid.Column width={2}>
                         <Header as='h1'>
                             Costs
                         </Header>
                     </Grid.Column>
-                    <Grid.Column  width={2} textAlign='left'>
+                    <Grid.Column width={2} textAlign='left'>
                         <Button fluid size='large' compact content='Add Cost' id="primaryButton" />
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <CostsTable compact="very" rowsPerPage={50} data={this.props.costsStore.costs.data} />
+                        <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} compact="very" rowsPerPage={50} data={this.props.costsStore.costs.data} />
                     </Grid.Column>
                 </Grid.Row>
             </Grid>

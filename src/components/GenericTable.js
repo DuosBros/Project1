@@ -112,9 +112,9 @@ export default class GenericTable extends Component {
             visibleColumnsList: columns.filter(c => c.visibleByDefault  && !c.skipRendering).map(c => c.prop),
         }
 
-        if (Array.isArray(this.state.data)) {
-            this.state.data = this.sort(this.state.data, null);
-        }
+        // if (Array.isArray(this.state.data)) {
+        //     this.state.data = this.sort(this.state.data, null);
+        // }
 
         this.updateMultiFilter = debounce(this.updateMultiFilter, 400);
         this.updateColumnFilters = debounce(this.updateColumnFiltersImmediate, 400);

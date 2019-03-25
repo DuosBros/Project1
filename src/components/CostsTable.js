@@ -40,6 +40,7 @@ export default class CostsTable extends React.PureComponent {
             width: 3
         },
         {
+            name: "monthAndYear",
             prop: "monthAndYear",
             skipRendering: true
         }
@@ -49,6 +50,7 @@ export default class CostsTable extends React.PureComponent {
         data.actions = (
             <>
                 <Button
+                    onClick={() => this.handleToggleEditCostModal()}
                     className='buttonIconPadding'
                     size='large'
                     icon='edit' />
@@ -58,8 +60,6 @@ export default class CostsTable extends React.PureComponent {
                     icon='remove' />
             </>
         );
-
-        data.date = moment(data.date).local().format("DD.MM")
 
         return data;
     }

@@ -94,16 +94,22 @@ class Header extends React.Component {
                         {isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}
                     </Menu.Item>
                     <Menu.Item
+                        href='/orders'
+                        as='a'
                         content='Orders'
                         name='orders'
                         active={activeItem === 'orders' || !activeItem}
                         onClick={this.handleItemClick} />
                     <Menu.Item
+                        href='/bank'
+                        as='a'
                         content='Bank'
                         name='bank'
                         active={activeItem === 'bank'}
                         onClick={this.handleItemClick} />
                     <Menu.Item
+                        href='/costs'
+                        as='a'
                         content='Costs'
                         name='costs'
                         active={activeItem === 'costs'}

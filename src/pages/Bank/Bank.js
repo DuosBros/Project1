@@ -7,14 +7,14 @@ import moment from 'moment';
 import {
     getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
     showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
-    updateOrderInTransactionAction
+    updateOrderInTransactionAction, getCostsAction
 } from '../../utils/actions'
 import { getBankTransactions, getCurrentYearOrders, getAllProducts } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
-import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
-import { handleTogglePaidOrder } from '../../utils/businessHelpers';
+import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/businessHelpers';
 
 class Bank extends React.Component {
 
@@ -44,8 +44,19 @@ class Bank extends React.Component {
             this.fetchAndHandleProducts();
         }
 
+        if (!this.props.costsStore.costs.data) {
+            fetchCostsAndHandleResult({
+                getCostsAction: this.props.getCostsAction
+            })
+        }
+
 
         document.title = APP_TITLE + "Bank"
+    }
+
+    loadMoreTransactions = () => {
+        var currentLimit = this.state.recordsLimit + 100
+        this.setState({ recordsLimit: currentLimit });
     }
 
     fetchAndHandleProducts = () => {
@@ -188,6 +199,7 @@ class Bank extends React.Component {
         let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails } = this.state;
         let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrdersCounter;
         let transactions = this.props.bankStore.transactions.data;
+        let costs = this.props.costsStore.costs.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
             filteredByMultiSearch = this.filterData(transactions, multiSearchInput);
@@ -218,7 +230,13 @@ class Bank extends React.Component {
                 }
             }
             else {
-                actionButtons = <Button className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                let found = costs.some(cost => {
+                    return (cost.date === transaction.date && cost.cost === (transaction.value * -1) && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
+                })
+
+                if (!found) {
+                    actionButtons = <Button className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                }
             }
 
             if (isMobile) {
@@ -386,7 +404,7 @@ class Bank extends React.Component {
                 {table}
                 {
                     multiSearchInput !== "" ? null : (
-                        <Button onClick={this.loadMoreOrders} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
+                        <Button onClick={this.loadMoreTransactions} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                     )
                 }
             </>
@@ -397,7 +415,8 @@ class Bank extends React.Component {
 function mapStateToProps(state) {
     return {
         bankStore: state.BankReducer,
-        ordersStore: state.OrdersReducer
+        ordersStore: state.OrdersReducer,
+        costsStore: state.CostsReducer
     };
 }
 
@@ -410,7 +429,8 @@ function mapDispatchToProps(dispatch) {
         showGenericModalAction,
         openOrderDetailsAction,
         getAllProductsAction,
-        updateOrderInTransactionAction
+        updateOrderInTransactionAction,
+        getCostsAction
     }, dispatch);
 }
 
