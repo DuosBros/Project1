@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Table, Grid, Message, Input, Button, Icon, Label, Popup, Dropdown } from 'semantic-ui-react'
 import Pagination from 'semantic-ui-react-button-pagination';
-import ExportFromJSON from 'export-from-json'
 import { filterInArrayOfObjects, isNum, debounce, pick } from '../utils/helpers';
+import { exportDataToExcel } from '../utils/requests';
+import FileSaver from 'file-saver';
 
 const DEFAULT_COLUMN_PROPS = {
     collapsing: false,
@@ -109,7 +110,7 @@ export default class GenericTable extends Component {
             showTableHeader: props.tableHeader,
             sortColumn: null,
             sortDirection: null,
-            visibleColumnsList: columns.filter(c => c.visibleByDefault  && !c.skipRendering).map(c => c.prop),
+            visibleColumnsList: columns.filter(c => c.visibleByDefault && !c.skipRendering).map(c => c.prop),
         }
 
         // if (Array.isArray(this.state.data)) {
@@ -158,15 +159,15 @@ export default class GenericTable extends Component {
         const optionMapper = (e, i) => ({ key: i, text: e, value: i });
         let columnDistinctValues = {};
 
-        for(let c of columns.filter(e => e.searchable === "distinct")) {
+        for (let c of columns.filter(e => e.searchable === "distinct")) {
             let values;
-            if(Array.isArray(fromProps[c.prop])) {
+            if (Array.isArray(fromProps[c.prop])) {
                 values = fromProps[c.prop].map(optionMapper);
             } else {
                 values = data.map(e => e[c.prop])
-                .filter(e =>
-                    e !== undefined &&
-                    e !== null)
+                    .filter(e =>
+                        e !== undefined &&
+                        e !== null)
                     .map(e => e.toString());
 
                 values = _.uniq(values).sort().map(optionMapper);
@@ -277,15 +278,15 @@ export default class GenericTable extends Component {
     }
 
     buildColumnFilter(key, needle) {
-        if(typeof needle === "number") {
+        if (typeof needle === "number") {
             // TODO find cleaner solution
-            if(needle === -1) {
+            if (needle === -1) {
                 return null;
             }
             return heystack => (
                 heystack[key] !== undefined &&
                 heystack[key] !== null &&
-                heystack[key].toString() === this.state.columnDistinctValues[key][needle+1].text.toString()
+                heystack[key].toString() === this.state.columnDistinctValues[key][needle + 1].text.toString()
             );
         }
         let func = this.buildFilter(needle);
@@ -433,8 +434,8 @@ export default class GenericTable extends Component {
         return a.toString().localeCompare(b.toString());
     }
 
-    handleExport = (e, { value: type }) => {
-        const { data, columns, visibleColumnsList } = this.state;
+    handleExport = (data, type) => {
+        const { columns, visibleColumnsList } = this.state;
 
         // only export visible and exportable columns
         let columnsToExport = columns
@@ -442,7 +443,7 @@ export default class GenericTable extends Component {
             .map(c => { return { label: c.name, key: c.prop } });
         let dataToExport = pick(data, columnsToExport.map(x => x.key));
 
-        if (type === "txt" || type === "json") {
+        if (type === "json") {
             const fileName = new Date().toISOString() + "." + type
 
             var a = document.createElement("a");
@@ -458,9 +459,12 @@ export default class GenericTable extends Component {
             window.URL.revokeObjectURL(url);
         }
         else {
-            const fileName = new Date().toISOString()
-
-            ExportFromJSON({ data: dataToExport, fileName: fileName, exportType: type })
+            const fileName = new Date().toISOString() + "_" + document.title
+            exportDataToExcel(dataToExport, fileName, document.title).then((res) => {
+                let blob = new Blob([res.data], { type: 'vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
+                FileSaver.saveAs(blob, fileName + '.xlsx')
+            })
+            return;
         }
     }
 
@@ -485,7 +489,7 @@ export default class GenericTable extends Component {
         this.setState({ showTableHeader: true });
     }
 
-    renderTableFunctions(numRecords) {
+    renderTableFunctions(filteredData) {
         const {
             columns,
             columnToggle,
@@ -572,23 +576,11 @@ export default class GenericTable extends Component {
                                 <Dropdown icon={<Icon className="iconMargin" name='share' />} item text='Export'>
                                     <Dropdown.Menu>
                                         <Dropdown.Item
-                                            onClick={this.handleExport}
-                                            value={ExportFromJSON.types.txt}
-                                            icon={<Icon name='file text outline' />}
-                                            text='Export to TXT' />
-                                        <Dropdown.Item
-                                            onClick={this.handleExport}
-                                            value={ExportFromJSON.types.json}
+                                            onClick={() => this.handleExport(filteredData, "json")}
                                             icon={<Icon name='file text outline' />}
                                             text='Export to JSON' />
                                         <Dropdown.Item
-                                            onClick={this.handleExport}
-                                            value={ExportFromJSON.types.csv}
-                                            icon={<Icon name='file text outline' />}
-                                            text='Export to CSV' />
-                                        <Dropdown.Item
-                                            onClick={this.handleExport}
-                                            value={ExportFromJSON.types.xls}
+                                            onClick={() => this.handleExport(filteredData, "xlsx")}
                                             icon={<Icon name='file excel' />}
                                             text='Export to XLS' />
                                     </Dropdown.Menu>
@@ -596,7 +588,7 @@ export default class GenericTable extends Component {
                             </Grid.Column>
                             <Grid.Column width={3}>
                                 <div style={{ float: "right", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
-                                    <span>Showing {numRecords > 0 ? this.state.offset + 1 : 0} to {numRecords < limit ? numRecords : this.state.offset + limit} of {numRecords} entries</span>
+                                    <span>Showing {filteredData.length > 0 ? this.state.offset + 1 : 0} to {filteredData.length < limit ? filteredData.length : this.state.offset + limit} of {filteredData.length} entries</span>
                                 </div>
                             </Grid.Column>
                             <Grid.Column width={4}>
@@ -915,7 +907,7 @@ export default class GenericTable extends Component {
                     <Table.Row key={'expanded' + rowKey}>
                         {/* +1 because there is extra column for toggling */}
                         <Table.Cell />
-                        <Table.Cell style={{borderLeft: 'none', paddingTop: '0px'}} colSpan={visibleColumns.length}>{this.props.renderExpandedRow(rowKey, data)}</Table.Cell>
+                        <Table.Cell style={{ borderLeft: 'none', paddingTop: '0px' }} colSpan={visibleColumns.length}>{this.props.renderExpandedRow(rowKey, data)}</Table.Cell>
                     </Table.Row>
                 ));
             }
@@ -924,7 +916,7 @@ export default class GenericTable extends Component {
             prevRow = data;
         });
 
-        var tableFunctionsGrid = this.renderTableFunctions(filteredData.length);
+        var tableFunctionsGrid = this.renderTableFunctions(filteredData);
 
         return (
             <div className="generic table">

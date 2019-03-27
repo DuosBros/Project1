@@ -397,7 +397,7 @@ class Orders extends React.Component {
                 openOrderDetailsAction: this.props.openOrderDetailsAction
             })
 
-            if(!res.success) {
+            if (!res.success) {
                 throw res.error
             }
 
@@ -481,7 +481,7 @@ class Orders extends React.Component {
             var orderInlineDetails = null
 
             if (orderIdsShowingDetails.indexOf(order.id) > -1) {
-                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products}  order={order} isMobile={isMobile} />
+                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={order} isMobile={isMobile} />
             }
 
             if (isMobile) {
@@ -510,13 +510,13 @@ class Orders extends React.Component {
 
                             <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                             {
-                                order.payment.paid ? null : (
+                                !order.payment.paid && (
                                     <>
                                         <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
                                         <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
 
                                         {
-                                            this.state.showPrintLabelsIcon && order.zaslatDate ? (
+                                            this.state.showPrintLabelsIcon && order.zaslatDate && (
                                                 <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                     icon={
                                                         <>
@@ -527,7 +527,7 @@ class Orders extends React.Component {
                                                         </>
                                                     } >
                                                 </Button>
-                                            ) : null
+                                            )
                                         }
                                     </>
                                 )
@@ -573,12 +573,12 @@ class Orders extends React.Component {
 
                                 <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                                 {
-                                    order.payment.paid ? null : (
+                                    !order.payment.paid && (
                                         <>
                                             <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
                                             <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
                                             {
-                                                this.state.showPrintLabelsIcon && order.zaslatDate ? (
+                                                this.state.showPrintLabelsIcon && order.zaslatDate && (
                                                     <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                         icon={
                                                             <>
@@ -589,7 +589,7 @@ class Orders extends React.Component {
                                                             </>
                                                         } >
                                                     </Button>
-                                                ) : null
+                                                )
                                             }
                                         </>
                                     )

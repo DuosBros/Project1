@@ -1,7 +1,6 @@
 import React from 'react'
 import GenericTable from './GenericTable';
 import { Button } from 'semantic-ui-react';
-import moment from 'moment';
 
 export default class CostsTable extends React.PureComponent {
     columns = [

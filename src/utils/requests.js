@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
+export function exportDataToExcel(data, fileName, sheetName) {
+    return axios.post(MEDPHARMAVN_API + 'export/' + fileName + '/' + sheetName, data, { responseType: 'blob' })
+}
 /**
  * Send authentication payload
  * @param {object} payload

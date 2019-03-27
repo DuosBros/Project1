@@ -4,7 +4,6 @@ import { bindActionCreators } from 'redux';
 
 import { Grid, Header, Message, Icon, Button } from 'semantic-ui-react';
 import { getCostsAction } from '../../utils/actions';
-import { getCosts } from '../../utils/requests';
 import { APP_TITLE } from '../../appConfig';
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';

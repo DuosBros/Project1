@@ -20,6 +20,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import logo from '../assets/logo.png';
 import GenericModal from '../components/GenericModal';
 import Costs from '../pages/Costs/Costs';
+import ScrollToTop from './ScrollToTop';
 
 class Base extends React.Component {
 
@@ -112,7 +113,7 @@ class Base extends React.Component {
         }
         return (
             <BrowserRouter>
-                <>
+                <ScrollToTop>
                     <Route
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
@@ -129,7 +130,7 @@ class Base extends React.Component {
                     }
 
                     {body}
-                </>
+                </ScrollToTop>
             </BrowserRouter >
         )
     }

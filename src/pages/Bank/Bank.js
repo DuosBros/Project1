@@ -22,6 +22,7 @@ class Bank extends React.Component {
         super(props);
 
         this.state = {
+            hasMarkAllAsPaidStarted: false,
             multiSearchInput: "",
             isMobile: props.isMobile,
             showFunctionsMobile: false,
@@ -186,6 +187,25 @@ class Bank extends React.Component {
         }
     }
 
+    handleMarkAllAsPaidButton = (orders) => {
+        this.setState({ hasMarkAllAsPaidStarted: true });
+        let promises = []
+        orders.forEach(order => {
+            promises.push(this.handleTogglePaidOrder(order))
+        })
+
+        Promise.all(promises)
+            .catch((err) => {
+                this.props.showGenericModalAction({
+                    err: err
+                })
+            })
+            .finally(() => {
+                this.setState({ hasMarkAllAsPaidStarted: false });
+            });
+
+    }
+
     render() {
         // in case of error
         if (!this.props.bankStore.transactions.success) {
@@ -217,8 +237,8 @@ class Bank extends React.Component {
             )
         }
 
-        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails } = this.state;
-        let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrdersCounter;
+        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails, hasMarkAllAsPaidStarted } = this.state;
+        let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrders;
         let transactions = this.props.bankStore.transactions.data;
         let costs = this.props.costsStore.costs.data;
 
@@ -229,7 +249,7 @@ class Bank extends React.Component {
             filteredByMultiSearch = transactions.slice(0, recordsLimit);
         }
 
-        notPaidOrdersCounter = 0
+        notPaidOrders = []
         mappedTransactions = filteredByMultiSearch.map(transaction => {
             let transactionInlineDetails, actionButtons = null
 
@@ -245,7 +265,7 @@ class Bank extends React.Component {
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
-                        notPaidOrdersCounter++;
+                        notPaidOrders.push(transaction.order)
                         actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
@@ -342,7 +362,7 @@ class Bank extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
                             <Grid.Row>
-                                <Button fluid size='small' disabled={notPaidOrdersCounter > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrdersCounter + ')'} id="primaryButton" />
+                                <Button loading={hasMarkAllAsPaidStarted} onClick={() => this.handleMarkAllAsPaidButton(notPaidOrders)} fluid size='small' disabled={notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrders.length + ')'} id="primaryButton" />
                                 <Grid.Column>
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
@@ -384,6 +404,7 @@ class Bank extends React.Component {
                             <Header as='h1' content='Bank' />
                         </Grid.Column>
                         <Grid.Column width={2}>
+                            <Button loading={hasMarkAllAsPaidStarted} onClick={() => this.handleMarkAllAsPaidButton(notPaidOrders)} fluid size='small' disabled={notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrders.length + ')'} id="primaryButton" />
                         </Grid.Column>
                         <Grid.Column width={5}>
                         </Grid.Column>
@@ -401,7 +422,7 @@ class Bank extends React.Component {
                                 </>
                             </Transition>
                             {
-                                showMultiSearchFilter ? null : (
+                                !showMultiSearchFilter && (
                                     <div style={{ textAlign: 'right' }}>
                                         <Icon
                                             name='search'
@@ -424,7 +445,7 @@ class Bank extends React.Component {
                 {pageHeader}
                 {table}
                 {
-                    multiSearchInput !== "" ? null : (
+                    multiSearchInput === "" && (
                         <Button onClick={this.loadMoreTransactions} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                     )
                 }
