@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, Segment, Icon } from 'semantic-ui-react'
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { Link } from 'react-router-dom';
 
 import { authenticateAction, authenticateSucceededAction, authenticationInProgressAction } from './actions';
 import { LOCALSTORAGE_NAME } from '../appConfig';
@@ -94,22 +95,19 @@ class Header extends React.Component {
                         {isMobile ? (<Icon name='content' style={{ position: 'absolute', right: '0px' }} onClick={this.toggleMobileMenu} />) : null}
                     </Menu.Item>
                     <Menu.Item
-                        href='/orders'
-                        as='a'
+                        as={Link} to='/orders'
                         content='Orders'
                         name='orders'
                         active={activeItem === 'orders' || !activeItem}
                         onClick={this.handleItemClick} />
                     <Menu.Item
-                        href='/bank'
-                        as='a'
+                        as={Link} to='/bank'
                         content='Bank'
                         name='bank'
                         active={activeItem === 'bank'}
                         onClick={this.handleItemClick} />
                     <Menu.Item
-                        href='/costs'
-                        as='a'
+                        as={Link} to='/costs'
                         content='Costs'
                         name='costs'
                         active={activeItem === 'costs'}
