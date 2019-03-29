@@ -16,6 +16,13 @@ import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers'
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/businessHelpers';
 
+const MarkAllButtons = (props) => {
+    return (
+        <>
+            <Button loading={props.hasMarkAllAsPaidStarted} onClick={() => props.handleMarkAllAsPaidButton(props.notPaidOrders)} fluid size='small' disabled={props.notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + props.notPaidOrders.length + ')'} id="primaryButton" />
+        </>
+    )
+}
 class Bank extends React.Component {
 
     constructor(props) {
@@ -50,7 +57,6 @@ class Bank extends React.Component {
                 getCostsAction: this.props.getCostsAction
             })
         }
-
 
         document.title = APP_TITLE + "Bank"
     }
@@ -272,7 +278,7 @@ class Bank extends React.Component {
             }
             else {
                 let found = costs.some(cost => {
-                    return (cost.date === transaction.date && cost.cost === (transaction.value * -1) && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
+                    return (cost.date === transaction.date && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
                 })
 
                 if (!found) {
@@ -362,7 +368,7 @@ class Bank extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
                             <Grid.Row>
-                                <Button loading={hasMarkAllAsPaidStarted} onClick={() => this.handleMarkAllAsPaidButton(notPaidOrders)} fluid size='small' disabled={notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrders.length + ')'} id="primaryButton" />
+                                <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                                 <Grid.Column>
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
@@ -404,7 +410,7 @@ class Bank extends React.Component {
                             <Header as='h1' content='Bank' />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <Button loading={hasMarkAllAsPaidStarted} onClick={() => this.handleMarkAllAsPaidButton(notPaidOrders)} fluid size='small' disabled={notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + notPaidOrders.length + ')'} id="primaryButton" />
+                            <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                         </Grid.Column>
                         <Grid.Column width={5}>
                         </Grid.Column>

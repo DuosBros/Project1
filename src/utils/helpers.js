@@ -3,6 +3,17 @@ import axios from 'axios';
 import moment from "moment";
 import React from 'react';
 
+
+export const sortMonthYear = (array) => {
+    array.sort(function (a, b) {
+        a = a.monthAndYear.split(".");
+        b = b.monthAndYear.split(".")
+        return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
+    })
+
+    return array;
+}
+
 /**
  *
  * @param {boolean} isAuthenticated
@@ -12,7 +23,7 @@ export const handleLocalStorageToken = (isAuthenticated, token) => {
 
     if (isAuthenticated) {
         let localStorageToken = localStorage.getItem(LOCALSTORAGE_NAME)
-        if (!localStorageToken) {
+        if (!localStorageToken && token) {
             localStorage.setItem(LOCALSTORAGE_NAME, token)
             axios.defaults.headers.common['x-access-token'] = token;
         }

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Table, Grid, Message, Input, Button, Icon, Label, Popup, Dropdown } from 'semantic-ui-react'
 import Pagination from 'semantic-ui-react-button-pagination';
-import { filterInArrayOfObjects, isNum, debounce, pick } from '../utils/helpers';
+import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear } from '../utils/helpers';
 import { exportDataToExcel } from '../utils/requests';
 import FileSaver from 'file-saver';
 
@@ -182,7 +182,8 @@ export default class GenericTable extends Component {
         if (this.props.data !== nextProps.data) {
             let data;
             if (nextProps.data !== null && Array.isArray(nextProps.data)) {
-                data = this.sort(nextProps.data, null);
+                // data = this.sort(nextProps.data, null);
+                data = nextProps.data
             }
 
             let columnDistinctValues = this.generateDistinctValues(this.state.columns, data, nextProps.distinctValues)
@@ -759,6 +760,10 @@ export default class GenericTable extends Component {
                     filteredData = filteredData.filter(filters[col]);
                 }
             }
+        }
+
+        if(grouping) {
+            filteredData = sortMonthYear(filteredData);
         }
 
         if (limit && filteredData.length > limit) {
