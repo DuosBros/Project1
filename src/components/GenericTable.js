@@ -6,6 +6,7 @@ import Pagination from 'semantic-ui-react-button-pagination';
 import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear } from '../utils/helpers';
 import { exportDataToExcel } from '../utils/requests';
 import FileSaver from 'file-saver';
+import ExportDropdown from './ExportDropdown';
 
 const DEFAULT_COLUMN_PROPS = {
     collapsing: false,
@@ -574,18 +575,7 @@ export default class GenericTable extends Component {
                                     error={!multiSearchInputValid} />
                             </Grid.Column>
                             <Grid.Column width={1}>
-                                <Dropdown icon={<Icon className="iconMargin" name='share' />} item text='Export'>
-                                    <Dropdown.Menu>
-                                        <Dropdown.Item
-                                            onClick={() => this.handleExport(filteredData, "json")}
-                                            icon={<Icon name='file text outline' />}
-                                            text='Export to JSON' />
-                                        <Dropdown.Item
-                                            onClick={() => this.handleExport(filteredData, "xlsx")}
-                                            icon={<Icon name='file excel' />}
-                                            text='Export to XLS' />
-                                    </Dropdown.Menu>
-                                </Dropdown>
+                                <ExportDropdown data={filteredData} columns={columns} visibleColumnsList={visibleColumnsList} />
                             </Grid.Column>
                             <Grid.Column width={3}>
                                 <div style={{ float: "right", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
@@ -762,7 +752,7 @@ export default class GenericTable extends Component {
             }
         }
 
-        if(grouping) {
+        if (grouping) {
             filteredData = sortMonthYear(filteredData);
         }
 
