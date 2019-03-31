@@ -51,6 +51,11 @@ html, body {
     padding-bottom: 0.25em
 }
 
+.iconMargin:before {
+    margin-left: 0.5em;
+    margin-right: 0.3em;
+}
+
 .ui.huge.icon.button.buttonIconPadding {
     padding: 0.3em
 }
@@ -81,7 +86,7 @@ div.generic.table {
 
     table {
         td {
-            white-space: nowrap;
+            // white-space: nowrap;
         }
         ul {
             margin: 0;

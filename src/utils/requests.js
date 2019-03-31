@@ -1,6 +1,9 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
+export function exportDataToExcel(data, fileName, sheetName) {
+    return axios.post(MEDPHARMAVN_API + 'export/' + fileName + '/' + sheetName, data, { responseType: 'blob' })
+}
 /**
  * Send authentication payload
  * @param {object} payload
@@ -68,6 +71,21 @@ export function getSenders() {
  */
 export function orderDelivery(payload) {
     return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/create', payload)
+}
+
+/**
+ * Get all costs
+ */
+export function getCosts() {
+    return axios.get(MEDPHARMAVN_API + 'costs')
+}
+
+/**
+ *
+ * @param {object} cost
+ */
+export function addCost(cost) {
+    return axios.post(MEDPHARMAVN_API + 'costs', cost)
 }
 
 // ----------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { getOrder, lockOrder, updateOrder } from './requests';
+import { getOrder, lockOrder, updateOrder, getCosts } from './requests';
 import { DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
 /* this is helper file for shared business logic across components */
@@ -38,4 +38,14 @@ export const getOrderAndHandleResult = async (props) => {
         props.openOrderDetailsAction(obj)
         return obj
     }
+}
+
+export const fetchCostsAndHandleResult = (props) => {
+    getCosts()
+        .then(res => {
+            props.getCostsAction({ success: true, data: res.data })
+        })
+        .catch(err => {
+            props.getCostsAction({ success: false, error: err })
+        })
 }

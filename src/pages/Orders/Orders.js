@@ -5,10 +5,12 @@ import { Grid, Header, Button, Table, Message, Image, Icon, Input, Transition } 
 import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
+import FileSaver from 'file-saver';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts,
+    exportDataToExcel
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -17,12 +19,13 @@ import {
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE } from '../../appConfig'
-import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import CreateZaslatModal from '../../components/CreateZaslatModal';
 import { handleTogglePaidOrder, getOrderAndHandleResult } from '../../utils/businessHelpers';
+import ExportDropdown from '../../components/ExportDropdown';
 
 class Orders extends React.Component {
 
@@ -397,7 +400,7 @@ class Orders extends React.Component {
                 openOrderDetailsAction: this.props.openOrderDetailsAction
             })
 
-            if(!res.success) {
+            if (!res.success) {
                 throw res.error
             }
 
@@ -411,6 +414,34 @@ class Orders extends React.Component {
         }
 
     }
+
+    handleExport = (data, type) => {
+
+        if (type === "json") {
+            const fileName = new Date().toISOString() + "." + type
+
+            var a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style = "display: none";
+
+            var json = JSON.stringify(data),
+                blob = new Blob([json], { type: "octet/stream" }),
+                url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+        else {
+            const fileName = new Date().toISOString() + "_" + document.title
+            exportDataToExcel(mapOrderToExcelExport(data), fileName, document.title).then((res) => {
+                let blob = new Blob([res.data], { type: 'vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
+                FileSaver.saveAs(blob, fileName + '.xlsx')
+            })
+        }
+        return;
+    }
+
     render() {
 
         const { isMobile, orderIdsShowingDetails } = this.state;
@@ -481,7 +512,7 @@ class Orders extends React.Component {
             var orderInlineDetails = null
 
             if (orderIdsShowingDetails.indexOf(order.id) > -1) {
-                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products}  order={order} isMobile={isMobile} />
+                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={order} isMobile={isMobile} />
             }
 
             if (isMobile) {
@@ -510,13 +541,13 @@ class Orders extends React.Component {
 
                             <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                             {
-                                order.payment.paid ? null : (
+                                !order.payment.paid && (
                                     <>
                                         <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
                                         <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
 
                                         {
-                                            this.state.showPrintLabelsIcon && order.zaslatDate ? (
+                                            this.state.showPrintLabelsIcon && order.zaslatDate && (
                                                 <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                     icon={
                                                         <>
@@ -527,7 +558,7 @@ class Orders extends React.Component {
                                                         </>
                                                     } >
                                                 </Button>
-                                            ) : null
+                                            )
                                         }
                                     </>
                                 )
@@ -573,12 +604,12 @@ class Orders extends React.Component {
 
                                 <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
                                 {
-                                    order.payment.paid ? null : (
+                                    !order.payment.paid && (
                                         <>
                                             <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
                                             <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
                                             {
-                                                this.state.showPrintLabelsIcon && order.zaslatDate ? (
+                                                this.state.showPrintLabelsIcon && order.zaslatDate && (
                                                     <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                         icon={
                                                             <>
@@ -589,7 +620,7 @@ class Orders extends React.Component {
                                                             </>
                                                         } >
                                                     </Button>
-                                                ) : null
+                                                )
                                             }
                                         </>
                                     )
@@ -815,6 +846,7 @@ class Orders extends React.Component {
                     <Grid.Row columns={5} style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
                             <Header as='h1' content='Orders' />
+                            <ExportDropdown data={mapOrderToExcelExport(filteredByMultiSearch)} />
                         </Grid.Column>
                         <Grid.Column width={2}>
                             <Button onClick={() => this.props.history.push('orders/new')} fluid size='large' compact content='Add Order' id="primaryButton" />

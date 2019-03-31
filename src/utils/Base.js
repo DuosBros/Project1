@@ -19,6 +19,8 @@ import { validateToken } from './requests';
 import ErrorBoundary from '../components/ErrorBoundary';
 import logo from '../assets/logo.png';
 import GenericModal from '../components/GenericModal';
+import Costs from '../pages/Costs/Costs';
+import ScrollToTop from './ScrollToTop';
 
 class Base extends React.Component {
 
@@ -90,6 +92,7 @@ class Base extends React.Component {
                     <Route path='/orders/:id' render={(props) => <OrderInfo {...props} key={props.match.params.id} isMobile={isMobile} />} />
                     <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
                     <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
+                    <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                 </Switch>
             </ErrorBoundary>
         )
@@ -110,7 +113,7 @@ class Base extends React.Component {
         }
         return (
             <BrowserRouter>
-                <>
+                <ScrollToTop>
                     <Route
                         path='/:entityType?/:entityId?'
                         render={(props) => <Header {...props} isMobile={isMobile} />}
@@ -127,7 +130,7 @@ class Base extends React.Component {
                     }
 
                     {body}
-                </>
+                </ScrollToTop>
             </BrowserRouter >
         )
     }

@@ -7,21 +7,29 @@ import moment from 'moment';
 import {
     getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
     showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
-    updateOrderInTransactionAction
+    updateOrderInTransactionAction, getCostsAction, addCostAction
 } from '../../utils/actions'
-import { getBankTransactions, getCurrentYearOrders, getAllProducts } from '../../utils/requests'
+import { getBankTransactions, getCurrentYearOrders, getAllProducts, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
-import { filterInArrayOfObjects, debounce } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
-import { handleTogglePaidOrder } from '../../utils/businessHelpers';
+import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/businessHelpers';
 
+const MarkAllButtons = (props) => {
+    return (
+        <>
+            <Button loading={props.hasMarkAllAsPaidStarted} onClick={() => props.handleMarkAllAsPaidButton(props.notPaidOrders)} fluid size='small' disabled={props.notPaidOrders.length > 0 ? false : true} content={'Mark orders as paid (' + props.notPaidOrders.length + ')'} id="primaryButton" />
+        </>
+    )
+}
 class Bank extends React.Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
+            hasMarkAllAsPaidStarted: false,
             multiSearchInput: "",
             isMobile: props.isMobile,
             showFunctionsMobile: false,
@@ -44,8 +52,18 @@ class Bank extends React.Component {
             this.fetchAndHandleProducts();
         }
 
+        if (!this.props.costsStore.costs.data) {
+            fetchCostsAndHandleResult({
+                getCostsAction: this.props.getCostsAction
+            })
+        }
 
         document.title = APP_TITLE + "Bank"
+    }
+
+    loadMoreTransactions = () => {
+        var currentLimit = this.state.recordsLimit + 100
+        this.setState({ recordsLimit: currentLimit });
     }
 
     fetchAndHandleProducts = () => {
@@ -154,6 +172,46 @@ class Bank extends React.Component {
         this.props.updateOrderInTransactionAction({ success: true, data: updatedOrder });
     }
 
+    handleAddTransactionToCost = async (transaction) => {
+        //TODO: check if the cost is already there
+        let payload = {
+            date: moment(transaction.date, "DD.MM.YYYY").toISOString(),
+            description: transaction.note,
+            cost: (transaction.value * -1),
+            note: "Generated from Bank page"
+        }
+
+        try {
+            await addCost(payload);
+            this.props.addCostAction(payload)
+            this.props.updateOrderInTransactionAction({ success: true, data: transaction.order });
+        }
+        catch (err) {
+            this.props.showGenericModalAction({
+                err: err
+            })
+        }
+    }
+
+    handleMarkAllAsPaidButton = (orders) => {
+        this.setState({ hasMarkAllAsPaidStarted: true });
+        let promises = []
+        orders.forEach(order => {
+            promises.push(this.handleTogglePaidOrder(order))
+        })
+
+        Promise.all(promises)
+            .catch((err) => {
+                this.props.showGenericModalAction({
+                    err: err
+                })
+            })
+            .finally(() => {
+                this.setState({ hasMarkAllAsPaidStarted: false });
+            });
+
+    }
+
     render() {
         // in case of error
         if (!this.props.bankStore.transactions.success) {
@@ -185,26 +243,25 @@ class Bank extends React.Component {
             )
         }
 
-        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, inputWidth, recordsLimit, rowIdsShowingDetails } = this.state;
-        let filteredByMultiSearch, mappedTransactions, table, pageHeader;
+        const { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails, hasMarkAllAsPaidStarted } = this.state;
+        let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrders;
         let transactions = this.props.bankStore.transactions.data;
+        let costs = this.props.costsStore.costs.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
             filteredByMultiSearch = this.filterData(transactions, multiSearchInput);
-        }
-        else {
+        } else {
             filteredByMultiSearch = transactions.slice(0, recordsLimit);
         }
 
+        notPaidOrders = []
         mappedTransactions = filteredByMultiSearch.map(transaction => {
-
             let transactionInlineDetails, actionButtons = null
 
             if (rowIdsShowingDetails.indexOf(transaction.index) > -1) {
                 if (transaction.order) {
                     transactionInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={transaction.order} isMobile={isMobile} />
-                }
-                else {
+                } else {
                     transactionInlineDetails = isMobile ? <Table.Cell>No order details mapped. Probably not an incoming transaction.</Table.Cell> : <Table.Row style={transaction.rowStyle}><Table.Cell colSpan='6'>No order details mapped. Probably not an incoming transaction.</Table.Cell></Table.Row>
                 }
             }
@@ -212,12 +269,18 @@ class Bank extends React.Component {
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
                     if (!transaction.order.payment.paid) {
+                        notPaidOrders.push(transaction.order)
                         actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
-            }
-            else {
-                actionButtons = <Button className="buttonIconPadding" size='huge' icon='dollar sign' />
+            } else {
+                let found = costs.some(cost => {
+                    return (cost.date === transaction.date && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
+                })
+
+                if (!found) {
+                    actionButtons = <Button onClick={() => this.handleAddTransactionToCost(transaction)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                }
             }
 
             if (isMobile) {
@@ -250,9 +313,7 @@ class Bank extends React.Component {
                         {transactionInlineDetails}
                     </Table.Row>
                 )
-
-            }
-            else {
+            } else {
                 // desktop return
                 return (
                     <React.Fragment key={transaction.index}>
@@ -302,6 +363,7 @@ class Bank extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
                             <Grid.Row>
+                                <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                                 <Grid.Column>
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
@@ -316,8 +378,7 @@ class Bank extends React.Component {
                     </Transition.Group>
                 </Grid>
             )
-        }
-        else {
+        } else {
             table = (
                 <Table compact padded basic='very'>
                     <Table.Header>
@@ -343,6 +404,7 @@ class Bank extends React.Component {
                             <Header as='h1' content='Bank' />
                         </Grid.Column>
                         <Grid.Column width={2}>
+                            <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                         </Grid.Column>
                         <Grid.Column width={5}>
                         </Grid.Column>
@@ -353,7 +415,6 @@ class Bank extends React.Component {
                                 <>
                                     <Input
                                         fluid
-                                        // style={{ width: inputWidth }}
                                         ref={this.handleRef}
                                         name="multiSearchInput"
                                         placeholder='Search...'
@@ -361,7 +422,7 @@ class Bank extends React.Component {
                                 </>
                             </Transition>
                             {
-                                showMultiSearchFilter ? null : (
+                                !showMultiSearchFilter && (
                                     <div style={{ textAlign: 'right' }}>
                                         <Icon
                                             name='search'
@@ -384,8 +445,8 @@ class Bank extends React.Component {
                 {pageHeader}
                 {table}
                 {
-                    multiSearchInput !== "" ? null : (
-                        <Button onClick={this.loadMoreOrders} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
+                    multiSearchInput === "" && (
+                        <Button onClick={this.loadMoreTransactions} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                     )
                 }
             </>
@@ -396,7 +457,8 @@ class Bank extends React.Component {
 function mapStateToProps(state) {
     return {
         bankStore: state.BankReducer,
-        ordersStore: state.OrdersReducer
+        ordersStore: state.OrdersReducer,
+        costsStore: state.CostsReducer
     };
 }
 
@@ -409,7 +471,9 @@ function mapDispatchToProps(dispatch) {
         showGenericModalAction,
         openOrderDetailsAction,
         getAllProductsAction,
-        updateOrderInTransactionAction
+        updateOrderInTransactionAction,
+        getCostsAction,
+        addCostAction
     }, dispatch);
 }
 

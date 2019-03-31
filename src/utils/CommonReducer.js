@@ -4,9 +4,11 @@ import OrdersReducer from '../pages/Orders/OrdersReducer';
 import BankReducer from '../pages/Bank/BankReducer';
 import BaseReducer from '../utils/BaseReducer';
 import ZaslatReducer from '../pages/Zaslat/ZaslatReducer';
+import CostsReducer from '../pages/Costs/CostsReducer';
 
 const CommonReducer = combineReducers({
-    LoginReducer, OrdersReducer, BankReducer,BaseReducer, ZaslatReducer
+    LoginReducer, OrdersReducer, BankReducer, BaseReducer, ZaslatReducer,
+    CostsReducer
 });
 
 export default CommonReducer;

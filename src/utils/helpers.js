@@ -3,6 +3,75 @@ import axios from 'axios';
 import moment from "moment";
 import React from 'react';
 
+
+export const mapOrderToExcelExport = (data) => {
+    let maxProductCount = 0;
+    for (let i = 0; i < data.length; i++) {
+        if (maxProductCount < data[i].products.length) {
+            maxProductCount = data[i].products.length;
+        }
+    }
+
+    let formattedOrders = [];
+
+    for (let i = 0; i < data.length; i++) {
+        let formattedOrder = {};
+        formattedOrder.firstName = data[i].address.firstName;
+        formattedOrder.lastName = data[i].address.lastName;
+        formattedOrder.phone = data[i].address.phone;
+        formattedOrder.street = data[i].address.street;
+        formattedOrder.city = data[i].address.city;
+        formattedOrder.streetNumber = data[i].address.streetNumber;
+        formattedOrder.zip = data[i].address.psc;
+        formattedOrder.company = data[i].address.company;
+        formattedOrder.totalPrice = data[i].totalPrice;
+        formattedOrder.orderDate = moment(data[i].payment.orderDate).format("DD.MM.YYYY");
+        formattedOrder.paymentDate = data[i].payment.paymentDate ? moment(data[i].payment.paymentDate).format("DD.MM.YYYY") : "Not paid";
+
+        for (let j = 0; j < maxProductCount; j++) {
+            formattedOrder['product' + (j + 1)] = '';
+            formattedOrder['product' + (j + 1) + ' count'] = '';
+        }
+        for (let j = 0; j < data[i].products.length; j++) {
+            formattedOrder['product' + (j + 1)] = data[i].products[j].productName;
+            formattedOrder['product' + (j + 1) + ' count'] = data[i].products[j].count;
+        }
+
+        formattedOrders.push(formattedOrder);
+    }
+
+    return formattedOrders;
+}
+export const flattenObject = (ob) => {
+    var toReturn = {};
+
+    for (var i in ob) {
+        if (!ob.hasOwnProperty(i)) continue;
+
+        if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+            var flatObject = flattenObject(ob[i]);
+            for (var x in flatObject) {
+                if (!flatObject.hasOwnProperty(x)) continue;
+
+                toReturn[i + '.' + x] = flatObject[x];
+            }
+        } else {
+            toReturn[i] = ob[i];
+        }
+    }
+    return toReturn;
+}
+
+export const sortMonthYear = (array) => {
+    array.sort(function (a, b) {
+        a = a.monthAndYear.split(".");
+        b = b.monthAndYear.split(".")
+        return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
+    })
+
+    return array;
+}
+
 /**
  *
  * @param {boolean} isAuthenticated
@@ -12,7 +81,7 @@ export const handleLocalStorageToken = (isAuthenticated, token) => {
 
     if (isAuthenticated) {
         let localStorageToken = localStorage.getItem(LOCALSTORAGE_NAME)
-        if (!localStorageToken) {
+        if (!localStorageToken && token) {
             localStorage.setItem(LOCALSTORAGE_NAME, token)
             axios.defaults.headers.common['x-access-token'] = token;
         }
@@ -109,7 +178,7 @@ export const filterInArrayOfObjects = (filter, array, keys) => {
         for (let key of objk) {
             if (element[key] !== undefined &&
                 element[key] !== null &&
-                contains(element[key], filter)
+                filter(element[key])
             ) { // fuken lodash returning isEmpty true for numbers
                 return true;
             }

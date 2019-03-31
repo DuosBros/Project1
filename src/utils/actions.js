@@ -1,7 +1,21 @@
+export function addCostAction(payload) {
+    return {
+        payload,
+        type: 'ADD_COST'
+    }
+}
+
 export function getAllZaslatOrdersAction(payload) {
     return {
         payload,
         type: 'GET_ZASLAT_ORDERS'
+    }
+}
+
+export function getCostsAction(payload) {
+    return {
+        payload,
+        type: 'GET_COSTS'
     }
 }
 
