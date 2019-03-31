@@ -7,7 +7,7 @@ import { getCostsAction } from '../../utils/actions';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
-import EditCostsModal from '../../components/EditCostModal';
+import AddEditCostsModal from '../../components/AddEditCostModal';
 import { fetchCostsAndHandleResult } from '../../utils/businessHelpers';
 
 class Costs extends React.Component {
@@ -77,7 +77,7 @@ class Costs extends React.Component {
         let modal = null
         if (this.state.showEditCostModal) {
             modal = (
-                <EditCostsModal
+                <AddEditCostsModal
                     handleToggleEditCostModal={this.handleToggleEditCostModal}
                     show={true} />
             )
@@ -165,6 +165,7 @@ class Costs extends React.Component {
 
             return (
                 <>
+                    {modal}
                     {pageHeader}
                     {table}
                     {
