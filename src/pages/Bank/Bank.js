@@ -243,15 +243,14 @@ class Bank extends React.Component {
             )
         }
 
-        let { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails, hasMarkAllAsPaidStarted } = this.state;
+        const { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails, hasMarkAllAsPaidStarted } = this.state;
         let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrders;
         let transactions = this.props.bankStore.transactions.data;
         let costs = this.props.costsStore.costs.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
             filteredByMultiSearch = this.filterData(transactions, multiSearchInput);
-        }
-        else {
+        } else {
             filteredByMultiSearch = transactions.slice(0, recordsLimit);
         }
 
@@ -262,8 +261,7 @@ class Bank extends React.Component {
             if (rowIdsShowingDetails.indexOf(transaction.index) > -1) {
                 if (transaction.order) {
                     transactionInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={transaction.order} isMobile={isMobile} />
-                }
-                else {
+                } else {
                     transactionInlineDetails = isMobile ? <Table.Cell>No order details mapped. Probably not an incoming transaction.</Table.Cell> : <Table.Row style={transaction.rowStyle}><Table.Cell colSpan='6'>No order details mapped. Probably not an incoming transaction.</Table.Cell></Table.Row>
                 }
             }
@@ -275,8 +273,7 @@ class Bank extends React.Component {
                         actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
-            }
-            else {
+            } else {
                 let found = costs.some(cost => {
                     return (cost.date === transaction.date && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
                 })
@@ -316,9 +313,7 @@ class Bank extends React.Component {
                         {transactionInlineDetails}
                     </Table.Row>
                 )
-
-            }
-            else {
+            } else {
                 // desktop return
                 return (
                     <React.Fragment key={transaction.index}>
@@ -383,8 +378,7 @@ class Bank extends React.Component {
                     </Transition.Group>
                 </Grid>
             )
-        }
-        else {
+        } else {
             table = (
                 <Table compact padded basic='very'>
                     <Table.Header>
