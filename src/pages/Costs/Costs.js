@@ -2,13 +2,13 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
-import { Grid, Header, Message, Icon, Button, Table, Segment, Transition, Input } from 'semantic-ui-react';
+import { Grid, Header, Message, Icon, Button, Table, Transition, Input } from 'semantic-ui-react';
 import { getCostsAction } from '../../utils/actions';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
 import AddEditCostsModal from '../../components/AddEditCostModal';
-import { fetchCostsAndHandleResult } from '../../utils/businessHelpers';
+import { fetchCostsAndHandleResult } from '../../utils/orderManager';
 
 class Costs extends React.Component {
 

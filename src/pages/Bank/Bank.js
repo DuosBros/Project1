@@ -14,7 +14,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
-import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/businessHelpers';
+import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/orderManager';
 
 const MarkAllButtons = (props) => {
     return (

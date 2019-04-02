@@ -99,9 +99,9 @@ class Base extends React.Component {
 
         if (isMobile) {
             body = (
-                <Container style={{ paddingTop: '0.5em' }}>
+                <div style={{ paddingTop: '0.5em' }}>
                     {switchBody}
-                </Container>
+                </div>
             )
         }
         else {

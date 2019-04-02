@@ -24,7 +24,7 @@ import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import CreateZaslatModal from '../../components/CreateZaslatModal';
-import { handleTogglePaidOrder, getOrderAndHandleResult } from '../../utils/businessHelpers';
+import { handleTogglePaidOrder, getOrderAndHandleResult } from '../../utils/orderManager';
 import ExportDropdown from '../../components/ExportDropdown';
 
 class Orders extends React.Component {
@@ -580,14 +580,14 @@ class Orders extends React.Component {
                             textAlign='center'
                             key={order.id}>
                             <Table.Cell>{rowCounter}</Table.Cell>
-                            <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
+                            <Table.Cell>{(order.address.lastName && order.address.lastName) + " " + (order.address.firstName && order.address.firstName)}</Table.Cell>
                             <Table.Cell>{order.payment.vs}</Table.Cell>
                             <Table.Cell>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
                             <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
                             <Table.Cell>{order.note}</Table.Cell>
                             <Table.Cell>
                                 {
-                                    moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? null : (
+                                    moment().add(-30, 'days').isAfter(order.payment.paymentDate) || (
                                         <>
                                             <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
                                             <Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
@@ -780,7 +780,7 @@ class Orders extends React.Component {
                                         this.props.zaslatStore.zaslatOrders.success ? (
                                             <Button
                                                 onClick={this.handlePrintLabelButtonOnClick}
-                                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
+                                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 || this.state.showPrintLabelsIcon || "secondaryButton"}
                                                 fluid
                                                 size='small'
                                                 compact
@@ -793,17 +793,17 @@ class Orders extends React.Component {
 
                                 </Grid.Row>
                                 {
-                                    warehouseNotificationsMessage === null && notPaidNotificationsMessage === null ? null : (
+                                    (warehouseNotificationsMessage === null && notPaidNotificationsMessage === null) || (
                                         <Grid.Row>
                                             {
-                                                warehouseNotificationsMessage === null ? null : (
+                                                warehouseNotificationsMessage === null || (
                                                     <Grid.Column>
                                                         {warehouseNotificationsMessage}
                                                     </Grid.Column>
                                                 )
                                             }
                                             {
-                                                notPaidNotificationsMessage === null ? null : (
+                                                notPaidNotificationsMessage === null || (
                                                     <Grid.Column>
                                                         {notPaidNotificationsMessage}
                                                     </Grid.Column>
@@ -854,12 +854,12 @@ class Orders extends React.Component {
                                 this.props.zaslatStore.zaslatOrders.success ? (
                                     <Button
                                         onClick={this.handlePrintLabelButtonOnClick}
-                                        style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 ? null : this.state.showPrintLabelsIcon ? null : "secondaryButton"}
+                                        style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 || this.state.showPrintLabelsIcon || "secondaryButton"}
                                         fluid
                                         size='small'
                                         compact
                                         content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
-                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
+                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon && "orange"} />
                                 ) : (
                                         <ErrorMessage stripImage={true} error={this.props.zaslatStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                     )
@@ -884,7 +884,7 @@ class Orders extends React.Component {
                                 </>
                             </Transition>
                             {
-                                this.state.showMultiSearchFilter ? null : (
+                                this.state.showMultiSearchFilter || (
                                     <div style={{ textAlign: 'right' }}>
                                         <Icon
                                             name='search'
@@ -918,41 +918,37 @@ class Orders extends React.Component {
         return (
             <>
                 {
-                    this.state.generateInvoice.generateInvoiceDone === false ? (
+                    this.state.generateInvoice.generateInvoiceDone === false && (
                         <div className="messageBox">
                             <Message info icon>
                                 <Icon name='circle notched' loading />
                                 <Message.Content>
                                     <Message.Header>
                                         {
-                                            !_.isEmpty(this.state.generateInvoice.orderToGenerateInvoice) ? (
+                                            !_.isEmpty(this.state.generateInvoice.orderToGenerateInvoice) && (
                                                 this.state.generateInvoice.orderToGenerateInvoice.payment.vs || (this.state.generateInvoice.orderToGenerateInvoice.address.lastName ? this.state.generateInvoice.orderToGenerateInvoice.address.lastName : "") + " " + (this.state.generateInvoice.orderToGenerateInvoice.address.firstName ? this.state.generateInvoice.orderToGenerateInvoice.address.firstName : "")
-
-                                            ) : null
-
+                                            )
                                         }
-                                        {
-                                            " : Generating pdf"
-                                        }
+                                        {" : Generating pdf"}
                                     </Message.Header>
                                 </Message.Content>
                             </Message>
                         </div>
-                    ) : null}
+                    )}
                 {
-                    showCreateZaslatModal ? (
+                    showCreateZaslatModal && (
                         <CreateZaslatModal
                             totalWeight={totalWeight}
                             isMobile={isMobile}
                             order={this.props.ordersStore.ordersDetails.data}
                             show={showCreateZaslatModal}
                             closeCreateZaslatModal={this.handleCloseCreateZaslatModal} />
-                    ) : null
+                    )
                 }
                 {orderPageHeader}
                 {table}
                 {
-                    multiSearchInput !== "" ? null : (
+                    multiSearchInput !== "" || (
                         <Button onClick={this.loadMoreOrders} style={{ marginTop: '0.5em' }} fluid>Show More</Button>
                     )
                 }
