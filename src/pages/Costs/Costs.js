@@ -9,6 +9,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
 import AddEditCostsModal from '../../components/AddEditCostModal';
 import { fetchCostsAndHandleResult } from '../../utils/orderManager';
+import { optionsDropdownMapper } from '../../utils/helpers';
 
 class Costs extends React.Component {
 
@@ -82,7 +83,7 @@ class Costs extends React.Component {
             modal = (
                 <AddEditCostsModal
                     handleToggleEditCostModal={this.handleToggleEditCostModal}
-                    show={true} cost={costToEdit} />
+                    show={true} cost={costToEdit} categories={this.props.costsStore.costCategories.map(optionsDropdownMapper)} />
             )
         }
 

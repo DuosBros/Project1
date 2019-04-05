@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Table, Grid, Message, Input, Button, Icon, Label, Popup, Dropdown } from 'semantic-ui-react'
 import Pagination from 'semantic-ui-react-button-pagination';
-import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear } from '../utils/helpers';
+import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear, optionsDropdownMapper } from '../utils/helpers';
 import { exportDataToExcel } from '../utils/requests';
 import FileSaver from 'file-saver';
 import ExportDropdown from './ExportDropdown';
@@ -161,7 +161,6 @@ export default class GenericTable extends Component {
     static generateDistinctValues(columns, data, fromProps) {
         const unfilteredOption = { key: -1, text: (<em>unfiltered</em>), value: -1 };
 
-        const optionMapper = (e, i) => ({ key: i, text: e, value: i });
         let columnDistinctValues = {};
 
         for (let c of columns.filter(e => e.searchable === "distinct")) {
@@ -173,11 +172,11 @@ export default class GenericTable extends Component {
                     e !== undefined &&
                     e !== null)
                     .map(e => e.toString());
-                values = _.uniq(filteredData).sort().map(optionMapper);
+                values = _.uniq(filteredData).sort().map(optionsDropdownMapper);
             }
             else {
                 if (Array.isArray(fromProps[c.prop])) {
-                    values = fromProps[c.prop].map(optionMapper);
+                    values = fromProps[c.prop].map(optionsDropdownMapper);
                 }
             }
 

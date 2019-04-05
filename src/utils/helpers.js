@@ -43,6 +43,8 @@ export const mapOrderToExcelExport = (data) => {
     return formattedOrders;
 }
 
+export const optionsDropdownMapper = (e, i) => ({ key: i, text: e, value: i });
+
 export const flattenObject = (ob) => {
     var toReturn = {};
 

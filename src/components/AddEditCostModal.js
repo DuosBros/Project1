@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Modal, Form, Grid, Dropdown } from 'semantic-ui-react';
+import { Button, Modal, Form, Grid, Dropdown, TextArea } from 'semantic-ui-react';
 
 const AddEditCostModal = (props) => {
     let cost = props.cost && props.cost;
@@ -14,17 +14,35 @@ const AddEditCostModal = (props) => {
                     </strong>
                 </Grid.Column>
                 <Grid.Column width={11}>
-                    <Form.Input fluid id="description" value={cost && cost.description} />
+                    <Form>
+                        <Form.Field>
+                            <TextArea value={cost && cost.description} autoHeight rows={1} id="description" />
+                        </Form.Field>
+                    </Form>
                 </Grid.Column>
             </Grid.Row>
             <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                 <Grid.Column width={5}>
                     <strong>
-                        Value
+                        Note
                     </strong>
                 </Grid.Column>
                 <Grid.Column width={11}>
-                    <Form.Input fluid id="description" value={cost && cost.cost} />
+                    <Form>
+                        <Form.Field>
+                            <TextArea value={cost && cost.note} autoHeight rows={1} id="note" />
+                        </Form.Field>
+                    </Form>
+                </Grid.Column>
+            </Grid.Row>
+            <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                <Grid.Column width={5}>
+                    <strong>
+                        Value [CZK]
+                    </strong>
+                </Grid.Column>
+                <Grid.Column width={11}>
+                    <Form.Input fluid id="cost" value={cost && cost.cost} />
                 </Grid.Column>
             </Grid.Row>
             <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -35,12 +53,11 @@ const AddEditCostModal = (props) => {
                 </Grid.Column>
                 <Grid.Column width={11}>
                     <Dropdown
-                        disabled
                         fluid
                         selection
                         onChange={props.handleSenderDropdownChange}
-                        options={props.senders ? props.senders : []}
-                        text={cost.category && cost.category}
+                        options={props.categories}
+                        text={cost ? cost.category && cost.category : ""}
                         selectOnBlur={false}
                         selectOnNavigation={false} />
                 </Grid.Column>
@@ -50,7 +67,7 @@ const AddEditCostModal = (props) => {
 
     return (
         <Modal
-            size='large'
+            size='small'
             open={props.show}
             closeOnDimmerClick={true}
             closeOnEscape={true}
