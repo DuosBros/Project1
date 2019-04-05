@@ -5,12 +5,10 @@ import { Grid, Header, Button, Table, Message, Image, Icon, Input, Transition } 
 import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-import FileSaver from 'file-saver';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts,
-    exportDataToExcel
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,

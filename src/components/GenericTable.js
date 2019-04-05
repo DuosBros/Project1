@@ -166,20 +166,26 @@ export default class GenericTable extends Component {
 
         for (let c of columns.filter(e => e.searchable === "distinct")) {
             let values = [];
-            if (!fromProps) {
-                values = data.map(e => e[c.prop])
-                    .filter(e =>
-                        e !== undefined &&
-                        e !== null)
-                    .map(e => e.toString());
+            let mappedData = data.map(e => e[c.prop]);
 
-                values = _.uniq(values).sort().map(optionMapper);
+            if (!fromProps) {
+                let filteredData = mappedData.filter(e =>
+                    e !== undefined &&
+                    e !== null)
+                    .map(e => e.toString());
+                values = _.uniq(filteredData).sort().map(optionMapper);
             }
             else {
                 if (Array.isArray(fromProps[c.prop])) {
                     values = fromProps[c.prop].map(optionMapper);
                 }
             }
+
+            let index = mappedData.findIndex(x => x === "")
+            if (index >= 0) {
+                values.push({ key: -2, text: (<em>empty</em>), value: -2 });
+            }
+
             values.unshift(unfilteredOption);
             columnDistinctValues[c.prop] = values;
         }
@@ -293,6 +299,11 @@ export default class GenericTable extends Component {
             if (needle === -1) {
                 return null;
             }
+
+            if (needle === -2) {
+                return heystack => heystack[key].toString() === ""
+            }
+
             return heystack => (
                 heystack[key] !== undefined &&
                 heystack[key] !== null &&

@@ -12,6 +12,9 @@ const CostsReducer = (state = initialState, action) => {
             if (action.payload.data && action.payload.success) {
                 categories = [...new Set(action.payload.data.map(item => item.category).filter(x => x))];
                 action.payload.data.forEach(x => {
+                    if(!x.category) {
+                        x.category = ""
+                    }
                     x.cost = x.cost ? x.cost : 0
                     x.monthAndYear = moment(x.date).format('MM.YYYY')
                     x.date = moment(x.date).format('DD.MM.YYYY')
