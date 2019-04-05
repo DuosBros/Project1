@@ -18,6 +18,7 @@ class Costs extends React.Component {
         multiSearchInput: "",
         showFunctionsMobile: false,
         recordsLimit: this.props.isMobile && GET_ORDERS_LIMIT / 5,
+        costToEdit: null,
         user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
     }
 
@@ -29,8 +30,8 @@ class Costs extends React.Component {
         document.title = APP_TITLE + "Costs"
     }
 
-    handleToggleEditCostModal = () => {
-        this.setState({ showEditCostModal: !this.state.showEditCostModal });
+    handleToggleEditCostModal = (cost) => {
+        this.setState({ showEditCostModal: !this.state.showEditCostModal, costToEdit: cost });
     }
 
     loadMoreCosts = () => {
@@ -74,17 +75,17 @@ class Costs extends React.Component {
             )
         }
 
+        const { isMobile, multiSearchInput, showFunctionsMobile, recordsLimit, costToEdit } = this.state
+        let mappedCosts, pageHeader, table;
         let modal = null
         if (this.state.showEditCostModal) {
             modal = (
                 <AddEditCostsModal
                     handleToggleEditCostModal={this.handleToggleEditCostModal}
-                    show={true} />
+                    show={true} cost={costToEdit} />
             )
         }
 
-        const { isMobile, multiSearchInput, showFunctionsMobile, recordsLimit } = this.state
-        let mappedCosts, pageHeader, table;
 
         if (isMobile) {
             pageHeader = (
@@ -101,7 +102,7 @@ class Costs extends React.Component {
                         {showFunctionsMobile && (
                             <Grid.Row>
                                 <Grid.Column>
-                                    <Button fluid size='large' compact content='Add Cost' id="primaryButton" style={{ marginBottom: '0.3em' }} />
+                                    <Button onClick={this.handleToggleEditCostModal} fluid size='large' compact content='Add Cost' id="primaryButton" style={{ marginBottom: '0.3em' }} />
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
                                         ref={this.handleRef}
@@ -132,7 +133,7 @@ class Costs extends React.Component {
                                     <Grid.Column style={{ textAlign: 'right' }} width={3}>
                                         <>
                                             <Button
-                                                onClick={() => this.handleToggleEditCostModal()}
+                                                onClick={() => this.handleToggleEditCostModal(cost)}
                                                 className='buttonIconPadding'
                                                 style={{ marginBottom: '0.25em' }}
                                                 size='large'
@@ -187,7 +188,7 @@ class Costs extends React.Component {
                             </Header>
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
-                            <Button fluid size='large' compact content='Add Cost' id="primaryButton" />
+                            <Button onClick={() => this.handleToggleEditCostModal()} fluid size='large' compact content='Add Cost' id="primaryButton" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>

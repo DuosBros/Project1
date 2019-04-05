@@ -87,13 +87,16 @@ export default class GenericTable extends Component {
         }
 
         let multiSearch = this.multiSearchFilterFromInput(props.multiSearchInput);
-        let columnDistinctValues = this.generateDistinctValues(columns, props.data, props.distinctValues);
+        let columnDistinctValues = GenericTable.generateDistinctValues(columns, props.data, props.distinctValues);
+
 
         this.state = {
+            showGenericModal: { show: false },
             columnDistinctValues,
             columns,
             columnToggle: columns.filter(c => c.visibleByDefault === false).length > 0,
             data: props.data,
+            propData: props.data,
             expandedRows: [],
             filterInputs,
             filterInputsChanged,
@@ -114,9 +117,9 @@ export default class GenericTable extends Component {
             visibleColumnsList: columns.filter(c => c.visibleByDefault && !c.skipRendering).map(c => c.prop),
         }
 
-        // if (Array.isArray(this.state.data)) {
-        //     this.state.data = this.sort(this.state.data, null);
-        // }
+        if (Array.isArray(this.state.data)) {
+            this.state.data = GenericTable.sort(this.state.data, this.state.grouping, null);
+        }
 
         this.updateMultiFilter = debounce(this.updateMultiFilter, 400);
         this.updateColumnFilters = debounce(this.updateColumnFiltersImmediate, 400);
@@ -155,16 +158,15 @@ export default class GenericTable extends Component {
         };
     }
 
-    generateDistinctValues(columns, data, fromProps) {
+    static generateDistinctValues(columns, data, fromProps) {
         const unfilteredOption = { key: -1, text: (<em>unfiltered</em>), value: -1 };
+
         const optionMapper = (e, i) => ({ key: i, text: e, value: i });
         let columnDistinctValues = {};
 
         for (let c of columns.filter(e => e.searchable === "distinct")) {
-            let values;
-            if (Array.isArray(fromProps[c.prop])) {
-                values = fromProps[c.prop];
-            } else {
+            let values = [];
+            if (!fromProps) {
                 values = data.map(e => e[c.prop])
                     .filter(e =>
                         e !== undefined &&
@@ -172,50 +174,54 @@ export default class GenericTable extends Component {
                     .map(e => e.toString());
 
                 values = _.uniq(values).sort().map(optionMapper);
-                let index = values.findIndex(x => x.text === "")
-                values[index] = ({ key: -2, text: (<em>empty</em>), value: -2 });
-                values.unshift(unfilteredOption);
             }
+            else {
+                if (Array.isArray(fromProps[c.prop])) {
+                    values = fromProps[c.prop].map(optionMapper);
+                }
+            }
+            values.unshift(unfilteredOption);
             columnDistinctValues[c.prop] = values;
         }
         return columnDistinctValues;
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.data !== nextProps.data) {
+    static getDerivedStateFromProps(nextProps, state) {
+        if (state.propData !== nextProps.data) {
             let data;
             if (nextProps.data !== null && Array.isArray(nextProps.data)) {
-                // data = this.sort(nextProps.data, null);
-                data = nextProps.data
+                data = GenericTable.sort(nextProps.data, state.grouping, null);
+
             }
 
-            let columnDistinctValues = this.generateDistinctValues(this.state.columns, data, nextProps.distinctValues)
-            this.setState({ data, columnDistinctValues });
-        } else if (this.props.distinctValues !== nextProps.distinctValues) { // else if, so we don't generate distinct values twice
-            let columnDistinctValues = this.generateDistinctValues(this.state.columns, this.state.data, nextProps.distinctValues)
-            this.setState({ columnDistinctValues });
+            let columnDistinctValues = GenericTable.generateDistinctValues(state.columns, data, nextProps.distinctValues)
+            return { data, columnDistinctValues, propData: nextProps.data };
+        } else if (state.distictValues !== nextProps.distictValues) { // else if, so we don't generate distinct values twice
+            let columnDistinctValues = GenericTable.generateDistinctValues(state.columns, state.data, nextProps.distinctValues)
+            return { columnDistinctValues };
         }
+        return null;
     }
 
     handleSort = clickedColumn => () => {
-        let { sortColumn, data, sortDirection } = this.state
+        this.setState(prev => {
+            let { sortColumn, data, grouping, sortDirection } = prev;
+            if (sortColumn !== clickedColumn) {
 
-        if (sortColumn !== clickedColumn) {
-            this.setState({
-                sortColumn: clickedColumn,
-                data: this.sort(data, clickedColumn, 'ascending'),
-                sortDirection: 'ascending',
+                return {
+                    sortColumn: clickedColumn,
+                    data: GenericTable.sort(data, grouping, clickedColumn, 'ascending'),
+                    sortDirection: 'ascending',
+                    expandedRows: []
+                };
+            }
+
+            sortDirection = sortDirection === 'ascending' ? 'descending' : 'ascending';
+            return {
+                data: GenericTable.sort(data, grouping, sortColumn, sortDirection),
+                sortDirection,
                 expandedRows: []
-            });
-
-            return;
-        }
-
-        sortDirection = sortDirection === 'ascending' ? 'descending' : 'ascending';
-        this.setState({
-            data: this.sort(data, sortColumn, sortDirection),
-            sortDirection,
-            expandedRows: []
+            };
         });
     }
 
@@ -286,10 +292,6 @@ export default class GenericTable extends Component {
             // TODO find cleaner solution
             if (needle === -1) {
                 return null;
-            }
-
-            if(needle === -2) {
-                return heystack => heystack[key].toString() === ""
             }
             return heystack => (
                 heystack[key] !== undefined &&
@@ -402,18 +404,18 @@ export default class GenericTable extends Component {
         });
     }
 
-    sort(data, by, direction) {
-        data = data.slice();
-        data.sort(this.comparatorGrouped.bind(this, direction, by));
+    static sort(input, grouping, by, direction) {
+        const data = input.slice();
+        data.sort((a, b) => GenericTable.comparatorGrouped(direction, grouping, by, a, b));
         return data
     }
 
-    comparatorGrouped(direction, prop, a, b) {
+    static comparatorGrouped(direction, grouping, prop, a, b) {
         let sortFactor = direction === "descending" ? -1 : 1;
 
         var res;
-        for (let g of this.state.grouping) {
-            res = this.compareBase(a[g.prop], b[g.prop]);
+        for (let g of grouping) {
+            res = GenericTable.compareBase(a[g.prop], b[g.prop]);
 
             if (res !== 0) {
                 return res;
@@ -422,13 +424,13 @@ export default class GenericTable extends Component {
         if (prop === null) {
             return res;
         }
-        return sortFactor * this.compareBase(a[prop], b[prop]);
+        return sortFactor * GenericTable.compareBase(a[prop], b[prop]);
     }
 
-    compareBase(a, b) {
-        if (a === null) {
+    static compareBase(a, b) {
+        if (a === null || a === undefined) {
             return b === null ? 0 : -1;
-        } else if (b === null) {
+        } else if (b === null || b === undefined) {
             return 1;
         }
         if (typeof a === "number" && typeof b === "number") {

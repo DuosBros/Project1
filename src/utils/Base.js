@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import axios from 'axios';
 
-import { Container, Message, Icon, Image } from 'semantic-ui-react'
+import { Message, Icon, Image } from 'semantic-ui-react'
 
 import Header from './Header';
 import Login from '../pages/Login/Login';

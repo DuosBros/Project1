@@ -1,8 +1,10 @@
 import React from 'react'
 import GenericTable from './GenericTable';
 import { Button } from 'semantic-ui-react';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-export default class CostsTable extends React.PureComponent {
+class CostsTable extends React.PureComponent {
     columns = [
         {
             name: "Description",
@@ -49,7 +51,7 @@ export default class CostsTable extends React.PureComponent {
         data.actions = (
             <>
                 <Button
-                    onClick={() => this.handleToggleEditCostModal()}
+                    onClick={() => this.handleToggleEditCostModal(data)}
                     className='buttonIconPadding'
                     size='large'
                     icon='edit' />
@@ -69,9 +71,14 @@ export default class CostsTable extends React.PureComponent {
 
 
     render() {
+        let distinctValuesObject = {
+            category: this.props.costsStore.costCategories
+        }
+
+
         return (
             <GenericTable
-                distinctValues={{}}
+                distinctValues={distinctValuesObject}
                 grouping={this.grouping}
                 columns={this.columns}
                 transformDataRow={this.transformDataRow}
@@ -80,3 +87,16 @@ export default class CostsTable extends React.PureComponent {
         );
     }
 }
+
+function mapStateToProps(state) {
+    return {
+        costsStore: state.CostsReducer
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({
+    }, dispatch);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CostsTable);
