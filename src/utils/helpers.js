@@ -42,6 +42,7 @@ export const mapOrderToExcelExport = (data) => {
 
     return formattedOrders;
 }
+
 export const flattenObject = (ob) => {
     var toReturn = {};
 

@@ -415,33 +415,6 @@ class Orders extends React.Component {
 
     }
 
-    handleExport = (data, type) => {
-
-        if (type === "json") {
-            const fileName = new Date().toISOString() + "." + type
-
-            var a = document.createElement("a");
-            document.body.appendChild(a);
-            a.style = "display: none";
-
-            var json = JSON.stringify(data),
-                blob = new Blob([json], { type: "octet/stream" }),
-                url = window.URL.createObjectURL(blob);
-            a.href = url;
-            a.download = fileName;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-        else {
-            const fileName = new Date().toISOString() + "_" + document.title
-            exportDataToExcel(mapOrderToExcelExport(data), fileName, document.title).then((res) => {
-                let blob = new Blob([res.data], { type: 'vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8' });
-                FileSaver.saveAs(blob, fileName + '.xlsx')
-            })
-        }
-        return;
-    }
-
     render() {
 
         const { isMobile, orderIdsShowingDetails } = this.state;

@@ -12,9 +12,10 @@ import {
 import { getBankTransactions, getCurrentYearOrders, getAllProducts, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
-import { filterInArrayOfObjects, debounce, contains } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, contains, mapOrderToExcelExport, pick } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/orderManager';
+import ExportDropdown from '../../components/ExportDropdown';
 
 const MarkAllButtons = (props) => {
     return (
@@ -402,6 +403,7 @@ class Bank extends React.Component {
                     <Grid.Row columns={5} style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
                             <Header as='h1' content='Bank' />
+                            <ExportDropdown data={pick(filteredByMultiSearch, ["date", "value", "vs", "note"])} />
                         </Grid.Column>
                         <Grid.Column width={2}>
                             <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
