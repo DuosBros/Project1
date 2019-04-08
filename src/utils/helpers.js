@@ -181,13 +181,28 @@ export const filterInArrayOfObjects = (filter, array, keys) => {
         for (let key of objk) {
             if (element[key] !== undefined &&
                 element[key] !== null &&
-                contains(element[key], filter)
+                filter(element[key])
             ) { // fuken lodash returning isEmpty true for numbers
                 return true;
             }
         }
         return false;
     });
+}
+
+export const buildFilter = (needle) => {
+    if (needle.length > 0 && needle.substr(0, 1) === "~") {
+        if (needle.length === 1) {
+            return null;
+        }
+        let re = new RegExp(needle.substr(1), "i");
+        return heystack => heystack.toString().search(re) >= 0;
+    }
+    let n = needle.trim().toLowerCase();
+    if (n.length === 0) {
+        return null;
+    }
+    return heystack => heystack.toString().toLowerCase().indexOf(n) >= 0;
 }
 
 /**

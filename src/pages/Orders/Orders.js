@@ -17,7 +17,7 @@ import {
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE } from '../../appConfig'
-import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport, buildFilter } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
@@ -328,7 +328,7 @@ class Orders extends React.Component {
         })
 
         return filterInArrayOfObjects(
-            multiSearchInput,
+            buildFilter(multiSearchInput),
             mappedOrdersForFiltering,
             [
                 "fullName",

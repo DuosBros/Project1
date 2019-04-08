@@ -12,7 +12,7 @@ import {
 import { getBankTransactions, getCurrentYearOrders, getAllProducts, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
-import { filterInArrayOfObjects, debounce, contains, pick } from '../../utils/helpers';
+import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/orderManager';
 import ExportDropdown from '../../components/ExportDropdown';
@@ -111,7 +111,7 @@ class Bank extends React.Component {
     filterData = (transactions, multiSearchInput) => {
 
         return filterInArrayOfObjects(
-            multiSearchInput,
+            buildFilter(multiSearchInput),
             transactions,
             [
                 "date",

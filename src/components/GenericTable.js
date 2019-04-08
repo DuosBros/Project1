@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { Table, Grid, Message, Input, Button, Icon, Label, Popup, Dropdown } from 'semantic-ui-react'
 import Pagination from 'semantic-ui-react-button-pagination';
-import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear, optionsDropdownMapper } from '../utils/helpers';
+import { filterInArrayOfObjects, isNum, debounce, pick, sortMonthYear, optionsDropdownMapper, buildFilter } from '../utils/helpers';
 import { exportDataToExcel } from '../utils/requests';
 import FileSaver from 'file-saver';
 import ExportDropdown from './ExportDropdown';
@@ -313,7 +313,7 @@ export default class GenericTable extends Component {
                 heystack[key].toString() === this.state.columnDistinctValues[key][needle + 1].text.toString()
             );
         }
-        let func = this.buildFilter(needle);
+        let func = buildFilter(needle);
         if (func == null) {
             return func;
         }
@@ -322,21 +322,6 @@ export default class GenericTable extends Component {
             heystack[key] !== null &&
             func(heystack[key])
         );
-    }
-
-    buildFilter(needle) {
-        if (needle.length > 0 && needle.substr(0, 1) === "~") {
-            if (needle.length === 1) {
-                return null;
-            }
-            let re = new RegExp(needle.substr(1), "i");
-            return heystack => heystack.toString().search(re) >= 0;
-        }
-        let n = needle.trim().toLowerCase();
-        if (n.length === 0) {
-            return null;
-        }
-        return heystack => heystack.toString().toLowerCase().indexOf(n) >= 0;
     }
 
     handleMultiFilterChange = (e, { value }) => {
@@ -349,7 +334,7 @@ export default class GenericTable extends Component {
             valid = false;
 
         try {
-            func = this.buildFilter(input);
+            func = buildFilter(input);
             valid = true;
         } catch (e) {
             // ignore errors, valid will be false anyway

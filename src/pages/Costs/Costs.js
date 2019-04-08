@@ -9,19 +9,25 @@ import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
 import AddEditCostsModal from '../../components/AddEditCostModal';
 import { fetchCostsAndHandleResult } from '../../utils/orderManager';
-import { optionsDropdownMapper } from '../../utils/helpers';
+import { optionsDropdownMapper, debounce, filterInArrayOfObjects, buildFilter } from '../../utils/helpers';
 import { deleteCost } from '../../utils/requests';
 
 class Costs extends React.Component {
 
-    state = {
-        showEditCostModal: false,
-        isMobile: this.props.isMobile,
-        multiSearchInput: "",
-        showFunctionsMobile: false,
-        recordsLimit: this.props.isMobile && GET_ORDERS_LIMIT / 5,
-        costToEdit: null,
-        user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showEditCostModal: false,
+            isMobile: this.props.isMobile,
+            multiSearchInput: "",
+            showFunctionsMobile: false,
+            recordsLimit: this.props.isMobile && GET_ORDERS_LIMIT / 5,
+            costToEdit: null,
+            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+        }
+
+        this.updateFilters = debounce(this.updateFilters, 1000);
     }
 
     componentDidMount() {
@@ -47,16 +53,24 @@ class Costs extends React.Component {
 
     handleDeleteCost = (cost) => {
         deleteCost(cost.id)
-        .then(() => {
-            this.props.deleteCostAction(cost.id)
-        })
-        .catch(err => {
-            this.props.showGenericModalAction({
-                redirectTo: '/costs',
-                parentProps: this.props,
-                err: err
+            .then(() => {
+                this.props.deleteCostAction(cost.id)
             })
-        })
+            .catch(err => {
+                this.props.showGenericModalAction({
+                    redirectTo: '/costs',
+                    parentProps: this.props,
+                    err: err
+                })
+            })
+    }
+
+    handleFilterChange = (e, { value }) => {
+        this.updateFilters(value ? value : "");
+    }
+
+    updateFilters = (value) => {
+        this.setState({ multiSearchInput: value });
     }
 
     render() {
@@ -92,7 +106,7 @@ class Costs extends React.Component {
         }
 
         const { isMobile, multiSearchInput, showFunctionsMobile, recordsLimit, costToEdit } = this.state
-        let mappedCosts, pageHeader, table;
+        let mappedCosts, pageHeader, table, filteredByMultiSearch, costs;
         let modal = null
         if (this.state.showEditCostModal) {
             modal = (
@@ -102,6 +116,14 @@ class Costs extends React.Component {
             )
         }
 
+        costs = this.props.costsStore.costs.data;
+
+        if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
+            filteredByMultiSearch = filterInArrayOfObjects(buildFilter(multiSearchInput), costs, ["description", "category", "dateFormated", "cost", "note"])
+        }
+        else {
+            filteredByMultiSearch = costs
+        }
 
         if (isMobile) {
             pageHeader = (
@@ -133,7 +155,7 @@ class Costs extends React.Component {
                 </Grid>
             )
 
-            mappedCosts = this.props.costsStore.costs.data.slice(0, recordsLimit).map(cost => {
+            mappedCosts = filteredByMultiSearch.slice(0, recordsLimit).map(cost => {
                 // mobile return
                 return (
                     <Table.Row
@@ -209,7 +231,7 @@ class Costs extends React.Component {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} handleDeleteCost={this.handleDeleteCost} compact="very" rowsPerPage={50} data={this.props.costsStore.costs.data} />
+                            <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} handleDeleteCost={this.handleDeleteCost} compact="very" rowsPerPage={50} data={filteredByMultiSearch} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
