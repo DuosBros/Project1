@@ -180,7 +180,7 @@ export default class GenericTable extends Component {
                 }
             }
 
-            let index = mappedData.findIndex(x => x === "")
+            let index = mappedData.findIndex(x => x === undefined || x === null || x.toString().trim().length === 0)
             if (index >= 0) {
                 values.push({ key: -2, text: (<em>empty</em>), value: -2 });
             }
@@ -300,7 +300,11 @@ export default class GenericTable extends Component {
             }
 
             if (needle === -2) {
-                return heystack => heystack[key].toString() === ""
+                return heystack => (
+                    heystack[key] === undefined ||
+                    heystack[key] === null ||
+                    heystack[key].toString().trim().length === 0
+                );
             }
 
             return heystack => (

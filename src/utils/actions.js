@@ -1,3 +1,17 @@
+export function deleteCostAction(payload) {
+    return {
+        payload,
+        type: 'DELETE_COST'
+    }
+}
+
+export function editCostAction(payload) {
+    return {
+        payload,
+        type: 'EDIT_COST'
+    }
+}
+
 export function addCostAction(payload) {
     return {
         payload,

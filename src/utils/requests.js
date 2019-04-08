@@ -1,9 +1,28 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
+export function deleteCost(costId) {
+    return axios.delete(MEDPHARMAVN_API + 'costs/' + costId)
+}
+
+export function createCost(cost) {
+    return axios.post(MEDPHARMAVN_API + 'costs', cost)
+}
+
+export function editCost(cost) {
+    return axios.put(MEDPHARMAVN_API + 'costs/' + cost.id, cost)
+}
+
+/**
+ * Export data to excel
+ * @param {Array} data
+ * @param {string} fileName
+ * @param {string} sheetName
+ */
 export function exportDataToExcel(data, fileName, sheetName) {
     return axios.post(MEDPHARMAVN_API + 'export/' + fileName + '/' + sheetName, data, { responseType: 'blob' })
 }
+
 /**
  * Send authentication payload
  * @param {object} payload

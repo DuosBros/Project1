@@ -3,13 +3,14 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import moment from 'moment';
 import { Grid, Header, Message, Icon, Button, Table, Transition, Input } from 'semantic-ui-react';
-import { getCostsAction } from '../../utils/actions';
+import { getCostsAction, showGenericModalAction, deleteCostAction } from '../../utils/actions';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
 import AddEditCostsModal from '../../components/AddEditCostModal';
 import { fetchCostsAndHandleResult } from '../../utils/orderManager';
 import { optionsDropdownMapper } from '../../utils/helpers';
+import { deleteCost } from '../../utils/requests';
 
 class Costs extends React.Component {
 
@@ -42,6 +43,20 @@ class Costs extends React.Component {
 
     toggleShowFunctionsMobile = () => {
         this.setState({ showFunctionsMobile: !this.state.showFunctionsMobile })
+    }
+
+    handleDeleteCost = (cost) => {
+        deleteCost(cost.id)
+        .then(() => {
+            this.props.deleteCostAction(cost.id)
+        })
+        .catch(err => {
+            this.props.showGenericModalAction({
+                redirectTo: '/costs',
+                parentProps: this.props,
+                err: err
+            })
+        })
     }
 
     render() {
@@ -194,7 +209,7 @@ class Costs extends React.Component {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} compact="very" rowsPerPage={50} data={this.props.costsStore.costs.data} />
+                            <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} handleDeleteCost={this.handleDeleteCost} compact="very" rowsPerPage={50} data={this.props.costsStore.costs.data} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -211,7 +226,9 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        getCostsAction
+        getCostsAction,
+        deleteCostAction,
+        showGenericModalAction
     }, dispatch);
 }
 

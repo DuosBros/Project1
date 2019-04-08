@@ -19,7 +19,7 @@ class CostsTable extends React.PureComponent {
         },
         {
             name: "Date",
-            prop: "date",
+            prop: "dateFormated",
             width: 2,
         },
         {
@@ -56,6 +56,7 @@ class CostsTable extends React.PureComponent {
                     size='large'
                     icon='edit' />
                 <Button
+                    onClick={() => this.handleDeleteCost(data)}
                     className='buttonIconPadding'
                     size='large'
                     icon='remove' />
