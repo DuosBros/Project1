@@ -1,83 +1,26 @@
-export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? "http://localhost:3000/rest/" : "https://medpharmavn.herokuapp.com/rest/"
-export const DEFAULT_SMARTFORM_LIMIT = 10
+import config from './config';
 
-export const LOCALSTORAGE_NAME = 'showBubsAndVagena'
+export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? config.url.api.local : config.url.api.prod
+export const DEFAULT_SMARTFORM_LIMIT = config.config.defaultSmartformLimit
 
-export const GET_ORDERS_LIMIT = 100
+export const LOCALSTORAGE_NAME = config.config.localStorageName
 
-export const warningColor = '#f7ead89c'
-export const successColor = '#f5fbe7'
-export const errorColor = '#f2005614'
-export const notActiveColor = '#bfbfbf'
+export const GET_ORDERS_LIMIT = config.config.ordersPerPageAndRequestLimit
 
-export const deliveryCompanies = [
-    { company: "GLS" },
-    { company: "CP" }
-]
+export const warningColor = config.styles.warningColor
+export const successColor = config.styles.successColor
+export const errorColor = config.styles.errorColor
+export const notActiveColor = config.styles.notActiveColor
 
-export const deliveryTypes = [
-    { type: "VS" },
-    { type: "CASH" }
-]
+export const deliveryCompanies = config.config.deliveryCompanies
 
-export const DEFAULT_ORDER_LOCK_SECONDS = 10
+export const deliveryTypes = config.config.deliveryTypes
 
-export const APP_TITLE = "MedpharmaVN - "
+export const DEFAULT_ORDER_LOCK_SECONDS = config.config.defaultLockSeconds
 
-export const ORDER_DELIVERY_JSON = {
-    "currency": "CZK",
-    "payment_type": "invoice",
-    "shipments": [
-        {
-            "type": "ONDEMAND",
-            "carrier": "GLS",
-            "reference": null,
-            "pickup_branch": "1",
-            "from": {
-                "id": 8
-            },
-            "to": {
-                "firstname": null,
-                "surname": null,
-                "street": null,
-                "city": null,
-                "zip": null,
-                "country": "CZ",
-                "phone": null,
-                "company": null
-            },
-            "services": [
-                {
-                    "code": "ins",
-                    "data": {
-                        "currency": "CZK",
-                        "value": 6000
-                    }
-                },
-                {
-                    "code": "cod",
-                    "data": {
-                        "bank_account": "2401089228",
-                        "bank_code": "2010",
-                        "bank_variable": null,
-                        "value": {
-                            "currency": "CZK",
-                            "value": null
-                        }
-                    }
-                }
-            ],
-            "packages": [
-                {
-                    "weight": null,
-                    "width": null,
-                    "height": null,
-                    "length": null
-                }
-            ]
-        }
-    ]
-}
+export const APP_TITLE = config.config.appTitle
+
+export const ORDER_DELIVERY_JSON = config.zaslatDeliveryJson
 
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b | clip.exe
 
@@ -92,3 +35,4 @@ export const ORDER_DELIVERY_JSON = {
 // 12.03  4769
 // 22.03  6384
 // 25.03  6551
+// 10.04  7132
