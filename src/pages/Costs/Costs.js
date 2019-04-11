@@ -8,7 +8,7 @@ import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig'
 import ErrorMessage from '../../components/ErrorMessage';
 import CostsTable from '../../components/CostsTable';
 import AddEditCostsModal from '../../components/AddEditCostModal';
-import { fetchCostsAndHandleResult } from '../../utils/orderManager';
+import { fetchCostsAndHandleResult } from '../../handlers/orderHandler';
 import { optionsDropdownMapper, debounce, filterInArrayOfObjects, buildFilter } from '../../utils/helpers';
 import { deleteCost } from '../../utils/requests';
 
@@ -82,7 +82,7 @@ class Costs extends React.Component {
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
-                                Orders
+                                Costs
                             </Header>
                             <ErrorMessage handleRefresh={this.fetchCostsAndHandleResult} error={this.props.costsStore.costs.error} />
                         </Grid.Column>

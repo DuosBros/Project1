@@ -2,9 +2,10 @@ import React from 'react';
 import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, TextArea, Dropdown, Message } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { getAllProducts, getSenders, getOrder, orderDelivery } from '../utils/requests';
+import { getSenders, getOrder, orderDelivery } from '../utils/requests';
 import { getAllProductsAction, getSendersAction, showGenericModalAction, getOrderAction } from '../utils/actions';
 import { ORDER_DELIVERY_JSON } from '../appConfig';
+import { fetchAndHandleProducts } from '../handlers/productHandler';
 
 const SenderDropdown = (props) => {
     return (
@@ -43,21 +44,14 @@ class CreateZaslatModal extends React.PureComponent {
                 this.props.getSendersAction({ success: true, error: err })
             })
 
-        var products = []
         var temp = this.props.order
         if (!this.props.ordersPageStore.products.data) {
-            try {
-                products = await getAllProducts()
-                this.props.getAllProductsAction({ success: true, data: products.data })
-            }
-            catch (err) {
-                this.props.getAllProductsAction({ success: false, error: err })
-                this.props.showGenericModalAction({
+            await fetchAndHandleProducts(
+                this.props.getAllProductsAction,
+                this.props.showGenericModalAction, {
                     redirectTo: '/orders',
-                    parentProps: this.props,
-                    err: err
+                    parentProps: this.props
                 })
-            }
         }
 
         // setting default values and order specific values

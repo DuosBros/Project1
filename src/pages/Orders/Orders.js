@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllProducts
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -22,8 +22,9 @@ import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import CreateZaslatModal from '../../components/CreateZaslatModal';
-import { handleTogglePaidOrder, getOrderAndHandleResult } from '../../utils/orderManager';
+import { handleTogglePaidOrder, getOrderAndHandleResult, fetchAndHandleThisYearOrders } from '../../handlers/orderHandler';
 import ExportDropdown from '../../components/ExportDropdown';
+import { fetchAndHandleProducts } from '../../handlers/productHandler';
 
 class Orders extends React.Component {
 
@@ -72,14 +73,7 @@ class Orders extends React.Component {
         }
 
         if (!this.props.ordersStore.products.data) {
-            getAllProducts()
-                .then(res => {
-                    this.props.getAllProductsAction({ success: true, data: res.data })
-                })
-                .catch(err => {
-
-                    this.props.getAllProductsAction({ success: false, error: err })
-                })
+            fetchAndHandleProducts(this.props.getAllProductsAction);
         }
 
         this.fetchAndHandleNotPaidNotifications()
@@ -87,13 +81,7 @@ class Orders extends React.Component {
     }
 
     fetchAndHandleThisYearOrders = () => {
-        getCurrentYearOrders(GET_ORDERS_LIMIT, null)
-            .then(res => {
-                this.props.getOrdersAction({ data: res.data, success: true })
-            })
-            .catch(err => {
-                this.props.getOrdersAction({ error: err, success: false })
-            })
+        fetchAndHandleThisYearOrders(this.props.getOrdersAction, GET_ORDERS_LIMIT, null)
     }
 
     fetchAndHandleNotPaidNotifications = () => {
@@ -830,7 +818,7 @@ class Orders extends React.Component {
                                         size='small'
                                         compact
                                         content={this.state.orderLabelsToPrint.length > 0 ? ("Print labels (" + this.state.orderLabelsToPrint.length + ")") : this.state.showPrintLabelsIcon ? "Print labels (0)" : "Print labels"}
-                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon && "orange"} />
+                                        color={this.state.orderLabelsToPrint.length > 0 ? "green" : this.state.showPrintLabelsIcon ? "orange" : null} />
                                 ) : (
                                         <ErrorMessage stripImage={true} error={this.props.zaslatStore.zaslatOrders.error} handleRefresh={this.getAllZaslatOrdersAndHandleResult} />
                                     )

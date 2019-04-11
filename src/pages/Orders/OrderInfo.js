@@ -5,12 +5,13 @@ import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Me
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS, APP_TITLE } from '../../appConfig';
 import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
-import { getAllProducts, verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
+import { verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
 import ProductRow from '../../components/ProductRow';
 import { handleVerifyLockError, getGLSDeliveryPrice, contains } from '../../utils/helpers';
 import _ from 'lodash';
 import moment from 'moment';
+import { fetchAndHandleProducts } from '../../handlers/productHandler';
 
 const DeliveryCompanyButtonGroup = (props) => {
     return (
@@ -167,13 +168,7 @@ class OrderInfo extends React.Component {
         document.title = APP_TITLE + (this.state.isEdit ? "Edit order" : "New order")
 
         if (!this.props.ordersPageStore.products.data) {
-            try {
-                var res = await getAllProducts()
-                this.props.getAllProductsAction({ success: true, data: res.data })
-            }
-            catch (err) {
-                this.props.getAllProductsAction({ success: false, error: err })
-            }
+            fetchAndHandleProducts(this.props.getAllProductsAction);
         }
 
         if (this.state.isEdit) {

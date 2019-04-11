@@ -1,14 +1,31 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
+
+export function getWarehouseProducts() {
+    return axios.get(MEDPHARMAVN_API + 'warehouse/products')
+}
+
+/**
+ *
+ * @param {Number} costId
+ */
 export function deleteCost(costId) {
     return axios.delete(MEDPHARMAVN_API + 'costs/' + costId)
 }
 
+/**
+ *
+ * @param {Object} cost
+ */
 export function createCost(cost) {
     return axios.post(MEDPHARMAVN_API + 'costs', cost)
 }
 
+/**
+ *
+ * @param {Object} cost
+ */
 export function editCost(cost) {
     return axios.put(MEDPHARMAVN_API + 'costs/' + cost.id, cost)
 }

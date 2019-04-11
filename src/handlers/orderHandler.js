@@ -1,8 +1,19 @@
 import moment from 'moment';
-import { getOrder, lockOrder, updateOrder, getCosts } from './requests';
+import { getOrder, lockOrder, updateOrder, getCosts, getCurrentYearOrders } from '../utils/requests';
 import { DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
-/* this is helper file for shared business logic across components */
+export const fetchAndHandleThisYearOrders = (getOrdersAction, limit, sinceId, mapOrdersToTransactionsActions) => {
+    getCurrentYearOrders(limit, sinceId)
+        .then(res => {
+            getOrdersAction({ data: res.data, success: true })
+            if(mapOrdersToTransactionsActions) {
+                mapOrdersToTransactionsActions({ data: res.data, success: true })
+            }
+        })
+        .catch(err => {
+            getOrdersAction({ error: err, success: false })
+        })
+}
 
 export const handleTogglePaidOrder = async (props) => {
     let { order, user } = props;

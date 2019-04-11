@@ -9,13 +9,14 @@ import {
     showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
     updateOrderInTransactionAction, getCostsAction, addCostAction
 } from '../../utils/actions'
-import { getBankTransactions, getCurrentYearOrders, getAllProducts, addCost } from '../../utils/requests'
+import { getBankTransactions, getCurrentYearOrders, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
-import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../../utils/orderManager';
+import { handleTogglePaidOrder, fetchCostsAndHandleResult, fetchAndHandleThisYearOrders } from '../../handlers/orderHandler';
 import ExportDropdown from '../../components/ExportDropdown';
+import { fetchAndHandleProducts } from '../../handlers/productHandler';
 
 const MarkAllButtons = (props) => {
     return (
@@ -50,7 +51,7 @@ class Bank extends React.Component {
         this.fetchBankTransactions()
 
         if (!this.props.ordersStore.products.data) {
-            this.fetchAndHandleProducts();
+            fetchAndHandleProducts(this.props.getAllProductsAction);
         }
 
         if (!this.props.costsStore.costs.data) {
@@ -67,45 +68,17 @@ class Bank extends React.Component {
         this.setState({ recordsLimit: currentLimit });
     }
 
-    fetchAndHandleProducts = () => {
-        getAllProducts()
-            .then(res => {
-                this.props.getAllProductsAction({ success: true, data: res.data })
-            })
-            .catch(err => {
-
-                this.props.getAllProductsAction({ success: false, error: err })
-            })
-    }
-
     fetchBankTransactions = () => {
         getBankTransactions()
             .then(res => {
                 this.props.getBankTransactionsAction({ success: true, data: res.data })
             })
             .then(() => {
-                this.fetchAndHandleThisYearOrders()
+                fetchAndHandleThisYearOrders(this.props.getOrdersAction, null, null, this.props.mapOrdersToTransactionsActions)
             })
             .catch(err => {
                 this.props.getBankTransactionsAction({ success: false, error: err })
             })
-    }
-
-    fetchAndHandleThisYearOrders = () => {
-        if (!this.props.ordersStore.orders.data) {
-            getCurrentYearOrders(null, null)
-                .then(res => {
-                    this.props.getOrdersAction({ data: res.data, success: true })
-                    this.props.mapOrdersToTransactionsActions({ data: res.data, success: true })
-
-                })
-                .catch(err => {
-                    this.props.getOrdersAction({ error: err, success: false })
-                })
-        }
-        else {
-            this.props.mapOrdersToTransactionsActions({ data: this.props.ordersStore.orders.data, success: true })
-        }
     }
 
     filterData = (transactions, multiSearchInput) => {
@@ -276,7 +249,7 @@ class Bank extends React.Component {
                 }
             } else {
                 let found = costs.some(cost => {
-                    return (cost.date === transaction.date && contains(cost.description, transaction.note) && contains(cost.note, "Generated from Bank page"))
+                    return (cost.dateFormated === transaction.date && cost.description === transaction.note && contains(cost.note, "Generated from Bank page"))
                 })
 
                 if (!found) {
