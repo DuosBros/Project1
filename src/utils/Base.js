@@ -12,7 +12,6 @@ import Orders from '../pages/Orders/Orders';
 
 import { authenticateAction, authenticationInProgressAction, authenticateSucceededAction } from './actions';
 import { LOCALSTORAGE_NAME } from '../appConfig'
-import Bank from '../pages/Bank/Bank';
 
 import OrderInfo from '../pages/Orders/OrderInfo';
 import { validateToken } from './requests';
@@ -22,6 +21,7 @@ import GenericModal from '../components/GenericModal';
 import Costs from '../pages/Costs/Costs';
 import ScrollToTop from './ScrollToTop';
 import WarehouseContainer from '../containers/WarehouseContainer';
+import BankContainer from '../containers/BankContainer';
 
 class Base extends React.Component {
 
@@ -92,7 +92,7 @@ class Base extends React.Component {
                     <Route path='/orders/new' render={(props) => <OrderInfo {...props} isMobile={isMobile} />} />
                     <Route path='/orders/:id' render={(props) => <OrderInfo {...props} key={props.match.params.id} isMobile={isMobile} />} />
                     <Route exact path='/orders' render={(props) => <Orders {...props} isMobile={isMobile} />} />
-                    <Route exact path='/bank' render={(props) => <Bank {...props} isMobile={isMobile} />} />
+                    <Route exact path='/bank' render={(props) => <BankContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
                 </Switch>

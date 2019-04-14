@@ -20,15 +20,18 @@ componentDidMount() {
     }
 
     render() {
-        return (<Warehouse
+        return (
+        <Warehouse
             products={this.props.ordersStore.products}
-            fetchAndHandleProducts={fetchAndHandleProducts}/>)
+            fetchAndHandleProducts={fetchAndHandleProducts}
+            productCategories={this.props.ordersStore.productCategories} />)
     }
 }
 
 function mapStateToProps(state) {
     return {
         ordersStore: state.OrdersReducer,
+        warehouseStore: state.WarehouseReducer
     };
 }
 

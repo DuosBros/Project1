@@ -3,6 +3,7 @@ import React from 'react';
 import { Grid, Header, Button, Message, Icon } from 'semantic-ui-react';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, LOCALSTORAGE_NAME } from '../../appConfig';
+import WarehouseTable from '../../components/WarehouseTable';
 
 export default class Warehouse extends React.PureComponent {
 
@@ -55,6 +56,13 @@ export default class Warehouse extends React.PureComponent {
 
         const { isMobile, multiSearchInput, showFunctionsMobile } = this.state
 
+        let keys = Object.keys(this.props.products.data)
+        var mappedProducts = keys.map((x, i) => {
+            this.props.products.data[x].id = i
+            this.props.products.data[x].productName = x
+            return this.props.products.data[x]
+        })
+
         // render page
         if (isMobile) {
 
@@ -74,7 +82,7 @@ export default class Warehouse extends React.PureComponent {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            {/* <CostsTable handleToggleEditCostModal={this.handleToggleEditCostModal} handleDeleteCost={this.handleDeleteCost} compact="very" rowsPerPage={50} data={filteredByMultiSearch} /> */}
+                            <WarehouseTable categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

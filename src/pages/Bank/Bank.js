@@ -1,22 +1,11 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { bindActionCreators } from 'redux';
 import { Icon, Message, Grid, Header, Table, Input, Button, Transition } from 'semantic-ui-react';
 import moment from 'moment';
-
-import {
-    getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
-    showGenericModalAction, openOrderDetailsAction, getAllProductsAction, getOrderAction,
-    updateOrderInTransactionAction, getCostsAction, addCostAction
-} from '../../utils/actions'
-import { getBankTransactions, getCurrentYearOrders, addCost } from '../../utils/requests'
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
-import { handleTogglePaidOrder, fetchCostsAndHandleResult, fetchAndHandleThisYearOrders } from '../../handlers/orderHandler';
 import ExportDropdown from '../../components/ExportDropdown';
-import { fetchAndHandleProducts } from '../../handlers/productHandler';
 
 const MarkAllButtons = (props) => {
     return (
@@ -31,7 +20,6 @@ class Bank extends React.Component {
         super(props);
 
         this.state = {
-            hasMarkAllAsPaidStarted: false,
             multiSearchInput: "",
             isMobile: props.isMobile,
             showFunctionsMobile: false,
@@ -39,46 +27,20 @@ class Bank extends React.Component {
             showMultiSearchFilter: false,
             recordsLimit: props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             rowIdsShowingDetails: [],
-            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         }
 
-        this.updateFilters = debounce(this.updateFilters, 1000);
+        this.updateFilters = debounce(this.updateFilters, 500);
 
         this.showTogglePaidOrdersButtonRef = React.createRef()
     }
 
     componentDidMount() {
-        this.fetchBankTransactions()
-
-        if (!this.props.ordersStore.products.data) {
-            fetchAndHandleProducts(this.props.getAllProductsAction);
-        }
-
-        if (!this.props.costsStore.costs.data) {
-            fetchCostsAndHandleResult({
-                getCostsAction: this.props.getCostsAction
-            })
-        }
-
         document.title = APP_TITLE + "Bank"
     }
 
     loadMoreTransactions = () => {
         var currentLimit = this.state.recordsLimit + 100
         this.setState({ recordsLimit: currentLimit });
-    }
-
-    fetchBankTransactions = () => {
-        getBankTransactions()
-            .then(res => {
-                this.props.getBankTransactionsAction({ success: true, data: res.data })
-            })
-            .then(() => {
-                fetchAndHandleThisYearOrders(this.props.getOrdersAction, null, null, this.props.mapOrdersToTransactionsActions)
-            })
-            .catch(err => {
-                this.props.getBankTransactionsAction({ success: false, error: err })
-            })
     }
 
     filterData = (transactions, multiSearchInput) => {
@@ -136,59 +98,9 @@ class Bank extends React.Component {
         }
     }
 
-    handleTogglePaidOrder = async (order) => {
-        let updatedOrder = await handleTogglePaidOrder({
-            order: order,
-            user: this.state.user,
-            getOrderAction: this.props.getOrderAction
-        })
-
-        this.props.updateOrderInTransactionAction({ success: true, data: updatedOrder });
-    }
-
-    handleAddTransactionToCost = async (transaction) => {
-        //TODO: check if the cost is already there
-        let payload = {
-            date: moment(transaction.date, "DD.MM.YYYY").toISOString(),
-            description: transaction.note,
-            cost: (transaction.value * -1),
-            note: "Generated from Bank page"
-        }
-
-        try {
-            await addCost(payload);
-            this.props.addCostAction(payload)
-            this.props.updateOrderInTransactionAction({ success: true, data: transaction.order });
-        }
-        catch (err) {
-            this.props.showGenericModalAction({
-                err: err
-            })
-        }
-    }
-
-    handleMarkAllAsPaidButton = (orders) => {
-        this.setState({ hasMarkAllAsPaidStarted: true });
-        let promises = []
-        orders.forEach(order => {
-            promises.push(this.handleTogglePaidOrder(order))
-        })
-
-        Promise.all(promises)
-            .catch((err) => {
-                this.props.showGenericModalAction({
-                    err: err
-                })
-            })
-            .finally(() => {
-                this.setState({ hasMarkAllAsPaidStarted: false });
-            });
-
-    }
-
     render() {
         // in case of error
-        if (!this.props.bankStore.transactions.success) {
+        if (!this.props.transactions.success) {
             return (
                 <Grid stackable>
                     <Grid.Row>
@@ -196,7 +108,7 @@ class Bank extends React.Component {
                             <Header as='h1'>
                                 Bank transaction
                             </Header>
-                            <ErrorMessage handleRefresh={this.fetchBankTransactions} error={this.props.bankStore.transactions.error} />
+                            <ErrorMessage handleRefresh={this.props.fetchBankTransactions} error={this.props.transactions.error} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -204,7 +116,7 @@ class Bank extends React.Component {
         }
 
         // in case it's still loading data
-        if (!this.props.bankStore.transactions.data) {
+        if (!this.props.transactions.data) {
             return (
                 <div className="messageBox">
                     <Message info icon>
@@ -217,10 +129,10 @@ class Bank extends React.Component {
             )
         }
 
-        const { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails, hasMarkAllAsPaidStarted } = this.state;
+        const { multiSearchInput, isMobile, showFunctionsMobile, showMultiSearchFilter, recordsLimit, rowIdsShowingDetails } = this.state;
         let filteredByMultiSearch, mappedTransactions, table, pageHeader, notPaidOrders;
-        let transactions = this.props.bankStore.transactions.data;
-        let costs = this.props.costsStore.costs.data;
+        let transactions = this.props.transactions.data;
+        let costs = this.props.costs.data;
 
         if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
             filteredByMultiSearch = this.filterData(transactions, multiSearchInput);
@@ -234,7 +146,7 @@ class Bank extends React.Component {
 
             if (rowIdsShowingDetails.indexOf(transaction.index) > -1) {
                 if (transaction.order) {
-                    transactionInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={transaction.order} isMobile={isMobile} />
+                    transactionInlineDetails = <OrderInlineDetails products={this.props.products} order={transaction.order} isMobile={isMobile} />
                 } else {
                     transactionInlineDetails = isMobile ? <Table.Cell>No order details mapped. Probably not an incoming transaction.</Table.Cell> : <Table.Row style={transaction.rowStyle}><Table.Cell colSpan='6'>No order details mapped. Probably not an incoming transaction.</Table.Cell></Table.Row>
                 }
@@ -337,7 +249,7 @@ class Bank extends React.Component {
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
                             <Grid.Row>
-                                <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
+                                <MarkAllButtons hasMarkAllAsPaidStarted={this.props.hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.props.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                                 <Grid.Column>
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
@@ -379,7 +291,7 @@ class Bank extends React.Component {
                             <ExportDropdown data={pick(filteredByMultiSearch, ["date", "value", "vs", "note"])} />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <MarkAllButtons hasMarkAllAsPaidStarted={hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
+                            <MarkAllButtons hasMarkAllAsPaidStarted={this.props.hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.props.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                         </Grid.Column>
                         <Grid.Column width={5}>
                         </Grid.Column>
@@ -429,27 +341,4 @@ class Bank extends React.Component {
     }
 }
 
-function mapStateToProps(state) {
-    return {
-        bankStore: state.BankReducer,
-        ordersStore: state.OrdersReducer,
-        costsStore: state.CostsReducer
-    };
-}
-
-function mapDispatchToProps(dispatch) {
-    return bindActionCreators({
-        getBankTransactionsAction,
-        getOrdersAction,
-        getOrderAction,
-        mapOrdersToTransactionsActions,
-        showGenericModalAction,
-        openOrderDetailsAction,
-        getAllProductsAction,
-        updateOrderInTransactionAction,
-        getCostsAction,
-        addCostAction
-    }, dispatch);
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Bank);
+export default Bank;

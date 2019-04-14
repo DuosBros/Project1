@@ -759,7 +759,7 @@ export default class GenericTable extends Component {
             }
         }
 
-        if (grouping) {
+        if (grouping.findIndex(x => x.prop === "monthAndYear") >= 0) {
             filteredData = sortMonthYear(filteredData);
         }
 
