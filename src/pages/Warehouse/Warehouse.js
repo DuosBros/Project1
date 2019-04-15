@@ -4,6 +4,8 @@ import { Grid, Header, Button, Message, Icon } from 'semantic-ui-react';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, LOCALSTORAGE_NAME } from '../../appConfig';
 import WarehouseTable from '../../components/WarehouseTable';
+import { optionsDropdownMapper } from '../../utils/helpers';
+import AddEditProductModal from '../../components/AddEditProductModal';
 
 export default class Warehouse extends React.PureComponent {
 
@@ -14,12 +16,22 @@ export default class Warehouse extends React.PureComponent {
             isMobile: this.props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
-            user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
+            isGroupingEnabled: true,
+            showProductModal: false,
+            productToEdit: null,
         }
 
     }
     componentDidMount() {
         document.title = APP_TITLE + "Warehouse"
+    }
+
+    handleToggleGrouping = () => {
+        this.setState({ isGroupingEnabled: !this.state.isGroupingEnabled });
+    }
+
+    handleToggleProductModal = (product) => {
+        this.setState({ showProductModal: !this.state.showProductModal, productToEdit: product });
     }
 
     render() {
@@ -54,7 +66,18 @@ export default class Warehouse extends React.PureComponent {
             )
         }
 
-        const { isMobile, multiSearchInput, showFunctionsMobile } = this.state
+        const { isMobile, multiSearchInput, showFunctionsMobile,
+            isGroupingEnabled, productToEdit, showProductModal } = this.state
+        let modal = null
+        if (showProductModal) {
+            modal = (
+                <AddEditProductModal
+                    handleToggleProductModal={this.handleToggleProductModal}
+                    show={true}
+                    product={productToEdit}
+                    categories={this.props.productCategories.map(optionsDropdownMapper)} />
+            )
+        }
 
         let keys = Object.keys(this.props.products.data)
         var mappedProducts = keys.map((x, i) => {
@@ -70,6 +93,7 @@ export default class Warehouse extends React.PureComponent {
         else {
             return (
                 <Grid stackable>
+                    {modal}
                     <Grid.Row style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
                             <Header as='h1'>
@@ -77,12 +101,15 @@ export default class Warehouse extends React.PureComponent {
                                 </Header>
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
-                            <Button fluid size='large' compact content='Add Product' id="primaryButton" />
+                            <Button onClick={this.handleToggleProductModal} fluid size='large' compact content='Add Product' id="primaryButton" />
+                        </Grid.Column>
+                        <Grid.Column width={2} textAlign='left'>
+                            <Button onClick={this.handleToggleGrouping} fluid size='large' compact content={isGroupingEnabled ? 'Remove grouping' : 'Add grouping'} id="secondaryButton" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <WarehouseTable categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
+                            <WarehouseTable compact="very" isGroupingEnabled={isGroupingEnabled} categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

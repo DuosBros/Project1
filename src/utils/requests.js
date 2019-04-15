@@ -1,6 +1,14 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 
+//{"name":"Test","price":1,"weight":20,"tax":21}
+export function createProduct(product) {
+    return axios.post(MEDPHARMAVN_API + 'products', product)
+}
+
+export function editProduct(product) {
+    return axios.put(MEDPHARMAVN_API + 'products/' + product.id, product)
+}
 
 export function getWarehouseProducts() {
     return axios.get(MEDPHARMAVN_API + 'warehouse/products')

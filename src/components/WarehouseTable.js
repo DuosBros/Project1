@@ -1,13 +1,13 @@
 import React from 'react'
 import GenericTable from './GenericTable';
-import { Button } from 'semantic-ui-react';
+import { Button, Popup } from 'semantic-ui-react';
 
 class CostsTable extends React.PureComponent {
     columns = [
         {
             name: "Product",
             prop: "productName",
-            width: 4,
+            width: 3,
         },
         {
             name: "Category",
@@ -18,47 +18,70 @@ class CostsTable extends React.PureComponent {
         {
             name: "Price [CZK]",
             prop: "price",
-            width: 2,
+            width: 1,
         },
         {
             name: "Booked",
             prop: "booked",
-            width: 2,
+            width: 1,
         },
         {
             name: "Available",
             prop: "available",
-            sortable: false,
-            searchable: false,
-            exportByDefault: false,
             width: 1
+        },
+        {
+            name: "Actions",
+            prop: "actions",
+            width: 1
+        },
+        {
+            name: "Weight [gr]",
+            prop: "weight",
+            width: 1,
+            visibleByDefault: false
+        },
+        {
+            name: "Tax [%]",
+            prop: "tax",
+            width: 1,
+            visibleByDefault: false
         }
     ]
 
-    // transformDataRow(data) {
-    //     data.actions = (
-    //         <>
-    //             <Button
-    //                 onClick={() => this.handleToggleEditCostModal(data)}
-    //                 className='buttonIconPadding'
-    //                 size='large'
-    //                 icon='edit' />
-    //             <Button
-    //                 onClick={() => this.handleDeleteCost(data)}
-    //                 className='buttonIconPadding'
-    //                 size='large'
-    //                 icon='remove' />
-    //         </>
-    //     );
+    transformDataRow(data) {
+        data.actions = (
+            <>
+                <Popup inverted trigger={
+                    <Button
+                        // onClick={() => this.handleDeleteCost(data)}
+                        className='buttonIconPadding'
+                        size='large'
+                        icon='warehouse' />
+                } content="Edit product count" />
+                <Popup inverted trigger={
+                    <Button
+                        // onClick={() => this.handleToggleEditCostModal(data)}
+                        className='buttonIconPadding'
+                        size='large'
+                        icon='edit' />
+                } content="Edit product" />
+                <Popup inverted trigger={
+                    <Button
+                        // onClick={() => this.handleDeleteCost(data)}
+                        className='buttonIconPadding'
+                        size='large'
+                        icon='remove' />
+                } content="Remove product count" />
+            </>
+        );
 
-    //     return data;
-    // }
+        return data;
+    }
 
     grouping = [
         "category"
     ]
-
-
 
     render() {
         let distinctValuesObject = {
@@ -67,6 +90,8 @@ class CostsTable extends React.PureComponent {
 
         return (
             <GenericTable
+                disableGrouping={!this.props.isGroupingEnabled}
+                transformDataRow={this.transformDataRow}
                 distinctValues={distinctValuesObject}
                 grouping={this.grouping}
                 columns={this.columns}

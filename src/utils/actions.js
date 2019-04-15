@@ -1,3 +1,17 @@
+export function editProductAction(payload) {
+    return {
+        payload,
+        type: 'EDIT_PRODUCT'
+    }
+}
+
+export function addProductAction(payload) {
+    return {
+        payload,
+        type: 'ADD_PRODUCT'
+    }
+}
+
 export function getWarehouseProductsAction(payload) {
     return {
         payload,

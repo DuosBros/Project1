@@ -72,7 +72,7 @@ export default class GenericTable extends Component {
         super(props);
 
         // generate columns and grouping
-        let { columns, grouping } = this.generateColumnsAndGrouping(props);
+        let { columns, grouping } = GenericTable.generateColumnsAndGrouping(props);
 
         // generate empty filters and filterInputs objects
         let filterInputs = {},
@@ -126,7 +126,7 @@ export default class GenericTable extends Component {
         this.updateLimit = debounce(this.updateLimit, 400);
     }
 
-    generateColumnsAndGrouping(props) {
+    static generateColumnsAndGrouping(props) {
         let columns = props.columns;
 
         if (!columns) {
@@ -194,13 +194,13 @@ export default class GenericTable extends Component {
     static getDerivedStateFromProps(nextProps, state) {
         if (state.propData !== nextProps.data) {
             let data;
+            let { grouping, columns } = GenericTable.generateColumnsAndGrouping(nextProps)
             if (nextProps.data !== null && Array.isArray(nextProps.data)) {
-                data = GenericTable.sort(nextProps.data, state.grouping, null);
-
+                data = GenericTable.sort(nextProps.data, grouping ? grouping : state.grouping, null);
             }
 
-            let columnDistinctValues = GenericTable.generateDistinctValues(state.columns, data, nextProps.distinctValues)
-            return { data, columnDistinctValues, propData: nextProps.data };
+            let columnDistinctValues = GenericTable.generateDistinctValues(columns, data, nextProps.distinctValues)
+            return { data, columnDistinctValues, propData: nextProps.data, grouping };
         } else if (state.distictValues !== nextProps.distictValues) { // else if, so we don't generate distinct values twice
             let columnDistinctValues = GenericTable.generateDistinctValues(state.columns, state.data, nextProps.distinctValues)
             return { columnDistinctValues };
