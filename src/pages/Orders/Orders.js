@@ -72,7 +72,7 @@ class Orders extends React.Component {
             }
         }
 
-        if (!this.props.ordersStore.products.data) {
+        if (!this.props.productsStore.products.data) {
             fetchAndHandleProducts(this.props.getAllProductsAction);
         }
 
@@ -471,7 +471,7 @@ class Orders extends React.Component {
             var orderInlineDetails = null
 
             if (orderIdsShowingDetails.indexOf(order.id) > -1) {
-                orderInlineDetails = <OrderInlineDetails products={this.props.ordersStore.products} order={order} isMobile={isMobile} />
+                orderInlineDetails = <OrderInlineDetails products={this.props.productsStore.products} order={order} isMobile={isMobile} />
             }
 
             if (isMobile) {
@@ -709,9 +709,9 @@ class Orders extends React.Component {
         }
 
         let totalWeight = 0
-        if (showCreateZaslatModal && this.props.ordersStore.products.data) {
+        if (showCreateZaslatModal && this.props.productsStore.products.data) {
             this.props.ordersStore.ordersDetails.data.products.forEach(
-                x => totalWeight += this.props.ordersStore.products.data[x.productName].weight * x.count
+                x => totalWeight += this.props.productsStore.products.data[x.productName].weight * x.count
             )
 
             totalWeight += 500
@@ -920,7 +920,8 @@ function mapStateToProps(state) {
     return {
         ordersStore: state.OrdersReducer,
         zaslatStore: state.ZaslatReducer,
-        baseStore: state.BaseReducer
+        baseStore: state.BaseReducer,
+        productsStore: state.ProductsReducer
     };
 }
 

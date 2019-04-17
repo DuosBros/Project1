@@ -1,7 +1,6 @@
 import React from 'react'
 import { Button, Modal, Form, Grid, Dropdown } from 'semantic-ui-react';
 import { editProduct, createProduct } from '../utils/requests';
-import moment from 'moment';
 import { showGenericModalAction, addProductAction, editProductAction } from '../utils/actions';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -16,45 +15,32 @@ class AddEditProductModal extends React.PureComponent {
         let { productName, price, weight, tax, category } = this.state;
         let payload = {
             name: productName,
-            price: price,
-            weight: weight,
-            tax: tax,
+            price: parseInt(price),
+            weight: parseInt(weight),
+            tax: parseInt(tax),
             category: category,
         }
 
-
-        if (this.state.isEdit) {
-            payload.id = this.props.product.id
-            payload.date = this.props.product.date
-            try {
+        try {
+            if (this.state.isEdit) {
+                payload.id = this.props.product.id
+                // TODO: finish this when post put delete based on id will be implemented
                 await editProduct(payload)
                 this.props.editProductAction(payload)
-            } catch (err) {
-                this.props.showGenericModalAction({
-                    redirectTo: '/warehouse',
-                    parentProps: this.props,
-                    err: err
-                })
             }
-            finally {
-                this.props.handleToggleProductModal()
-            }
-        }
-        else {
-            try {
+            else {
                 await createProduct(payload)
                 this.props.addProductAction(payload)
             }
-            catch (err) {
-                this.props.showGenericModalAction({
-                    redirectTo: '/warehouse',
-                    parentProps: this.props,
-                    err: err
-                })
-            }
-            finally {
-                this.props.handleToggleProductModal()
-            }
+        } catch (err) {
+            this.props.showGenericModalAction({
+                redirectTo: '/warehouse',
+                parentProps: this.props,
+                err: err
+            })
+        }
+        finally {
+            this.props.handleToggleProductModal()
         }
     }
 

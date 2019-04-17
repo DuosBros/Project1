@@ -101,7 +101,7 @@ export default class Warehouse extends React.PureComponent {
                                 </Header>
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
-                            <Button onClick={this.handleToggleProductModal} fluid size='large' compact content='Add Product' id="primaryButton" />
+                            <Button onClick={() => this.handleToggleProductModal()} fluid size='large' compact content='Add Product' id="primaryButton" />
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
                             <Button onClick={this.handleToggleGrouping} fluid size='large' compact content={isGroupingEnabled ? 'Remove grouping' : 'Add grouping'} id="secondaryButton" />
@@ -109,7 +109,7 @@ export default class Warehouse extends React.PureComponent {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <WarehouseTable compact="very" isGroupingEnabled={isGroupingEnabled} categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
+                            <WarehouseTable handleToggleProductModal={this.handleToggleProductModal} compact="very" isGroupingEnabled={isGroupingEnabled} categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

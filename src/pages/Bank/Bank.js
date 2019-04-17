@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, Message, Grid, Header, Table, Input, Button, Transition } from 'semantic-ui-react';
+import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup } from 'semantic-ui-react';
 import moment from 'moment';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
@@ -154,6 +154,9 @@ class Bank extends React.Component {
 
             if (transaction.isTransactionIncoming) {
                 if (transaction.order) {
+                    if (transaction.order.totalPrice !== transaction.value) {
+                        transaction.areValuesNotMatching = true
+                    }
                     if (!transaction.order.payment.paid) {
                         notPaidOrders.push(transaction.order)
                         actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
@@ -165,7 +168,7 @@ class Bank extends React.Component {
                 })
 
                 if (!found) {
-                    actionButtons = <Button onClick={() => this.handleAddTransactionToCost(transaction)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                    actionButtons = <Button onClick={() => this.props.handleAddTransactionToCost(transaction)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                 }
             }
 
@@ -209,7 +212,7 @@ class Bank extends React.Component {
                             textAlign='center'>
                             <Table.Cell>{transaction.index}</Table.Cell>
                             <Table.Cell>{transaction.date}</Table.Cell>
-                            <Table.Cell><strong>{transaction.value}</strong></Table.Cell>
+                            <Table.Cell><strong>{transaction.value}</strong>{transaction.areValuesNotMatching && <Popup inverted trigger={<Icon color="red" name="warning" />} content="Transaction value is not matching with order value" />}</Table.Cell>
                             <Table.Cell>{transaction.vs}</Table.Cell>
                             <Table.Cell>{transaction.note}</Table.Cell>
                             <Table.Cell>{actionButtons}</Table.Cell>
@@ -245,6 +248,9 @@ class Bank extends React.Component {
                                 <Button toggle onClick={this.toggleShowFunctionsMobile} floated='right' style={{ backgroundColor: showFunctionsMobile ? '#f2005696' : '#f20056', color: 'white' }} content={showFunctionsMobile ? 'Hide' : 'Show'} />
                             </Header>
                         </Grid.Column>
+                        <Grid.Column>
+                            <strong>Balance:</strong> {this.props.bankAccountInfo.closingBalance} CZK
+                        </Grid.Column>
                     </Grid.Row>
                     <Transition.Group animation='drop' duration={500}>
                         {showFunctionsMobile && (
@@ -271,7 +277,7 @@ class Bank extends React.Component {
                         <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={1}>#</Table.HeaderCell>
                             <Table.HeaderCell width={2}>Date</Table.HeaderCell>
-                            <Table.HeaderCell width={3}>Value</Table.HeaderCell>
+                            <Table.HeaderCell width={2}>Value [CZK]</Table.HeaderCell>
                             <Table.HeaderCell width={3}>VS</Table.HeaderCell>
                             <Table.HeaderCell width={6}>Note</Table.HeaderCell>
                             <Table.HeaderCell width={1}>Actions</Table.HeaderCell>
@@ -290,12 +296,17 @@ class Bank extends React.Component {
                             <Header as='h1' content='Bank' />
                             <ExportDropdown data={pick(filteredByMultiSearch, ["date", "value", "vs", "note"])} />
                         </Grid.Column>
+                        <Grid.Column width={4}>
+                            <Header as='h4'>
+                                <strong>Balance:</strong> {this.props.bankAccountInfo.closingBalance} CZK
+                            </Header>
+                        </Grid.Column>
                         <Grid.Column width={2}>
                             <MarkAllButtons hasMarkAllAsPaidStarted={this.props.hasMarkAllAsPaidStarted} handleMarkAllAsPaidButton={this.props.handleMarkAllAsPaidButton} notPaidOrders={notPaidOrders} />
                         </Grid.Column>
-                        <Grid.Column width={5}>
+                        <Grid.Column width={3}>
                         </Grid.Column>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={2}>
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
                             <Transition animation='drop' duration={500} visible={showMultiSearchFilter}>

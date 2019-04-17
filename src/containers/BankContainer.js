@@ -24,7 +24,7 @@ class BankContainer extends React.PureComponent {
     componentDidMount() {
         this.fetchBankTransactions()
 
-        if (!this.props.ordersStore.products.data) {
+        if (!this.props.productsStore.products.data) {
             fetchAndHandleProducts(this.props.getAllProductsAction);
         }
 
@@ -112,11 +112,12 @@ class BankContainer extends React.PureComponent {
                 handleTogglePaidOrder={this.handleTogglePaidOrder}
                 costs={this.props.costsStore.costs}
                 transactions={this.props.bankStore.transactions}
-                products={this.props.ordersStore.products}
+                products={this.props.productsStore.products}
                 handleAddTransactionToCost={this.handleAddTransactionToCost}
                 fetchAndHandleProducts={fetchAndHandleProducts}
                 fetchBankTransactions={this.fetchBankTransactions}
-                productCategories={this.props.ordersStore.productCategories} />)
+                productCategories={this.props.productsStore.productCategories}
+                bankAccountInfo={this.props.bankStore.bankAccountInfo} />)
     }
 }
 
@@ -125,7 +126,8 @@ function mapStateToProps(state) {
         ordersStore: state.OrdersReducer,
         warehouseStore: state.WarehouseReducer,
         bankStore: state.BankReducer,
-        costsStore: state.CostsReducer
+        costsStore: state.CostsReducer,
+        productsStore: state.ProductsReducer
     };
 }
 

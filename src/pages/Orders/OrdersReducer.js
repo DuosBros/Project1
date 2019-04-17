@@ -5,8 +5,6 @@ const ordersPageInitialState = {
     notPaidNotifications: { success: true },
     isLoadingDone: false,
     orderToEdit: {},
-    products: { success: true },
-    productCategories: []
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
@@ -31,15 +29,6 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
             }
 
             return Object.assign({}, state, { orders: temp })
-        case 'GET_ALL_PRODUCTS':
-            let categories = [];
-            if (action.payload.data && action.payload.success) {
-                let keys = Object.keys(action.payload.data)
-
-                categories = [...new Set(keys.map(item => action.payload.data[item].category).filter(x => x))];
-            }
-
-            return Object.assign({}, state, { products: action.payload, productCategories: categories })
         case 'GET_ORDERS':
             return Object.assign({}, state, { orders: action.payload })
         case 'OPEN_ORDER_DETAILS':

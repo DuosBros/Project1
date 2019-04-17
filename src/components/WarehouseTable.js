@@ -21,19 +21,32 @@ class CostsTable extends React.PureComponent {
             width: 1,
         },
         {
-            name: "Booked",
-            prop: "booked",
+            name: "Beginning",
+            prop: "beginning",
             width: 1,
         },
         {
-            name: "Available",
+            name: "Input",
+            prop: "input",
+            width: 1,
+        },
+        {
+            name: "Output",
+            prop: "output",
+            width: 1
+        },
+        {
+            name: "Currently Available",
             prop: "available",
             width: 1
         },
         {
             name: "Actions",
             prop: "actions",
-            width: 1
+            width: 1,
+            sortable: false,
+            exportable: false,
+            // searchable: false
         },
         {
             name: "Weight [gr]",
@@ -61,7 +74,7 @@ class CostsTable extends React.PureComponent {
                 } content="Edit product count" />
                 <Popup inverted trigger={
                     <Button
-                        // onClick={() => this.handleToggleEditCostModal(data)}
+                        onClick={() => this.handleToggleProductModal(data)}
                         className='buttonIconPadding'
                         size='large'
                         icon='edit' />

@@ -7,7 +7,7 @@ export function createProduct(product) {
 }
 
 export function editProduct(product) {
-    return axios.put(MEDPHARMAVN_API + 'products/' + product.id, product)
+    return axios.put(MEDPHARMAVN_API + 'products/' + product.name, product)
 }
 
 export function getWarehouseProducts() {

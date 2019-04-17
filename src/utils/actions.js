@@ -1,3 +1,10 @@
+export function deleteProductAction(payload) {
+    return {
+        payload,
+        type: 'DELETE_PRODUCT'
+    }
+}
+
 export function editProductAction(payload) {
     return {
         payload,

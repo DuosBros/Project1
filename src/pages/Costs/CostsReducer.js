@@ -26,21 +26,36 @@ const CostsReducer = (state = initialState, action) => {
             let temp = Object.assign({}, state.costs)
             temp.data = temp.data.slice()
             temp.data.unshift(action.payload)
+
+            categories = state.costCategories;
+
+            if (!state.costCategories.includes(action.payload.category)) {
+                categories = state.costCategories.slice()
+                categories.push(action.payload.category)
+            }
+
             return {
                 ...state,
-                costs: temp
+                costs: temp, costCategories: categories
             }
         case 'EDIT_COST':
             let costs = state.costs.data.slice()
             let index = costs.findIndex(x => x.id === action.payload.id)
 
+            categories = state.costCategories;
+
             if (index >= 0) {
                 action.payload.monthAndYear = moment(action.payload.date).format('MM.YYYY');
                 action.payload.dateFormated = moment(action.payload.date).format('DD.MM.YYYY');
                 costs[index] = action.payload;
+
+                if (!state.costCategories.includes(action.payload.category)) {
+                    categories = state.costCategories.slice()
+                    categories.push(action.payload.category)
+                }
             }
 
-            return Object.assign({}, state, { costs: { success: state.costs.success, data: costs } });
+            return Object.assign({}, state, { costs: { success: state.costs.success, data: costs }, costCategories: categories });
         case 'DELETE_COST':
             costs = state.costs.data.slice()
             index = costs.findIndex(x => x.id === action.payload)

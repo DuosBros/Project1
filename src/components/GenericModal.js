@@ -21,7 +21,7 @@ class GenericModal extends React.Component {
     close = () => {
         this.props.closeGenericModalAction()
         if (this.props.redirectTo) {
-            this.props.parentProps.history.push(this.props.redirectTo)
+            this.props.history.push(this.props.redirectTo)
         }
     }
 

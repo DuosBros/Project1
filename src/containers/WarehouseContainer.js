@@ -9,10 +9,10 @@ import Warehouse from '../pages/Warehouse/Warehouse';
 class WarehouseContainer extends React.PureComponent {
 
 componentDidMount() {
-        if (!this.props.ordersStore.products.data) {
+        if (!this.props.productsStore.products.data) {
             this.fetchAndHandleProducts();
         }
-        fetchAndHandleWarehouseProducts(getWarehouseProductsAction);
+        fetchAndHandleWarehouseProducts(this.props.getWarehouseProductsAction);
     }
 
     fetchAndHandleProducts = () => {
@@ -22,16 +22,17 @@ componentDidMount() {
     render() {
         return (
         <Warehouse
-            products={this.props.ordersStore.products}
+            products={this.props.productsStore.products}
             fetchAndHandleProducts={fetchAndHandleProducts}
-            productCategories={this.props.ordersStore.productCategories} />)
+            productCategories={this.props.productsStore.productCategories} />)
     }
 }
 
 function mapStateToProps(state) {
     return {
         ordersStore: state.OrdersReducer,
-        warehouseStore: state.WarehouseReducer
+        warehouseStore: state.WarehouseReducer,
+        productsStore: state.ProductsReducer
     };
 }
 
