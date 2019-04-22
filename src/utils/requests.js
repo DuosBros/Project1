@@ -7,11 +7,11 @@ export function createProduct(product) {
 }
 
 export function editProduct(product) {
-    return axios.put(MEDPHARMAVN_API + 'products/' + product.name, product)
+    return axios.put(MEDPHARMAVN_API + 'products/v2/' + product.id, product)
 }
 
-export function getWarehouseProducts() {
-    return axios.get(MEDPHARMAVN_API + 'warehouse/products')
+export function deleteProduct(id) {
+    return axios.delete(MEDPHARMAVN_API + 'products/v2/' + id)
 }
 
 /**
@@ -170,8 +170,8 @@ export function createOrder(order, user) {
     return axios.post(MEDPHARMAVN_API + 'orders?username=' + user, order)
 }
 
-export function getAllProducts() {
-    return axios.get(MEDPHARMAVN_API + 'products/allproducts')
+export function getProducts() {
+    return axios.get(MEDPHARMAVN_API + 'products/v2')
 }
 
 export function getCurrentYearOrders(limit, sinceId) {

@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import {
     getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
-    showGenericModalAction, getWarehouseProductsAction, getAllProductsAction,
+    showGenericModalAction, getWarehouseProductsAction, getProductsAction,
     updateOrderInTransactionAction, getCostsAction, addCostAction, getOrderAction
 } from '../utils/actions';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
@@ -25,7 +25,7 @@ class BankContainer extends React.PureComponent {
         this.fetchBankTransactions()
 
         if (!this.props.productsStore.products.data) {
-            fetchAndHandleProducts(this.props.getAllProductsAction);
+            fetchAndHandleProducts(this.props.getProductsAction);
         }
 
         if (!this.props.costsStore.costs.data) {
@@ -49,7 +49,7 @@ class BankContainer extends React.PureComponent {
     }
 
     fetchAndHandleProducts = () => {
-        fetchAndHandleProducts(this.props.getAllProductsAction);
+        fetchAndHandleProducts(this.props.getProductsAction);
     }
 
     handleAddTransactionToCost = async (transaction) => {
@@ -133,7 +133,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        getAllProductsAction,
+        getProductsAction,
         getWarehouseProductsAction,
         getBankTransactionsAction,
         getCostsAction,

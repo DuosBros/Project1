@@ -6,7 +6,7 @@ class CostsTable extends React.PureComponent {
     columns = [
         {
             name: "Product",
-            prop: "productName",
+            prop: "name",
             width: 3,
         },
         {
@@ -81,7 +81,7 @@ class CostsTable extends React.PureComponent {
                 } content="Edit product" />
                 <Popup inverted trigger={
                     <Button
-                        // onClick={() => this.handleDeleteCost(data)}
+                        onClick={() => this.handleDeleteProduct(data.id)}
                         className='buttonIconPadding'
                         size='large'
                         icon='remove' />

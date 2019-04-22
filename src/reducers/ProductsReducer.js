@@ -5,21 +5,19 @@ const initialState = {
 
 const ProductsReducer = (state = initialState, action) => {
     switch (action.type) {
-        case 'GET_ALL_PRODUCTS':
+        case 'GET_PRODUCTS':
             let categories = [];
             if (action.payload.data && action.payload.success) {
-                let keys = Object.keys(action.payload.data)
 
-                categories = [...new Set(keys.map(item => action.payload.data[item].category).filter(x => x))];
+                categories = [...new Set(action.payload.data.map(item => item.category))];
             }
 
             return Object.assign({}, state, { products: action.payload, productCategories: categories })
         case 'ADD_PRODUCT':
+
             let temp = Object.assign({}, state.products)
-            temp.data = Object.assign({}, temp.data)
-            temp.data[action.payload.name] = action.payload
-            temp.data[action.payload.name].productName = temp.data[action.payload.name].name
-            delete temp.data[action.payload.name].name
+            temp.data = temp.data.slice()
+            temp.data.unshift(action.payload)
 
             categories = state.productCategories;
 
@@ -32,11 +30,14 @@ const ProductsReducer = (state = initialState, action) => {
                 ...state,
                 products: temp, productCategories: categories
             }
+
         case 'EDIT_PRODUCT':
-            temp = Object.assign({}, state.products.data)
-            temp[action.payload.name] = action.payload
-            temp[action.payload.name].productName = temp[action.payload.name].name
-            delete temp[action.payload.name].name
+            let products = state.products.data.slice()
+            let index = products.findIndex(x => x.id === action.payload.id)
+
+            if (index >= 0) {
+                products[index] = action.payload
+            }
 
             categories = state.productCategories;
 
@@ -45,12 +46,16 @@ const ProductsReducer = (state = initialState, action) => {
                 categories.push(action.payload.category)
             }
 
-            return Object.assign({}, state, { products: { success: state.products.success, data: temp }, productCategories: categories });
-        case 'REMOVE_PRODUCT':
-            temp = Object.assign({}, state.products.data)
-            delete temp[action.payload.name]
+            return Object.assign({}, state, { products: { success: state.products.success, data: products }, productCategories: categories });
+        case 'DELETE_PRODUCT':
+            products = state.products.data.slice()
+            index = products.findIndex(x => x.id === action.payload)
 
-            return Object.assign({}, state, { products: { success: state.products.success, data: temp } })
+            if (index >= 0) {
+                products.splice(index, 1)
+            }
+
+            return Object.assign({}, state, { products: { success: state.products.success, data: products } })
         default:
             return state;
     }

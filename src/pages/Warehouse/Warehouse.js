@@ -79,13 +79,6 @@ export default class Warehouse extends React.PureComponent {
             )
         }
 
-        let keys = Object.keys(this.props.products.data)
-        var mappedProducts = keys.map((x, i) => {
-            this.props.products.data[x].id = i
-            this.props.products.data[x].productName = x
-            return this.props.products.data[x]
-        })
-
         // render page
         if (isMobile) {
 
@@ -109,7 +102,13 @@ export default class Warehouse extends React.PureComponent {
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <WarehouseTable handleToggleProductModal={this.handleToggleProductModal} compact="very" isGroupingEnabled={isGroupingEnabled} categories={this.props.productCategories} rowsPerPage={0} data={mappedProducts} />
+                            <WarehouseTable
+                                handleToggleProductModal={this.handleToggleProductModal}
+                                compact="very" isGroupingEnabled={isGroupingEnabled}
+                                categories={this.props.productCategories}
+                                rowsPerPage={0}
+                                data={this.props.products.data}
+                                handleDeleteProduct={this.props.handleDeleteProduct} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

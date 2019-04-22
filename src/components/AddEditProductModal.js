@@ -12,9 +12,9 @@ class AddEditProductModal extends React.PureComponent {
     }
 
     handleSaveProduct = async () => {
-        let { productName, price, weight, tax, category } = this.state;
+        let { name, price, weight, tax, category } = this.state;
         let payload = {
-            name: productName,
+            name: name,
             price: parseInt(price),
             weight: parseInt(weight),
             tax: parseInt(tax),
@@ -29,8 +29,8 @@ class AddEditProductModal extends React.PureComponent {
                 this.props.editProductAction(payload)
             }
             else {
-                await createProduct(payload)
-                this.props.addProductAction(payload)
+                let res = await createProduct(payload)
+                this.props.addProductAction(res)
             }
         } catch (err) {
             this.props.showGenericModalAction({
@@ -45,7 +45,7 @@ class AddEditProductModal extends React.PureComponent {
     }
 
     state = {
-        productName: this.props.product && this.props.product.productName,
+        name: this.props.product && this.props.product.name,
         price: this.props.product && this.props.product.price,
         weight: this.props.product && this.props.product.weight,
         tax: this.props.product && this.props.product.tax,
@@ -69,7 +69,7 @@ class AddEditProductModal extends React.PureComponent {
         let productObj = this.props.product && this.props.product;
         let content;
 
-        let { productName, price, weight, tax } = this.state;
+        let { name, price, weight, tax } = this.state;
         content = (
             <Grid>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -81,7 +81,7 @@ class AddEditProductModal extends React.PureComponent {
                     <Grid.Column width={11}>
                         <Form>
                             <Form.Field>
-                                <Form.Input fluid onChange={this.setInput} value={productName ? productName : productObj && productObj.productName} id="productName" />
+                                <Form.Input fluid onChange={this.setInput} value={name ? name : productObj && productObj.name} id="name" />
                             </Form.Field>
                         </Form>
                     </Grid.Column>

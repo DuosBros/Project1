@@ -13,7 +13,7 @@ import {
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
     getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction, deleteOrderAction,
-    getAllProductsAction
+    getProductsAction
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE } from '../../appConfig'
@@ -73,7 +73,7 @@ class Orders extends React.Component {
         }
 
         if (!this.props.productsStore.products.data) {
-            fetchAndHandleProducts(this.props.getAllProductsAction);
+            fetchAndHandleProducts(this.props.getProductsAction);
         }
 
         this.fetchAndHandleNotPaidNotifications()
@@ -711,7 +711,7 @@ class Orders extends React.Component {
         let totalWeight = 0
         if (showCreateZaslatModal && this.props.productsStore.products.data) {
             this.props.ordersStore.ordersDetails.data.products.forEach(
-                x => totalWeight += this.props.productsStore.products.data[x.productName].weight * x.count
+                x => totalWeight += this.props.productsStore.products.data.find(y => y.id === x.id).weight * x.count
             )
 
             totalWeight += 500
@@ -936,7 +936,7 @@ function mapDispatchToProps(dispatch) {
         getAllZaslatOrdersAction,
         getOrderAction,
         deleteOrderAction,
-        getAllProductsAction
+        getProductsAction
     }, dispatch);
 }
 

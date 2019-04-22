@@ -3,7 +3,7 @@ import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, TextA
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getSenders, getOrder, orderDelivery } from '../utils/requests';
-import { getAllProductsAction, getSendersAction, showGenericModalAction, getOrderAction } from '../utils/actions';
+import { getProductsAction, getSendersAction, showGenericModalAction, getOrderAction } from '../utils/actions';
 import { ORDER_DELIVERY_JSON } from '../appConfig';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
 
@@ -45,9 +45,9 @@ class CreateZaslatModal extends React.PureComponent {
             })
 
         var temp = this.props.order
-        if (!this.props.ordersPageStore.products.data) {
+        if (!this.props.productsStore.products.data) {
             await fetchAndHandleProducts(
-                this.props.getAllProductsAction,
+                this.props.getProductsAction,
                 this.props.showGenericModalAction, {
                     redirectTo: '/orders',
                     parentProps: this.props
@@ -137,26 +137,26 @@ class CreateZaslatModal extends React.PureComponent {
         var popupContentTable, popup, modalContent, packageSegment, deliverySegment,
             customerSegment, senderSegment = null
 
-        if (this.props.ordersPageStore.products.data) {
-            popupContentTable = this.props.order.products.map(
-                (product, i) => {
-                    return (
-                        <Grid.Row key={i} className="noPaddingTopAndBottom">
-                            <Grid.Column width={9} style={{ fontSize: '0.8em' }}>
-                                {product.productName}
-                            </Grid.Column>
-                            <Grid.Column width={1} style={{ fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
-                                {product.count}
-                            </Grid.Column>
-                            <Grid.Column width={3} style={{ fontSize: '0.8em' }}>
-                                {this.props.ordersPageStore.products.data[product.productName].weight}
-                            </Grid.Column>
-                            <Grid.Column width={3} style={{ fontSize: '0.8em' }}>
-                                <strong>{this.props.ordersPageStore.products.data[product.productName].weight * product.count}</strong>
-                            </Grid.Column>
-                        </Grid.Row>
-                    );
-                })
+        if (this.props.productsStore.products.data) {
+            popupContentTable = this.props.order.products.map((product, i) => {
+                let found = this.props.productsStore.products.data.find(x => x.id === product.id);
+                return (
+                    <Grid.Row key={i} className="noPaddingTopAndBottom">
+                        <Grid.Column width={9} style={{ fontSize: '0.8em' }}>
+                            {product.productName}
+                        </Grid.Column>
+                        <Grid.Column width={1} style={{ fontSize: '0.8em', paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
+                            {product.count}
+                        </Grid.Column>
+                        <Grid.Column width={3} style={{ fontSize: '0.8em' }}>
+                            {found.weight}
+                        </Grid.Column>
+                        <Grid.Column width={3} style={{ fontSize: '0.8em' }}>
+                            <strong>{found.weight * product.count}</strong>
+                        </Grid.Column>
+                    </Grid.Row>
+                );
+            })
 
             popupContentTable.push(
                 <React.Fragment key={this.props.order.products.length + 1}>
@@ -175,7 +175,7 @@ class CreateZaslatModal extends React.PureComponent {
                     <Divider className="marginTopAndBottomSmall" />
                     <Grid.Row>
                         <Grid.Column width={9}>
-                            <strong>Total</strong>
+                            <strong>Total [CZK]</strong>
                         </Grid.Column>
                         <Grid.Column width={1} style={{ paddingLeft: '0px', paddingRight: '0px', maxWidth: '85px' }}>
                         </Grid.Column>
@@ -641,13 +641,14 @@ class CreateZaslatModal extends React.PureComponent {
 function mapStateToProps(state) {
     return {
         ordersPageStore: state.OrdersReducer,
-        zaslatStore: state.ZaslatReducer
+        zaslatStore: state.ZaslatReducer,
+        productsStore: state.ProductsReducer
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        getAllProductsAction,
+        getProductsAction,
         getSendersAction,
         showGenericModalAction,
         getOrderAction

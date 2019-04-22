@@ -2,31 +2,42 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { getAllProductsAction, getWarehouseProductsAction } from '../utils/actions';
-import { fetchAndHandleProducts, fetchAndHandleWarehouseProducts } from '../handlers/productHandler';
+import { getProductsAction, getWarehouseProductsAction, deleteProductAction } from '../utils/actions';
+import { fetchAndHandleProducts } from '../handlers/productHandler';
 import Warehouse from '../pages/Warehouse/Warehouse';
+import { deleteProduct } from '../utils/requests';
 
 class WarehouseContainer extends React.PureComponent {
 
-componentDidMount() {
+    componentDidMount() {
         if (!this.props.productsStore.products.data) {
             this.fetchAndHandleProducts();
         }
-        fetchAndHandleWarehouseProducts(this.props.getWarehouseProductsAction);
+    }
+
+    handleDeleteProduct = (id) => {
+        deleteProduct(id)
+            .then(() => {
+                this.props.deleteProductAction(id)
+            })
     }
 
     fetchAndHandleProducts = () => {
-        fetchAndHandleProducts(this.props.getAllProductsAction);
+        fetchAndHandleProducts(this.props.getProductsAction);
     }
 
     render() {
         return (
-        <Warehouse
-            products={this.props.productsStore.products}
-            fetchAndHandleProducts={fetchAndHandleProducts}
-            productCategories={this.props.productsStore.productCategories} />)
+            <Warehouse
+                products={this.props.productsStore.products}
+                fetchAndHandleProducts={fetchAndHandleProducts}
+                productCategories={this.props.productsStore.productCategories}
+                handleDeleteProduct={this.handleDeleteProduct} />)
     }
 }
+
+
+
 
 function mapStateToProps(state) {
     return {
@@ -38,8 +49,9 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        getAllProductsAction,
-        getWarehouseProductsAction
+        getProductsAction,
+        getWarehouseProductsAction,
+        deleteProductAction
     }, dispatch);
 }
 

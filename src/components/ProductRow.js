@@ -1,4 +1,4 @@
-import { Form, Divider, Dropdown } from "semantic-ui-react";
+import { Form, Divider, Dropdown, Button } from "semantic-ui-react";
 import React from 'react';
 const ProductRow = (props) => {
     return (
@@ -7,20 +7,25 @@ const ProductRow = (props) => {
                 <label>Product Name</label>
                 <Dropdown
                     selection
-                    options={Object.keys(props.allProducts).map(x =>
+                    options={props.allProducts.map(x =>
                         ({
-                            value: x,
-                            text: x
+                            value: x.name,
+                            text: x.name
                         })
                     )}
-                    onChange={(e, m) => props.handleProductDropdownOnChange(
-                        e, m, props.i,
-                        {
-                            productName: m.value,
-                            count: 1,
-                            pricePerOne: props.allProducts[m.value].price,
-                            product: props.allProducts[m.value]
-                        })}
+                    onChange={(e, m) => {
+                        let found = props.allProducts.find(x => x.name === m.value);
+
+                        this.handleProductDropdownOnChange(
+                            null, null, props.i,
+                            {
+                                productName: m.value,
+                                count: 1,
+                                pricePerOne: found.price,
+                                id: found.id,
+                                category: found.category
+                            })
+                    }}
                     defaultValue={props.product.productName}
                     fluid
                     selectOnBlur={false}
@@ -37,23 +42,28 @@ const ProductRow = (props) => {
                     onChange={(e, m) => props.handleProductDropdownOnChange(e, m, props.i, {
                         pricePerOne: m.value,
                         productName: props.product.productName,
-                        count: props.product.count
+                        count: props.product.count,
+                        id: props.product.id,
+                        category: props.product.category
                     })} />
             </Form.Field>
             <Form.Input
-                readOnly={props.product.productName === 'Sleva' ? true : false}
+                readOnly={props.product.category === 'Nonbillable' ? true : false}
                 label='Product Count [Pcs]'
                 fluid
-                value={props.product.productName === 'Sleva' ? 1 : props.product.count}
+                value={props.product.category === 'Nonbillable' ? 1 : props.product.count}
                 onChange={(e, m) => props.handleProductDropdownOnChange(e, m, props.i, {
                     pricePerOne: props.product.pricePerOne,
                     productName: props.product.productName,
-                    count: parseInt(m.value)
+                    count: parseInt(m.value),
+                    id: props.product.id,
+                    category: props.product.category
                 })} />
             <Form.Field>
                 <label>Total Product Price [CZK]</label>
                 <input readOnly value={props.product.totalPricePerProduct}></input>
             </Form.Field>
+            <Button onClick={() => props.removeProductFromOrder(props.i)} className="buttonIconPadding" icon="close"></Button>
             <Divider style={{ borderColor: '#f20056' }} />
         </>);
 }

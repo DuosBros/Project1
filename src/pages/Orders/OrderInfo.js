@@ -1,10 +1,10 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Message } from 'semantic-ui-react';
+import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Message, TextArea } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS, APP_TITLE } from '../../appConfig';
-import { getAllProductsAction, openOrderDetailsAction } from '../../utils/actions';
+import { getProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
 import ProductRow from '../../components/ProductRow';
@@ -18,13 +18,13 @@ const DeliveryCompanyButtonGroup = (props) => {
         <Button.Group fluid size='medium'>
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[0].company)}
-                id={contains(props.deliveryCompany, deliveryCompanies[0].company) ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryCompany, deliveryCompanies[0]) ? "primaryButton" : "secondaryButton"}>
                 GLS
             </Button>
             <Button.Or text='OR' />
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[1].company)}
-                id={contains(props.deliveryCompany, deliveryCompanies[1].company) ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryCompany, deliveryCompanies[1]) ? "primaryButton" : "secondaryButton"}>
                 Česká Pošta
             </Button>
         </Button.Group>
@@ -54,13 +54,13 @@ const PaymentTypeButtonGroup = (props) => {
         <Button.Group fluid size='medium'>
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[0].type)}
-                id={contains(props.deliveryType, deliveryTypes[0].type) ? "primaryButton" : "secondaryButton"}>
+                id={contains(props.deliveryType, deliveryTypes[0]) ? "primaryButton" : "secondaryButton"}>
                 VS
         </Button>
             <Button.Or text='OR' />
             <Button
                 onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[1].type)}
-                id={contains(props.deliveryType, deliveryTypes[0].type) ? "secondaryButton" : "primaryButton"}>
+                id={contains(props.deliveryType, deliveryTypes[0]) ? "secondaryButton" : "primaryButton"}>
                 Cash
         </Button>
         </Button.Group>
@@ -74,7 +74,7 @@ const TotalPriceForm = (props) => {
                 <Form.Input onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                 <label><strong>Total price [CZK]</strong></label>
                 <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
-                <Form.Input defaultValue={props.isEdit ? props.note : null} id='note' label='Note' fluid name='note' />
+                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.note : null} id='note' label='Note' name='note' />
             </Form>
         )
     }
@@ -112,9 +112,11 @@ const TotalPriceForm = (props) => {
                 </strong>
                     </Grid.Column>
                     <Grid.Column width={12}>
-                        <Form.Field>
-                            <Form.Input disabled defaultValue={props.isEdit ? props.note : null} id='note' fluid />
-                        </Form.Field>
+                        <Form>
+                            <Form.Field>
+                                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.note : null} id='note' />
+                            </Form.Field>
+                        </Form>
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
@@ -167,8 +169,8 @@ class OrderInfo extends React.Component {
     async componentDidMount() {
         document.title = APP_TITLE + (this.state.isEdit ? "Edit order" : "New order")
 
-        if (!this.props.ordersPageStore.products.data) {
-            fetchAndHandleProducts(this.props.getAllProductsAction);
+        if (!this.props.productsStore.products.data) {
+            fetchAndHandleProducts(this.props.getProductsAction);
         }
 
         if (this.state.isEdit) {
@@ -182,12 +184,13 @@ class OrderInfo extends React.Component {
 
             // if the order to edit is not in store
             // temp needed to set the value of address elements
-            let temp;
+            //let temp;
             if (!this.props.ordersPageStore.orderToEdit.data) {
-                temp = await this.getOrderDetails()
+                // temp = await this.getOrderDetails()
+                await this.getOrderDetails()
             }
             else {
-                temp = this.props.ordersPageStore.orderToEdit.data
+                // temp = this.props.ordersPageStore.orderToEdit.data
             }
 
             // fire immediately after mounting
@@ -197,10 +200,10 @@ class OrderInfo extends React.Component {
                 lockOrder(this.props.match.params.id, this.state.user, DEFAULT_ORDER_LOCK_SECONDS)
             }, DEFAULT_ORDER_LOCK_SECONDS * 1000)
 
-            // mapping for calculating the total delivery price
-            temp.products.forEach(x => {
-                x.product = this.props.ordersPageStore.products.data[x.productName]
-            })
+            // // mapping for calculating the total delivery price
+            // temp.products.forEach(x => {
+            //     x.product = this.props.productsStore.products.data[x.productName]
+            // })
         }
 
         // run regardless if its add or edit
@@ -244,7 +247,7 @@ class OrderInfo extends React.Component {
     }
 
     handleProductDropdownOnChange = (e, m, i, product) => {
-        product.product = this.props.ordersPageStore.products.data[product.productName];
+        //product.product = this.props.productsStore.products.data[product.productName];
         var temp = this.handleProductDropdownOnChangeHelper(product, this.state.order, i);
         temp.totalPrice = this.getTotalPriceHelper(temp);
         if (!this.isCancelled) {
@@ -267,9 +270,12 @@ class OrderInfo extends React.Component {
         }
 
         var o = Object.assign({}, stateOrder)
-        o.products[i] = product;
-        o.payment.price = getGLSDeliveryPrice(
-            o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
+        o.products[i] = product
+        let weight = 0
+        o.products.forEach(x => {
+            weight += this.props.productsStore.products.data.find(y => y.id === x.id).weight
+        })
+        o.payment.price = getGLSDeliveryPrice(weight)
 
         return o;
     }
@@ -299,18 +305,19 @@ class OrderInfo extends React.Component {
         return sum;
     }
 
-    renderProductsForMobile = () => {
+    renderProductsForMobile = (order) => {
 
         var result = []
 
         // map existing products
-        result = this.state.order.products.map((product, i) => {
+        result = order.products.map((product, i) => {
             return (
                 <React.Fragment key={i}>
                     <ProductRow
-                        allProducts={this.props.ordersPageStore.products.data ? this.props.ordersPageStore.products.data : {}}
+                        allProducts={this.props.productsStore.products.data ? this.props.productsStore.products.data : {}}
                         i={i}
                         product={product}
+                        removeProductFromOrder={this.removeProductFromOrder}
                         handleProductDropdownOnChange={this.handleProductDropdownOnChange} />
                 </React.Fragment>
             )
@@ -323,18 +330,24 @@ class OrderInfo extends React.Component {
                     <label><Icon name='add' />Product Name</label>
                     <Dropdown
                         selection
-                        onChange={(e, m) => this.handleProductDropdownOnChange(
-                            null,
-                            null,
-                            this.state.order.products.length, {
-                                productName: m.value,
-                                count: 1,
-                                pricePerOne: this.props.ordersPageStore.products.data[m.value].price
-                            })}
-                        options={Object.keys(this.props.ordersPageStore.products.data ? this.props.ordersPageStore.products.data : {}).map(x =>
+                        onChange={(e, m) => {
+                            let found = this.props.productsStore.products.data.find(x => x.name === m.value);
+
+                            this.handleProductDropdownOnChange(
+                                null, null, this.state.order.products.length,
+                                {
+                                    productName: m.value,
+                                    count: 1,
+                                    pricePerOne: found.price,
+                                    product: found,
+                                    id: found.id,
+                                    category: found.category
+                                })
+                        }}
+                        options={this.props.productsStore.products.data.map(x =>
                             ({
-                                value: x,
-                                text: x
+                                value: x.name,
+                                text: x.name
                             })
                         )}
                         fluid
@@ -383,7 +396,8 @@ class OrderInfo extends React.Component {
 
     removeProductFromOrder = (index) => {
         var o = Object.assign({}, this.state.order)
-        o.products.splice(index, 1);
+        o.products.splice(index, 1)
+        o.totalPrice = this.getTotalPriceHelper(o)
 
         this.setState({ order: o });
     }
@@ -480,7 +494,6 @@ class OrderInfo extends React.Component {
     render() {
         var grid;
         const { order, isMobile, isEdit } = this.state;
-
         if (isEdit) {
             if (!this.state.order) {
                 return (
@@ -495,13 +508,14 @@ class OrderInfo extends React.Component {
                 )
             }
         }
+        console.log("products: " + JSON.stringify(order.products))
 
         var headerButtons = (
             <Grid.Column width={isMobile ? null : 13} style={isMobile ? { paddingTop: '1em', paddingBottom: '1em' } : null}>
-                <Button onClick={() => this.handleOrder(order, this.props)} fluid={isMobile} size='medium' compact content='Save' id="primaryButton" />
+                <Button onClick={() => this.handleOrder(order, this.props)} fluid={isMobile} size='large' compact content='Save' id="primaryButton" />
                 <Link to={{ pathname: '/orders', state: { isFromDetails: true } }}>
                     <Button
-                        style={{ marginTop: '0.5em' }} id="secondaryButton" fluid={isMobile} size='small'
+                        style={{ marginTop: '0.5em' }} id="secondaryButton" fluid={isMobile} size='medium'
                         compact content='Back'
                     />
                 </Link>
@@ -596,7 +610,7 @@ class OrderInfo extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Form className='form' size='large'>
-                                    {this.renderProductsForMobile()}
+                                    {this.renderProductsForMobile(this.state.order)}
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -645,32 +659,37 @@ class OrderInfo extends React.Component {
             ];
 
             var mappedAllProductsForDropdown = []
-            if (this.props.ordersPageStore.products.data) {
-                mappedAllProductsForDropdown = Object.keys(this.props.ordersPageStore.products.data).map(x =>
+            if (this.props.productsStore.products.data) {
+                mappedAllProductsForDropdown = this.props.productsStore.products.data.map(x =>
                     ({
-                        value: x,
-                        text: x
+                        value: x.name,
+                        text: x.name
                     })
                 )
             }
 
             var productsTableRow = order.products.map((product, i) => {
                 return (
-                    <Table.Row key={i} >
+                    <Table.Row key={product.id} >
                         <Table.Cell collapsing>
                             {i + 1}
                         </Table.Cell>
                         <Table.Cell>
                             <Dropdown
                                 selection
-                                onChange={(e, m) => this.handleProductDropdownOnChange(
-                                    null, null, i,
-                                    {
-                                        productName: m.value,
-                                        count: 1,
-                                        pricePerOne: this.props.ordersPageStore.products.data[m.value].price,
-                                        product: this.props.ordersPageStore.products.data[m.value]
-                                    })}
+                                onChange={(e, m) => {
+                                    let found = this.props.productsStore.products.data.find(x => x.name === m.value);
+
+                                    this.handleProductDropdownOnChange(
+                                        null, null, i,
+                                        {
+                                            productName: m.value,
+                                            count: 1,
+                                            pricePerOne: found.price,
+                                            id: found.id,
+                                            category: found.category
+                                        })
+                                }}
                                 options={mappedAllProductsForDropdown}
                                 defaultValue={product.productName}
                                 fluid
@@ -687,18 +706,22 @@ class OrderInfo extends React.Component {
                                 onChange={(e, m) => this.handleProductDropdownOnChange(null, null, i, {
                                     pricePerOne: m.value,
                                     productName: product.productName,
-                                    count: product.count
+                                    count: product.count,
+                                    id: product.id,
+                                    category: product.category
                                 })} />
                         </Table.Cell>
                         <Table.Cell collapsing>
                             <Form.Input
-                                readOnly={product.productName === 'Sleva' ? true : false}
+                                readOnly={product.category === 'Nonbillable' ? true : false}
                                 fluid
-                                value={product.productName === 'Sleva' ? 1 : product.count}
+                                value={product.category === 'Nonbillable' ? 1 : product.count}
                                 onChange={(e, m) => this.handleProductDropdownOnChange(null, null, i, {
                                     pricePerOne: product.pricePerOne,
                                     productName: product.productName,
-                                    count: parseInt(m.value)
+                                    count: parseInt(m.value),
+                                    id: product.id,
+                                    category: product.category
                                 })} />
                         </Table.Cell>
                         <Table.Cell collapsing>
@@ -717,13 +740,20 @@ class OrderInfo extends React.Component {
                     <Table.Cell colSpan={6}>
                         <Dropdown
                             selection
-                            onChange={(e, m) => this.handleProductDropdownOnChange(
-                                null, null, order.products.length, {
-                                    productName: m.value,
-                                    count: 1,
-                                    pricePerOne: this.props.ordersPageStore.products.data[m.value].price,
-                                    product: this.props.ordersPageStore.products.data[m.value]
-                                })}
+                            onChange={(e, m) => {
+                                let found = this.props.productsStore.products.data.find(x => x.name === m.value);
+
+                                this.handleProductDropdownOnChange(
+                                    null, null, order.products.length,
+                                    {
+                                        productName: m.value,
+                                        count: 1,
+                                        pricePerOne: found.price,
+                                        product: found,
+                                        id: found.id,
+                                        category: found.category
+                                    })
+                            }}
                             options={mappedAllProductsForDropdown}
                             fluid
                             selectOnBlur={false}
@@ -932,13 +962,14 @@ class OrderInfo extends React.Component {
 function mapStateToProps(state) {
     return {
         ordersPageStore: state.OrdersReducer,
-        baseStore: state.BaseReducer
+        baseStore: state.BaseReducer,
+        productsStore: state.ProductsReducer
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators({
-        getAllProductsAction,
+        getProductsAction,
         openOrderDetailsAction
     }, dispatch);
 }

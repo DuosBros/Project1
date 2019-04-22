@@ -8,7 +8,7 @@ const OrderInlineDetails = (props) => {
 
     if (Array.isArray(props.order.products)) {
         props.order.products.forEach(product => {
-            if (props.products.data[product.productName].category !== 'Nonbillable') {
+            if (product.category !== 'Nonbillable') {
                 totalProductCount += product.count
             }
         })
@@ -50,7 +50,7 @@ const OrderInlineDetails = (props) => {
                         </Grid.Column>
                     </Grid.Row>
                     {props.order.products.map((product, index) => {
-                        if (product.productName !== 'Sleva') {
+                        if (product.category !== 'Nonbillable') {
                             return (
                                 <Grid.Row key={index} className="noPaddingTopAndBottom">
                                     <Grid.Column style={{ fontSize: '0.8em' }} width={9}>
@@ -117,7 +117,7 @@ const OrderInlineDetails = (props) => {
     }
     else {
         let productTableBody = props.order.products.map((product, index) => {
-            if (product.productName !== 'Sleva') {
+            if (product.category !== 'Nonbillable') {
                 return (
                     <Table.Row key={index}>
                         <Table.Cell >{product.productName}</Table.Cell>
@@ -138,19 +138,21 @@ const OrderInlineDetails = (props) => {
                 )
             }
         })
-        productTableBody.push(
-            <Table.Row key={props.order.products.length + 1}>
-                <Table.Cell>
-                    <i>Delivery fee</i>
-                </Table.Cell>
-                <Table.Cell>
-                </Table.Cell>
-                <Table.Cell>
-                </Table.Cell>
-                <Table.Cell>
-                    <i>{props.order.payment.price} Kč</i>
-                </Table.Cell>
-            </Table.Row>
+        props.order.payment.price && (
+            productTableBody.push(
+                <Table.Row key={props.order.products.length + 1}>
+                    <Table.Cell>
+                        <i>Delivery fee</i>
+                    </Table.Cell>
+                    <Table.Cell>
+                    </Table.Cell>
+                    <Table.Cell>
+                    </Table.Cell>
+                    <Table.Cell>
+                        <i>{props.order.payment.price} Kč</i>
+                    </Table.Cell>
+                </Table.Row>
+            )
         )
         productTableBody.push(
             <Table.Row key={props.order.products.length + 2}>

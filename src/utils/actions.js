@@ -94,6 +94,13 @@ export function getOrderAction(payload) {
     }
 }
 
+export function deleteProductActions(payload) {
+    return {
+        payload,
+        type: 'DELETE_PRODUCT'
+    }
+}
+
 export function showGenericModalAction(payload) {
     return {
         payload,
@@ -107,10 +114,10 @@ export function closeGenericModalAction() {
     }
 }
 
-export function getAllProductsAction(payload) {
+export function getProductsAction(payload) {
     return {
         payload,
-        type: 'GET_ALL_PRODUCTS'
+        type: 'GET_PRODUCTS'
     }
 }
 
