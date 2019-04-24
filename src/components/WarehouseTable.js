@@ -102,6 +102,15 @@ class CostsTable extends React.PureComponent {
             category: this.props.categories
         }
 
+        this.columns.map(x => {
+            if (x.prop === "category") {
+                x.skipRendering = this.props.isGroupingEnabled
+                x.visibleByDefault = this.props.isGroupingEnabled
+            }
+
+            return x;
+        })
+
         return (
             <GenericTable
                 disableGrouping={!this.props.isGroupingEnabled}

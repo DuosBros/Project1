@@ -151,13 +151,16 @@ export default class Warehouse extends React.PureComponent {
                         {showFunctionsMobile && (
                             <Grid.Row>
                                 <Grid.Column>
-                                    <Button onClick={() => this.handleToggleProductModal()} fluid size='large' compact content='Add Product' id="primaryButton" style={{ marginBottom: '0.3em' }} />
+                                    <Input style={{ marginBottom: '0.3em' }}  fluid label="Month" onChange={this.setInput} id="month" value={month} />
+                                    <Input fluid label="Year" onChange={this.setInput} id="year" value={year} />
+                                </Grid.Column>
+                                <Grid.Column>
                                     <Input
-                                        style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
                                         fluid
                                         name="multiSearchInput"
                                         placeholder='Search...'
                                         onChange={this.handleFilterChange} />
+                                    <Button onClick={() => this.handleToggleProductModal()} fluid size='large' compact content='Add Product' id="primaryButton" style={{ marginTop: '0.3em' }} />
                                 </Grid.Column>
                             </Grid.Row>
                         )}
@@ -244,10 +247,10 @@ export default class Warehouse extends React.PureComponent {
                             <Button onClick={this.handleToggleGrouping} fluid size='large' compact content={isGroupingEnabled ? 'Remove grouping' : 'Add grouping'} id="secondaryButton" />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <Input style={{maxWidth: '6em'}} label="Month" onChange={this.setInput} id="month" value={month} />
+                            <Input style={{ maxWidth: '6em' }} label="Month" onChange={this.setInput} id="month" value={month} />
                         </Grid.Column>
                         <Grid.Column width={2}>
-                            <Input style={{maxWidth: '6em'}} label="Year" onChange={this.setInput} id="year" value={year} />
+                            <Input style={{ maxWidth: '6em' }} label="Year" onChange={this.setInput} id="year" value={year} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
