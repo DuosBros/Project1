@@ -13,6 +13,7 @@ class CostsTable extends React.PureComponent {
             name: "Category",
             prop: "category",
             searchable: "distinct",
+            skipRendering: true,
             width: 2,
         },
         {
