@@ -24,13 +24,13 @@ class AddEditProductModal extends React.PureComponent {
         try {
             if (this.state.isEdit) {
                 payload.id = this.props.product.id
-                // TODO: finish this when post put delete based on id will be implemented
                 await editProduct(payload)
                 this.props.editProductAction(payload)
             }
             else {
                 let res = await createProduct(payload)
-                this.props.addProductAction(res)
+                debugger
+                this.props.addProductAction(res.data)
             }
         } catch (err) {
             this.props.showGenericModalAction({
@@ -76,7 +76,7 @@ class AddEditProductModal extends React.PureComponent {
                     <Grid.Column width={5}>
                         <strong>
                             Name
-                            </strong>
+                        </strong>
                     </Grid.Column>
                     <Grid.Column width={11}>
                         <Form>

@@ -2,16 +2,17 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import { getProductsAction, getWarehouseProductsAction, deleteProductAction } from '../utils/actions';
-import { fetchAndHandleProducts } from '../handlers/productHandler';
+import {
+    getProductsAction, getWarehouseProductsAction, deleteProductAction
+} from '../utils/actions';
 import Warehouse from '../pages/Warehouse/Warehouse';
-import { deleteProduct } from '../utils/requests';
+import { deleteProduct, getWarehouseProducts } from '../utils/requests';
 
 class WarehouseContainer extends React.PureComponent {
 
     componentDidMount() {
-        if (!this.props.productsStore.products.data) {
-            this.fetchAndHandleProducts();
+        if (!this.props.productsStore.warehouseProducts.data) {
+            this.fetchAndHandleWarehouseProducts();
         }
     }
 
@@ -22,27 +23,39 @@ class WarehouseContainer extends React.PureComponent {
             })
     }
 
-    fetchAndHandleProducts = () => {
-        fetchAndHandleProducts(this.props.getProductsAction);
+    fetchAndHandleWarehouseProducts = (month, year) => {
+        if (!month && !year) {
+            if (this.props.location.search) {
+                let param = new URLSearchParams(this.props.location.search)
+                month = param.get("month") - 1
+                year = param.get("year")
+            }
+        }
+
+        getWarehouseProducts(month, year)
+            .then(res => {
+                this.props.getWarehouseProductsAction({ success: true, data: res.data })
+            })
+            .catch(err => {
+                this.props.getWarehouseProductsAction({ success: false, error: err })
+            })
     }
 
     render() {
         return (
             <Warehouse
-                products={this.props.productsStore.products}
-                fetchAndHandleProducts={fetchAndHandleProducts}
+                isMobile={this.props.isMobile}
+                products={this.props.productsStore.warehouseProducts}
+                fetchAndHandleWarehouseProducts={this.fetchAndHandleWarehouseProducts}
                 productCategories={this.props.productsStore.productCategories}
-                handleDeleteProduct={this.handleDeleteProduct} />)
+                handleDeleteProduct={this.handleDeleteProduct}
+                {...this.props} />)
     }
 }
-
-
-
 
 function mapStateToProps(state) {
     return {
         ordersStore: state.OrdersReducer,
-        warehouseStore: state.WarehouseReducer,
         productsStore: state.ProductsReducer
     };
 }

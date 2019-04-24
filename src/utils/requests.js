@@ -1,7 +1,24 @@
 import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
+import moment from 'moment';
 
-//{"name":"Test","price":1,"weight":20,"tax":21}
+/**
+ *
+ * @param {Number} month
+ * @param {Number} year
+ */
+export function getWarehouseProducts(month, year) {
+    if(!month) {
+        month = moment().month();
+    }
+
+    if(!year) {
+        year = moment().year();
+    }
+
+    return axios.get(MEDPHARMAVN_API + 'warehouse/v2?month=' + month + '&year=' + year)
+}
+
 export function createProduct(product) {
     return axios.post(MEDPHARMAVN_API + 'products', product)
 }

@@ -1,3 +1,10 @@
+export function getWarehouseProductsActions(payload) {
+    return {
+        payload,
+        type: 'GET_WAREHOUSE_PRODUCTS'
+    }
+}
+
 export function deleteProductAction(payload) {
     return {
         payload,

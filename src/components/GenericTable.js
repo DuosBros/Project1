@@ -206,7 +206,6 @@ export default class GenericTable extends Component {
             let columnDistinctValues = GenericTable.generateDistinctValues(state.columns, state.data, nextProps.distinctValues)
             return { columnDistinctValues, grouping, columns };
         }
-        return null;
     }
 
     handleSort = clickedColumn => () => {

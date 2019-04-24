@@ -124,7 +124,6 @@ class BankContainer extends React.PureComponent {
 function mapStateToProps(state) {
     return {
         ordersStore: state.OrdersReducer,
-        warehouseStore: state.WarehouseReducer,
         bankStore: state.BankReducer,
         costsStore: state.CostsReducer,
         productsStore: state.ProductsReducer

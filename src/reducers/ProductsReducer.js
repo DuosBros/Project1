@@ -1,6 +1,7 @@
 const initialState = {
     products: { success: true },
-    productCategories: []
+    productCategories: [],
+    warehouseProducts: { success: true }
 }
 
 const ProductsReducer = (state = initialState, action) => {
@@ -30,7 +31,18 @@ const ProductsReducer = (state = initialState, action) => {
                 ...state,
                 products: temp, productCategories: categories
             }
+        case 'GET_WAREHOUSE_PRODUCTS':
+            categories = [];
+            if (action.payload.data && action.payload.success) {
 
+                categories = [...new Set(action.payload.data.products.map(item => item.category))];
+            }
+
+            return Object.assign({}, state, {
+                timeSpan: action.payload.data.timeSpan,
+                warehouseProducts: { data: action.payload.data.products, success: true },
+                productCategories: categories
+            })
         case 'EDIT_PRODUCT':
             let products = state.products.data.slice()
             let index = products.findIndex(x => x.id === action.payload.id)

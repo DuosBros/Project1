@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup } from 'semantic-ui-react';
 import moment from 'moment';
 import ErrorMessage from '../../components/ErrorMessage';
-import { APP_TITLE, GET_ORDERS_LIMIT, LOCALSTORAGE_NAME } from '../../appConfig';
+import { APP_TITLE, GET_ORDERS_LIMIT } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import ExportDropdown from '../../components/ExportDropdown';
