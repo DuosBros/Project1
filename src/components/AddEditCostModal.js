@@ -68,7 +68,7 @@ class AddEditCostModal extends React.PureComponent {
 
     handleCategoryDropdownOnChange = (e, b) => {
         let category = this.props.categories[b.value]
-        if(category) {
+        if (category) {
             this.setState({ category: category.text });
         }
     }
@@ -160,6 +160,7 @@ class AddEditCostModal extends React.PureComponent {
                 </Modal.Content>
                 <Modal.Actions>
                     <Button
+                        disabled={!(this.state.description && this.state.cost && this.state.category)}
                         onClick={this.handleSaveCost}
                         positive
                         labelPosition='right'

@@ -8,7 +8,7 @@ import { getProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
 import ProductRow from '../../components/ProductRow';
-import { handleVerifyLockError, getGLSDeliveryPrice, contains } from '../../utils/helpers';
+import { handleVerifyLockError, getGLSDeliveryPrice, contains, isNum } from '../../utils/helpers';
 import _ from 'lodash';
 import moment from 'moment';
 import { fetchAndHandleProducts } from '../../handlers/productHandler';
@@ -494,6 +494,21 @@ class OrderInfo extends React.Component {
     render() {
         var grid;
         const { order, isMobile, isEdit } = this.state;
+
+        // in case it's still loading data
+        if (!this.props.productsStore.products.data) {
+            return (
+                <div className="messageBox">
+                    <Message info icon>
+                        <Icon name='circle notched' loading />
+                        <Message.Content>
+                            <Message.Header>Fetching products</Message.Header>
+                        </Message.Content>
+                    </Message>
+                </div>
+            )
+        }
+
         if (isEdit) {
             if (!this.state.order) {
                 return (

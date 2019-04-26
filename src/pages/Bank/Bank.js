@@ -1,5 +1,5 @@
 import React from 'react';
-import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup } from 'semantic-ui-react';
+import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown } from 'semantic-ui-react';
 import moment from 'moment';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT } from '../../appConfig';
@@ -20,6 +20,7 @@ class Bank extends React.Component {
         super(props);
 
         this.state = {
+            showCategoryModal: false,
             multiSearchInput: "",
             isMobile: props.isMobile,
             showFunctionsMobile: false,
@@ -98,6 +99,25 @@ class Bank extends React.Component {
         }
     }
 
+    handleCategoryModalAddCost = () => {
+        let transaction = this.state.transaction;
+        transaction.category = this.state.category;
+
+        this.props.handleAddTransactionToCost(transaction)
+        this.setState({ showCategoryModal: !this.state.showCategoryModal })
+    }
+
+    handleAddition = (e, { value }) => {
+        this.setState({ category: value });
+    }
+
+    handleCategoryDropdownOnChange = (e, b) => {
+        let category = this.props.costCategories[b.value]
+        if (category) {
+            this.setState({ category: category.text });
+        }
+    }
+
     render() {
         // in case of error
         if (!this.props.transactions.success) {
@@ -126,6 +146,44 @@ class Bank extends React.Component {
                         </Message.Content>
                     </Message>
                 </div>
+            )
+        }
+
+        if (this.state.showCategoryModal) {
+            return (
+                <Modal
+                    closeOnDimmerClick={false}
+                    dimmer={true}
+                    size='small'
+                    open={this.state.showCategoryModal}
+                    closeOnEscape={true}
+                    closeIcon={true}
+                    onClose={() => this.setState({ showCategoryModal: !this.state.showCategoryModal })}
+                >
+                    <Modal.Header>Add Category</Modal.Header>
+                    <Modal.Content>
+                        Category
+                        <Dropdown
+                            search
+                            allowAdditions
+                            onAddItem={this.handleAddition}
+                            fluid
+                            selection
+                            text={this.state.category}
+                            onChange={this.handleCategoryDropdownOnChange}
+                            options={this.props.costCategories}
+                            selectOnBlur={false}
+                            selectOnNavigation={false} />
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button
+                            onClick={() => this.handleCategoryModalAddCost()}
+                            labelPosition='right'
+                            icon='checkmark'
+                            content='Add to Cost'
+                        />
+                    </Modal.Actions>
+                </Modal>
             )
         }
 
@@ -168,7 +226,7 @@ class Bank extends React.Component {
                 })
 
                 if (!found) {
-                    actionButtons = <Button onClick={() => this.props.handleAddTransactionToCost(transaction)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                    actionButtons = <Button onClick={() => this.setState({ showCategoryModal: !this.state.showCategoryModal, transaction: transaction })} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                 }
             }
 

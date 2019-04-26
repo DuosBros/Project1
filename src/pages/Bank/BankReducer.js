@@ -48,8 +48,10 @@ const BankReducer = (state = initialState, action) => {
             if (action.payload.success && action.payload.data) {
                 let orders = action.payload.data
                 transactions.data.forEach(transaction => {
-                    let index = orders.findIndex(x => x.payment.vs === transaction.vs)
-                    transaction.order = orders[index]
+                    if (transaction.value > 0) {
+                        let index = orders.findIndex(x => x.payment.vs === transaction.vs)
+                        transaction.order = orders[index]
+                    }
                 });
             }
 

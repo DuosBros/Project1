@@ -13,6 +13,7 @@ import { fetchAndHandleThisYearOrders, handleTogglePaidOrder, fetchCostsAndHandl
 import Bank from '../pages/Bank/Bank';
 import { addCost, getBankTransactions } from '../utils/requests';
 import { LOCALSTORAGE_NAME } from '../appConfig';
+import { optionsDropdownMapper } from '../utils/helpers';
 
 class BankContainer extends React.PureComponent {
 
@@ -58,7 +59,8 @@ class BankContainer extends React.PureComponent {
             date: moment(transaction.date, "DD.MM.YYYY").toISOString(),
             description: transaction.note,
             cost: (transaction.value * -1),
-            note: "Generated from Bank page"
+            note: "Generated from Bank page",
+            category: transaction.category
         }
 
         try {
@@ -117,7 +119,8 @@ class BankContainer extends React.PureComponent {
                 fetchAndHandleProducts={fetchAndHandleProducts}
                 fetchBankTransactions={this.fetchBankTransactions}
                 productCategories={this.props.productsStore.productCategories}
-                bankAccountInfo={this.props.bankStore.bankAccountInfo} />)
+                bankAccountInfo={this.props.bankStore.bankAccountInfo}
+                costCategories={this.props.costsStore.costCategories.map(optionsDropdownMapper)} />)
     }
 }
 
