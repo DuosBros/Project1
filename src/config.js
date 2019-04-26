@@ -4,7 +4,7 @@ export default {
         "api":
         {
             "local": "http://localhost:3000/rest/",
-            "dev": "http://medpharmavn-test.herokuapp.com/rest/",
+            "dev": "https://medpharmavn-test.herokuapp.com/rest/",
             "prod": "https://medpharmavn.herokuapp.com/rest/"
         }
     },
