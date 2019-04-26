@@ -1,6 +1,6 @@
 import config from './config';
 
-export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? config.url.api.local : config.url.api.prod
+export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? config.url.api.local : config.url.api.dev
 export const DEFAULT_SMARTFORM_LIMIT = config.config.defaultSmartformLimit
 
 export const LOCALSTORAGE_NAME = config.config.localStorageName
