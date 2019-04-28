@@ -1,3 +1,17 @@
+export function getCostsMonthlyAction(payload) {
+    return {
+        payload,
+        type: 'GET_COSTS_MONTHLY'
+    }
+}
+
+export function getPaidOrdersMonthlyAction(payload) {
+    return {
+        payload,
+        type: 'GET_PAID_ORDERS_MONTHLY'
+    }
+}
+
 export function getWarehouseProductsActions(payload) {
     return {
         payload,

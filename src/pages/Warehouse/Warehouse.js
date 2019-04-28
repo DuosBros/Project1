@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Grid, Header, Button, Message, Icon, Input, Transition, Table, Form } from 'semantic-ui-react';
+import { Grid, Header, Button, Message, Icon, Input, Transition, Table } from 'semantic-ui-react';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE } from '../../appConfig';
 import WarehouseTable from '../../components/WarehouseTable';
