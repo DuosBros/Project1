@@ -11,13 +11,6 @@ class GenericModal extends React.Component {
 
     state = { active: true }
 
-    componentDidMount() {
-        if (this.props.err.message) {
-            if (this.props.err.message.name === "TokenExpiredError") {
-                this.props.history.push('/login')
-            }
-        }
-    }
     close = () => {
         this.props.closeGenericModalAction()
         if (this.props.redirectTo) {

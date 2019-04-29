@@ -13,12 +13,6 @@ export default class ErrorBoundary extends React.Component {
             error: error,
             errorInfo: errorInfo
         })
-
-        if(error.message) {
-            if(error.message.name === "TokenExpiredError") {
-                this.props.history.push('/login')
-            }
-        }
     }
 
     render() {

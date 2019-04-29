@@ -129,24 +129,18 @@ export const verifyOrderTimestamp = (timestamp) => {
  * @param {string} currentUser
  */
 export const handleVerifyLockError = (parentProps, error, currentUser) => {
-    if (error.response) {
-        if (error.response.data) {
-            if (error.response.data.message) {
-                if (error.response.data.message.lockedBy !== currentUser) {
-                    parentProps.showGenericModalAction({
-                        modalContent: (
-                            <span>
-                                This order is locked by <strong>{error.response.data.message.lockedBy}</strong>!
+    if (error.response && error.response.data && error.response.data.message.lockedBy !== currentUser) {
+        parentProps.showGenericModalAction({
+            modalContent: (
+                <span>
+                    This order is locked by <strong>{error.response.data.message.lockedBy}</strong>!
                     </span>
-                        ),
-                        modalHeader: "Locked order",
-                        redirectTo: '/orders',
-                        parentProps: parentProps
-                    })
+            ),
+            modalHeader: "Locked order",
+            redirectTo: '/orders',
+            parentProps: parentProps
+        })
 
-                }
-            }
-        }
     }
     else {
         parentProps.showGenericModalAction({

@@ -22,6 +22,9 @@ import Costs from '../pages/Costs/Costs';
 import ScrollToTop from './ScrollToTop';
 import WarehouseContainer from '../containers/WarehouseContainer';
 import BankContainer from '../containers/BankContainer';
+import SummaryContainer from '../containers/SummaryContainer';
+import numeral from 'numeral';
+import cs from 'numeral/locales/cs';
 
 class Base extends React.Component {
 
@@ -31,6 +34,18 @@ class Base extends React.Component {
         axios.defaults.headers.post['Content-Type'] = 'application/json';
 
         axios.defaults.headers.common['x-access-token'] = localStorage.getItem(LOCALSTORAGE_NAME) ? localStorage.getItem(LOCALSTORAGE_NAME) : '';
+
+        axios.interceptors.response.use(
+            (response) => { return response; },
+            (error) => {
+                // handle error
+                if (error.response && error.response.data &&
+                    (error.response.data.message.name === "TokenExpiredError" || error.response.data.message === "No authentication token!")) {
+                    props.authenticateSucceededAction(false);
+                }
+            });
+
+        numeral.locale('cs');
 
         window.addEventListener('resize', this.handleWindowSizeChange);
 
@@ -95,6 +110,7 @@ class Base extends React.Component {
                     <Route exact path='/bank' render={(props) => <BankContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
+                    <Route exact path='/summary' render={(props) => <SummaryContainer {...props} />} />
                 </Switch>
             </ErrorBoundary>
         )

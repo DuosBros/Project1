@@ -2,9 +2,9 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { LOCALSTORAGE_NAME } from '../appConfig';
-import { optionsDropdownMapper } from '../utils/helpers';
-import { getPaidOrdersMonthly } from '../utils/requests';
+import { getPaidOrdersMonthly, getCostsMonthly } from '../utils/requests';
 import { getCostsMonthlyAction, getPaidOrdersMonthlyAction } from '../utils/actions';
+import Summary from '../pages/Summary';
 
 class SummaryContainer extends React.PureComponent {
 
@@ -18,7 +18,7 @@ class SummaryContainer extends React.PureComponent {
 
     fetchDataAndHandleResult = async () => {
         try {
-            let res = await getPaidOrdersMonthly
+            let res = await getPaidOrdersMonthly()
             this.props.getPaidOrdersMonthlyAction({ success: true, data: res.data })
 
         } catch (err) {
@@ -26,7 +26,7 @@ class SummaryContainer extends React.PureComponent {
         }
 
         try {
-            let res = await getCostsMonthly
+            let res = await getCostsMonthly()
             this.props.getCostsMonthlyAction({ success: true, data: res.data })
 
         } catch (err) {
@@ -37,7 +37,10 @@ class SummaryContainer extends React.PureComponent {
     render() {
         return (
             <Summary
-                isMobile={this.props.isMobile} />
+                isMobile={this.props.isMobile}
+                fetchDataAndHandleResult={this.fetchDataAndHandleResult}
+                orders={this.props.summaryStore.orders}
+                costs={this.props.summaryStore.costs} />
         )
     }
 }
