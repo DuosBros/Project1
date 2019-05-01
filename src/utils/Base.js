@@ -110,7 +110,7 @@ class Base extends React.Component {
                     <Route exact path='/bank' render={(props) => <BankContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
-                    <Route exact path='/summary' render={(props) => <SummaryContainer {...props} />} />
+                    <Route exact path='/summary' render={(props) => <SummaryContainer {...props} isMobile={isMobile}  />} />
                 </Switch>
             </ErrorBoundary>
         )

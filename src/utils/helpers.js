@@ -3,6 +3,64 @@ import axios from 'axios';
 import moment from "moment";
 import React from 'react';
 
+export const groupBy = (items, key) => items.reduce(
+    (result, item) => ({
+        ...result,
+        [item[key]]: [
+            ...(result[item[key]] || []),
+            item,
+        ],
+    }),
+    {},
+);
+
+export const mapDataForGenericChart = (data, key, filter, filterZeroCount) => {
+    var grouped = groupBy(data, key);
+    var keys = Object.keys(grouped);
+
+    if (filter) {
+        if (key === Object.keys(filter)[0]) {
+            keys = keys.filter(y => y.search(filter[Object.keys(filter)[0]], "i") >= 0)
+        }
+    }
+    var mapped = keys.map(x => {
+        var count = grouped[x].length
+        let result;
+        if (filterZeroCount) {
+            if (filter) {
+                if (count !== 0 && grouped[x].filter(y =>
+                    y[Object.keys(filter)[0]].toString().search(filter[Object.keys(filter)[0]], "i") >= 0)) {
+                    result = ({
+                        name: x && x !== "null" ? x : "Unknown",
+                        count: grouped[x].filter(y =>
+                            y[Object.keys(filter)[0]].toString().search(filter[Object.keys(filter)[0]], "i") >= 0).length
+                    })
+                }
+            }
+            else {
+                if (count !== 0) {
+                    result = ({
+                        name: x && x !== "null" ? x : "Unknown",
+                        count: count
+                    })
+                }
+            }
+
+        }
+        else {
+            result = ({
+                name: x && x !== "null" ? x : "Unknown",
+                count: filter ? grouped[x].filter(y =>
+                    y[Object.keys(filter)[0]].toString().search(filter[Object.keys(filter)[0]], "i") >= 0).length : count
+            })
+        }
+
+        return result;
+    })
+
+    return mapped.filter(x => x).sort((a, b) => b.count - a.count)
+}
+
 
 export const mapOrderToExcelExport = (data) => {
     let maxProductCount = 0;

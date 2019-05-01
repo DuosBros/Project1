@@ -9,11 +9,12 @@ import {
     updateOrderInTransactionAction, getCostsAction, addCostAction, getOrderAction
 } from '../utils/actions';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
-import { fetchAndHandleThisYearOrders, handleTogglePaidOrder, fetchCostsAndHandleResult } from '../handlers/orderHandler';
+import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../handlers/orderHandler';
 import Bank from '../pages/Bank/Bank';
-import { addCost, getBankTransactions } from '../utils/requests';
+import { addCost } from '../utils/requests';
 import { LOCALSTORAGE_NAME } from '../appConfig';
 import { optionsDropdownMapper } from '../utils/helpers';
+import { fetchBankTransactions } from '../handlers/bankHandler';
 
 class BankContainer extends React.PureComponent {
 
@@ -23,7 +24,7 @@ class BankContainer extends React.PureComponent {
     }
 
     componentDidMount() {
-        this.fetchBankTransactions()
+        this.fetchBankTransactions();
 
         if (!this.props.productsStore.products.data) {
             fetchAndHandleProducts(this.props.getProductsAction);
@@ -35,18 +36,8 @@ class BankContainer extends React.PureComponent {
             })
         }
     }
-
     fetchBankTransactions = () => {
-        getBankTransactions()
-            .then(res => {
-                this.props.getBankTransactionsAction({ success: true, data: res.data })
-            })
-            .then(() => {
-                fetchAndHandleThisYearOrders(this.props.getOrdersAction, null, null, this.props.mapOrdersToTransactionsActions)
-            })
-            .catch(err => {
-                this.props.getBankTransactionsAction({ success: false, error: err })
-            })
+        fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions)
     }
 
     fetchAndHandleProducts = () => {

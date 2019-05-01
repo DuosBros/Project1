@@ -22,6 +22,8 @@ export const APP_TITLE = config.config.appTitle
 
 export const ORDER_DELIVERY_JSON = config.zaslatDeliveryJson
 
+export const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658'];
+
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b | clip.exe
 
 // 14.11. 1627
@@ -40,3 +42,4 @@ export const ORDER_DELIVERY_JSON = config.zaslatDeliveryJson
 // 17.04  7734
 // 22.04  7783
 // 29.04  8547
+// 30.04  8689

@@ -48,7 +48,10 @@ export default class GenericTable extends Component {
         rowsPerPage: n => Number.isInteger(n) && n >= 0,
         tableHeader: PropTypes.oneOfType([
             PropTypes.bool,
-            PropTypes.oneOf(["hidden"])
+            PropTypes.arrayOf(PropTypes.string),
+            PropTypes.oneOf(
+                ["hidden", "export", "filter", "paging", "columnfilters"]
+            )
         ]),
         transformDataRow: PropTypes.func,
     }
@@ -557,66 +560,84 @@ export default class GenericTable extends Component {
         }
 
         if (showTableHeader !== false) {
-            if (showTableHeader !== "hidden") {
+            if ((Array.isArray(showTableHeader) && !showTableHeader.includes("hidden")) || showTableHeader === true) {
                 return (
                     <Grid>
                         <Grid.Row>
-                            <Grid.Column floated='left' width={4}>
-                                <Input
-                                    label={(
-                                        <Label className='iconMargin'>
-                                            <Popup on='click' hideOnScroll trigger={<Icon name='question circle' size='small' />} inverted>
-                                                <Popup.Content>
-                                                    Did you know that you can also use <a target="_blank" rel="noopener noreferrer" href='https://regexr.com/'>Regular Expressions</a> in this filter and column filters by prefixing your expression with "~"?
-                                                </Popup.Content>
-                                            </Popup>
-                                            Filter:
-                                        </Label>
-                                    )}
-                                    id="multiSearchFilterInBuffedTable"
-                                    fluid
-                                    value={multiSearchInput}
-                                    placeholder="Type to search..."
-                                    name="multiSearchInput"
-                                    onChange={this.handleMultiFilterChange}
-                                    error={!multiSearchInputValid} />
-                            </Grid.Column>
-                            <Grid.Column width={1}>
-                                <ExportDropdown data={filteredData} columns={columns} visibleColumnsList={visibleColumnsList} />
-                            </Grid.Column>
-                            <Grid.Column width={3}>
-                                <div style={{ float: "right", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
-                                    <span>Showing {filteredData.length > 0 ? this.state.offset + 1 : 0} to {filteredData.length < limit ? filteredData.length : this.state.offset + limit} of {filteredData.length} entries</span>
-                                </div>
-                            </Grid.Column>
-                            <Grid.Column width={4}>
-                                <div style={{ float: "left", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
-                                    <Input
-                                        label='Records per page:'
-                                        className="RecordsPerPage"
-                                        error={!limitInputValid}
-                                        value={limitInput}
-                                        name="inputRecordsPerPage"
-                                        onChange={this.handleChangeRecordsPerPage} />
-                                </div>
-                            </Grid.Column>
-                            <Grid.Column floated='right' width={4} textAlign="right">
-                                <>
-                                    <Button
-                                        size="small"
-                                        className="showColumnFilters"
-                                        name="showColumnFilters"
-                                        onClick={this.handleStateToggle}
-                                        compact
-                                        content={showColumnFilters ? 'Hide Column Filters' : 'Show Column Filters'}
-                                        style={{ padding: '0.3em', textAlign: 'right' }}
-                                        icon={showColumnFilters ? 'eye slash' : 'eye'}
-                                        labelPosition='right' />
-                                    {columnToggleButton}
-                                    {this.props.renderCustomFilter()}
-                                </>
+                            {
+                                (Array.isArray(showTableHeader) && showTableHeader.includes("filter")) || showTableHeader === true && (
+                                    <Grid.Column floated='left' width={4}>
+                                        <Input
+                                            label={(
+                                                <Label className='iconMargin'>
+                                                    <Popup on='click' hideOnScroll trigger={<Icon name='question circle' size='small' />} inverted>
+                                                        <Popup.Content>
+                                                            Did you know that you can also use <a target="_blank" rel="noopener noreferrer" href='https://regexr.com/'>Regular Expressions</a> in this filter and column filters by prefixing your expression with "~"?
+                                                    </Popup.Content>
+                                                    </Popup>
+                                                    Filter:
+                                            </Label>
+                                            )}
+                                            id="multiSearchFilterInBuffedTable"
+                                            fluid
+                                            value={multiSearchInput}
+                                            placeholder="Type to search..."
+                                            name="multiSearchInput"
+                                            onChange={this.handleMultiFilterChange}
+                                            error={!multiSearchInputValid} />
+                                    </Grid.Column>
+                                )
+                            }
+                            {
+                                (Array.isArray(showTableHeader) && showTableHeader.includes("export") || showTableHeader === true) && (
+                                    <Grid.Column verticalAlign='bottom' width={1}>
+                                        <ExportDropdown data={filteredData} columns={columns} visibleColumnsList={visibleColumnsList} />
+                                    </Grid.Column>
+                                )
+                            }
+                            {
+                                (Array.isArray(showTableHeader) && showTableHeader.includes("paging") || showTableHeader === true) && (
+                                    <>
+                                        <Grid.Column verticalAlign='bottom' width={3}>
+                                            <div style={{ float: "right", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
+                                                <span>Showing {filteredData.length > 0 ? this.state.offset + 1 : 0} to {filteredData.length < limit ? filteredData.length : this.state.offset + limit} of {filteredData.length} entries</span>
+                                            </div>
+                                        </Grid.Column>
+                                        <Grid.Column width={4}>
+                                            <div style={{ float: "left", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
+                                                <Input
+                                                    label='Records per page:'
+                                                    className="RecordsPerPage"
+                                                    error={!limitInputValid}
+                                                    value={limitInput}
+                                                    name="inputRecordsPerPage"
+                                                    onChange={this.handleChangeRecordsPerPage} />
+                                            </div>
+                                        </Grid.Column>
+                                    </>
+                                )
+                            }
+                            {
+                                (Array.isArray(showTableHeader) && showTableHeader.includes("columnfilters") || showTableHeader === true) && (
+                                    <Grid.Column floated='right' width={4} textAlign="right">
+                                        <>
+                                            <Button
+                                                size="small"
+                                                className="showColumnFilters"
+                                                name="showColumnFilters"
+                                                onClick={this.handleStateToggle}
+                                                compact
+                                                content={showColumnFilters ? 'Hide Column Filters' : 'Show Column Filters'}
+                                                style={{ padding: '0.3em', textAlign: 'right' }}
+                                                icon={showColumnFilters ? 'eye slash' : 'eye'}
+                                                labelPosition='right' />
+                                            {columnToggleButton}
+                                            {this.props.renderCustomFilter()}
+                                        </>
 
-                            </Grid.Column>
+                                    </Grid.Column>
+                                )
+                            }
                         </Grid.Row>
                         {toggleColumnsRow}
                     </Grid>

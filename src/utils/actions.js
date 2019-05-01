@@ -5,6 +5,14 @@ export function getCostsMonthlyAction(payload) {
     }
 }
 
+export function getOrderedOrdersMonthlyAction(payload) {
+    return {
+        payload,
+        type: 'GET_ORDERED_ORDERS_MONTHLY'
+    }
+}
+
+
 export function getPaidOrdersMonthlyAction(payload) {
     return {
         payload,

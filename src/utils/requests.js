@@ -2,6 +2,10 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function getOrderedOrdersMonthly() {
+    return axios.get(MEDPHARMAVN_API + 'orders/ordered/filter/month')
+}
+
 export function getPaidOrdersMonthly() {
     return axios.get(MEDPHARMAVN_API + 'orders/paid/filter/month')
 }
@@ -16,11 +20,11 @@ export function getCostsMonthly() {
  * @param {Number} year
  */
 export function getWarehouseProducts(month, year) {
-    if(!month) {
+    if (!month) {
         month = moment().month();
     }
 
-    if(!year) {
+    if (!year) {
         year = moment().year();
     }
 
