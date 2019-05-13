@@ -1,7 +1,35 @@
+export function getNotPaidOrdersAction(payload) {
+    return {
+        payload,
+        type: 'GET_NOT_PAID_ORDERS'
+    }
+}
+
+export function getProductsMonthlyAction(payload) {
+    return {
+        payload,
+        type: 'GET_PRODUCTS_MONTHLY'
+    }
+}
+
+export function getProductsDailyAction(payload) {
+    return {
+        payload,
+        type: 'GET_PRODUCTS_DAILY'
+    }
+}
+
 export function getCostsMonthlyAction(payload) {
     return {
         payload,
         type: 'GET_COSTS_MONTHLY'
+    }
+}
+
+export function getOrderedOrdersDailyAction(payload) {
+    return {
+        payload,
+        type: 'GET_ORDERED_ORDERS_DAILY'
     }
 }
 

@@ -5,10 +5,13 @@ const ordersPageInitialState = {
     notPaidNotifications: { success: true },
     isLoadingDone: false,
     orderToEdit: {},
+    notPaidOrders: { success: true }
 }
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
     switch (action.type) {
+        case 'GET_NOT_PAID_ORDERS':
+            return Object.assign({}, state, { notPaidOrders: action.payload })
         case 'GET_ORDER':
             var temp = Object.assign({}, state.orders)
 

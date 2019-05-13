@@ -1,8 +1,24 @@
 import React from 'react'
 import GenericTable from './GenericTable';
 import { Button, Popup } from 'semantic-ui-react';
+import PropTypes from 'prop-types';
 
 class CostsTable extends React.PureComponent {
+    static defaultProps = {
+        defaultShowInactiveProducts: false
+    }
+
+    static propTypes = {
+        defaultShowInactiveProducts: PropTypes.bool
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            showInactiveProducts: props.defaultShowInactiveProducts
+        };
+    }
+
     columns = [
         {
             name: "Product",
@@ -97,6 +113,39 @@ class CostsTable extends React.PureComponent {
         "category"
     ]
 
+    customFilterCallback = (filteredData) => {
+        const { showInactiveProducts } = this.state;
+debugger
+        if (showInactiveProducts) {
+            filteredData = filteredData.filter(x => x.active === true)
+        }
+        return filteredData;
+    }
+
+    handleStateToggle = (e, { name }) => {
+        this.setState({
+            [name]: !this.state[name]
+        });
+    }
+
+    renderCustomFilter = () => {
+        const { showInactiveProducts } = this.state;
+        return (
+            <div>
+                <Button
+                    size="small"
+                    name="showInactiveProducts"
+                    onClick={this.handleStateToggle}
+                    compact
+                    content={showInactiveProducts ? 'Hide inactive products' : 'Show inactive products'}
+                    style={{ padding: '0.3em', marginTop: '0.5em', textAlign: 'right' }}
+                    id="secondaryButton"
+                    icon={showInactiveProducts ? 'eye slash' : 'eye'}
+                    labelPosition='right' />
+            </div>
+        );
+    }
+
     render() {
         let distinctValuesObject = {
             category: this.props.categories
@@ -113,6 +162,8 @@ class CostsTable extends React.PureComponent {
 
         return (
             <GenericTable
+                renderCustomFilter={this.renderCustomFilter}
+                customFilterCallback={this.customFilterCallback}
                 disableGrouping={!this.props.isGroupingEnabled}
                 transformDataRow={this.transformDataRow}
                 distinctValues={distinctValuesObject}

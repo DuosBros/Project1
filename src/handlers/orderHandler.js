@@ -1,12 +1,32 @@
 import moment from 'moment';
-import { getOrder, lockOrder, updateOrder, getCosts, getCurrentYearOrders } from '../utils/requests';
+import { getOrder, lockOrder, updateOrder, getCosts, getCurrentYearOrders, getOrders, getNotPaidOrders } from '../utils/requests';
 import { DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
+
+export const fetchAndHandleNotPaidOrders = (getNotPaidOrdersAction) => {
+    getNotPaidOrders()
+        .then(res => {
+            getNotPaidOrdersAction({ data: res.data, success: true })
+        })
+        .catch(err => {
+            getNotPaidOrdersAction({ error: err, success: false })
+        })
+}
+
+export const fetchAndHandleOrders = (from, to, getOrdersAction) => {
+    getOrders(from, to)
+        .then(res => {
+            getOrdersAction({ data: res.data, success: true })
+        })
+        .catch(err => {
+            getOrdersAction({ error: err, success: false })
+        })
+}
 
 export const fetchAndHandleThisYearOrders = (getOrdersAction, limit, sinceId, mapOrdersToTransactionsActions) => {
     getCurrentYearOrders(limit, sinceId)
         .then(res => {
             getOrdersAction({ data: res.data, success: true })
-            if(mapOrdersToTransactionsActions) {
+            if (mapOrdersToTransactionsActions) {
                 mapOrdersToTransactionsActions({ data: res.data, success: true })
             }
         })

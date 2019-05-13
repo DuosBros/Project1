@@ -2,11 +2,13 @@ import React from 'react';
 import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown, Segment } from 'semantic-ui-react';
 import numeral from 'numeral';
 import ErrorMessage from '../components/ErrorMessage';
-import { APP_TITLE } from '../appConfig';
-import { filterInArrayOfObjects, debounce, contains, pick, buildFilter, sortMonthYear, mapDataForGenericChart } from '../utils/helpers';
+import { APP_TITLE, SUMMARY_TYPES, MONTHS, YEARS } from '../appConfig';
+import { filterInArrayOfObjects, debounce, contains, pick, buildFilter, sortMonthYear, mapDataForGenericChart, optionsDropdownMapper } from '../utils/helpers';
 import SummaryTable from '../components/SummaryTable';
 import GenericBarChart from '../charts/GenericBarChart';
 import ExportDropdown from '../components/ExportDropdown';
+import moment from 'moment';
+import GenericLineChart from '../charts/GenericLineChart';
 
 class Summary extends React.PureComponent {
 
@@ -18,7 +20,10 @@ class Summary extends React.PureComponent {
             isMobile: props.isMobile,
             showFunctionsMobile: false,
             showMultiSearchFilter: false,
-            recordsLimit: 5
+            recordsLimit: 5,
+            type: "Monthly",
+            month: moment().month() + 1,
+            year: moment().year()
         };
 
         this.updateFilters = debounce(this.updateFilters, 500);
@@ -57,9 +62,39 @@ class Summary extends React.PureComponent {
         this.setState({ showMultiSearchFilter: true })
     }
 
+    handleTypeDropdownChange = (e, { value }) => {
+        this.setState({ type: value });
+    }
+
+    handleMonthDropdownChange = (e, { value }) => {
+        let start = moment([this.state.year, value]).utc().startOf('month').toISOString();
+        let end = moment([this.state.year, value]).utc().endOf('month').toISOString();
+        this.props.fetchOrderedOrdersDaily(start, end)
+        this.props.fetchProductsDaily(start, end)
+
+        this.setState({ month: Number.parseInt(value) });
+    }
+
+    handleYearDropdownChange = (e, { value }) => {
+        if (this.state.type === "Monthly") {
+            let start = moment([value, this.state.month]).utc().startOf('month').toISOString();
+            let end = moment([value, this.state.month]).utc().endOf('month').toISOString();
+            this.props.fetchOrderedOrdersDaily(start, end);
+        }
+
+        if (this.state.type === "Yearly") {
+            this.props.fetchOrdersAndHandleResult(
+                moment().year(value).utc().startOf('year').toISOString(),
+                moment().year(value).utc().endOf('year').toISOString());
+        }
+
+        this.setState({ year: Number.parseInt(value) });
+    }
+
     render() {
         // in case of error
-        if (!this.props.orderedOrders.success || !this.props.costs.success) {
+        if (!this.props.orderedOrders.success || !this.props.costs.success || !this.props.orderedOrdersDaily.success
+            || !this.props.productsDaily.success) {
             return (
                 <Grid stackable>
                     <Grid.Row>
@@ -75,7 +110,8 @@ class Summary extends React.PureComponent {
         }
 
         // in case it's still loading data
-        if (!this.props.orderedOrders.data || !this.props.costs.data) {
+        if (!this.props.orderedOrders.data || !this.props.costs.data
+            || !this.props.orderedOrdersDaily.data || !this.props.productsDaily.data) {
             return (
                 <div className="messageBox">
                     <Message info icon>
@@ -87,9 +123,223 @@ class Summary extends React.PureComponent {
                 </div>
             )
         }
+        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length).reverse();
+        let yearlyOrderedOrdersFiltered = rawOrderedOrders.filter(x => x._id.year === this.state.year)
+        let dropdowns, ordersTurnoverGraph, ordersCountGraph, dataToExport, ordersTotalPriceAvgRow,
+            productsMonthlyCountRow, productsMonthlyTurnoverRow, productCategoriesTurnoverRow;
+        if (this.state.type === "Monthly") {
+            dataToExport = this.props.orderedOrdersDaily.data;
+
+            ordersTurnoverGraph = (
+                <GenericLineChart
+                    data={this.props.orderedOrdersDaily.data}
+                    xDataKey="date"
+                    ydataKey1="turnover"
+                    ydataKey2="turnoverAverage"
+                    tooltipFormatter={{
+                        formatter: "CZK"
+                    }}
+                />
+            )
+
+            ordersCountGraph = (
+                <GenericLineChart
+                    data={this.props.orderedOrdersDaily.data}
+                    xDataKey="date"
+                    ydataKey1="ordersCount"
+                    ydataKey2="ordersCountAverage"
+                    tooltipFormatter={{
+                        formatter: "pcs"
+                    }}
+                />
+            )
+
+            productsMonthlyCountRow = (
+                <>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Header as='h3' content={'Products count [order date] - ' + this.state.type} />
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <GenericLineChart
+                            longNames={true}
+                            data={this.props.productsDaily.data}
+                            xDataKey="name"
+                            ydataKey1="totalCount"
+                            tooltipFormatter={{
+                                formatter: "pcs"
+                            }}
+                        />
+                    </Grid.Row>
+                </>
+            )
+
+            productsMonthlyTurnoverRow = (
+                <>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Header as='h3' content={'Products turnover [order date] - ' + this.state.type} />
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <GenericLineChart
+                            longNames={true}
+                            data={this.props.productsDaily.data}
+                            xDataKey="name"
+                            ydataKey1="totalAmount"
+                            tooltipFormatter={{
+                                formatter: "CZK"
+                            }}
+                        />
+                    </Grid.Row>
+                </>
+            )
+
+            productCategoriesTurnoverRow = (
+                <>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Header as='h3' content={'Product categories [order date] - ' + this.state.type} />
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <GenericLineChart
+                            data={this.props.categoriesDaily}
+                            xDataKey="category"
+                            ydataKey1="totalAmount"
+                            tooltipFormatter={{
+                                formatter: "CZK"
+                            }}
+                        />
+                    </Grid.Row>
+                </>
+            )
+
+            dropdowns = (
+                <>
+                    <Dropdown
+                        style={{ marginLeft: '0.3em' }}
+                        selection
+                        onChange={this.handleMonthDropdownChange}
+                        options={MONTHS}
+                        text={this.state.month.toString()}
+                        selectOnBlur={false}
+                        selectOnNavigation={false} />
+                    < Dropdown
+                        style={{ marginLeft: '0.3em' }
+                        }
+                        selection
+                        onChange={this.handleYearDropdownChange}
+                        options={YEARS}
+                        text={this.state.year.toString()}
+                        selectOnBlur={false}
+                        selectOnNavigation={false} />
+                </>
+            )
+        }
+
+        if (this.state.type === "Yearly") {
+            dataToExport = yearlyOrderedOrdersFiltered;
+            ordersTurnoverGraph = (
+                <GenericLineChart
+                    data={yearlyOrderedOrdersFiltered}
+                    xDataKey="date"
+                    ydataKey1="turnover"
+                    ydataKey2="turnoverAverage"
+                    tooltipFormatter={{
+                        formatter: "CZK"
+                    }}
+                />
+            )
+
+            ordersCountGraph = (
+                <GenericLineChart
+                    data={yearlyOrderedOrdersFiltered}
+                    xDataKey="date"
+                    ydataKey1="ordersCount"
+                    ydataKey2="ordersCountAverage"
+                    tooltipFormatter={{
+                        formatter: "pcs"
+                    }}
+                />
+            )
+
+            ordersTotalPriceAvgRow = (
+                <>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Header as='h3' content={'Orders total price average [order date] - ' + this.state.type} />
+                        </Grid.Column>
+                        <Grid.Column width={11}>
+                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <GenericLineChart
+                            data={this.props.ordersTotalPriceAvg}
+                            xDataKey="monthAndYear"
+                            ydataKey1="totalPriceMonthlyAverage"
+                            ydataKey2="totalPriceTotalAverage"
+                            tooltipFormatter={{
+                                formatter: "CZK"
+                            }}
+                        />
+                    </Grid.Row>
+                </>
+            )
+
+            dropdowns = (
+                < Dropdown
+                    style={{ marginLeft: '0.3em' }
+                    }
+                    selection
+                    onChange={this.handleYearDropdownChange}
+                    options={YEARS}
+                    text={this.state.year.toString()}
+                    selectOnBlur={false}
+                    selectOnNavigation={false} />
+            )
+        }
+
+        if (this.state.type === "Total") {
+            dataToExport = rawOrderedOrders;
+            ordersTurnoverGraph = (
+                <GenericLineChart
+                    data={rawOrderedOrders}
+                    xDataKey="date"
+                    ydataKey1="turnover"
+                    ydataKey2="turnoverAverage"
+                    tooltipFormatter={{
+                        formatter: "CZK"
+                    }}
+                />
+            )
+
+            ordersCountGraph = (
+                <GenericLineChart
+                    data={rawOrderedOrders}
+                    xDataKey="date"
+                    ydataKey1="turnover"
+                    ydataKey2="turnoverAverage"
+                    tooltipFormatter={{
+                        formatter: "pcs"
+                    }}
+                />
+            )
+        }
+
         const { multiSearchInput, isMobile, showFunctionsMobile, recordsLimit } = this.state;
         let filteredByMultiSearch, table, pageHeader;
-
         if (isMobile) {
 
             if (multiSearchInput && multiSearchInput.length > 1) { // if filter is specified
@@ -144,7 +394,9 @@ class Summary extends React.PureComponent {
                             </Header>
                         </Grid.Column>
                         <Grid.Column>
-                            <strong>Balance: {this.props.bankAccountInfo.closingBalance ? this.props.bankAccountInfo.closingBalance : <Icon fitted loading name='circle notched' />} CZK</strong>
+                            <strong>Balance: {this.props.bankAccountInfo.closingBalance ? this.props.bankAccountInfo.closingBalance : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
+                            <strong>Receivables: {this.props.receivables ? this.props.receivables : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
+                            <strong>WH value: {this.props.warehouseValue ? numeral(this.props.warehouseValue).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</strong>
                         </Grid.Column>
                     </Grid.Row>
                     <Transition.Group animation='drop' duration={500}>
@@ -172,10 +424,6 @@ class Summary extends React.PureComponent {
             )
         } else {
 
-            let rawOrderedOrders = this.props.orderedOrders.data.slice();
-            rawOrderedOrders.splice(0, 2);
-            rawOrderedOrders = rawOrderedOrders.reverse();
-
             // render page
             return (
                 <Grid stackable>
@@ -187,7 +435,9 @@ class Summary extends React.PureComponent {
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' verticalAlign='bottom' >
                             <Header as='h4'>
-                                <strong>Balance: {this.props.bankAccountInfo.closingBalance ? this.props.bankAccountInfo.closingBalance : <Icon fitted loading name='circle notched' />} CZK</strong>
+                                <strong>Balance: {this.props.bankAccountInfo.closingBalance ? this.props.bankAccountInfo.closingBalance : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
+                                <strong>Receivables: {this.props.receivables ? numeral(this.props.receivables).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
+                                <strong>WH value: {this.props.warehouseValue ? numeral(this.props.warehouseValue).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</strong>
                             </Header>
                         </Grid.Column>
                         <Grid.Column width={11} textAlign='left' verticalAlign='bottom' >
@@ -201,17 +451,19 @@ class Summary extends React.PureComponent {
                         <Grid.Column>
                             <Header block attached='top' as='h4'>
                                 Accounting Monthly
+                                <ExportDropdown direction='left' style={{ float: 'right' }} data={pick(this.props.orderedOrders.data, ["monthAndYear", "turnover", "costs", "profit"])} />
                             </Header>
                             <Segment attached='bottom'>
-                                <SummaryTable tableHeader={["export"]} compact="very" rowsPerPage={6} data={this.props.orderedOrders.data} />
+                                <SummaryTable tableHeader={false} compact="very" rowsPerPage={6} data={this.props.orderedOrders.data} />
                             </Segment>
                         </Grid.Column>
                         <Grid.Column>
                             <Header block attached='top' as='h4'>
                                 Accounting Yearly
+                                <ExportDropdown direction='left' style={{ float: 'right' }} data={pick(this.props.orderedOrdersYearly, ["monthAndYear", "turnover", "costs", "profit"])} />
                             </Header>
                             <Segment attached='bottom'>
-                                <SummaryTable tableHeader={["export"]} compact="very" rowsPerPage={6} data={this.props.orderedOrdersYearly} />
+                                <SummaryTable tableHeader={false} compact="very" rowsPerPage={6} data={this.props.orderedOrdersYearly} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -219,24 +471,50 @@ class Summary extends React.PureComponent {
                         <Grid.Column>
                             <Header block attached='top' as='h4'>
                                 Graphs
+                                <Dropdown
+                                    style={{ marginLeft: '0.3em' }}
+                                    selection
+                                    onChange={this.handleTypeDropdownChange}
+                                    options={SUMMARY_TYPES}
+                                    text={this.state.type}
+                                    selectOnBlur={false}
+                                    selectOnNavigation={false} />
+                                {dropdowns}
                             </Header>
                             <Segment attached='bottom'>
                                 <Grid>
                                     <Grid.Row>
-                                        <Grid.Column width={3}>
-                                            <Header as='h3' content='Orders per month [order date]' />
+                                        <Grid.Column width={5}>
+                                            <Header as='h3' content={'Orders turnover [order date] - ' + this.state.type} />
                                         </Grid.Column>
-                                        <Grid.Column width={13}>
-                                            <ExportDropdown data={pick(rawOrderedOrders, ["monthAndYear", "ordersCount"])} />
+                                        <Grid.Column width={11}>
+                                            <ExportDropdown floating='right' data={pick(dataToExport, ["date", "turnover", "turnoverAverage"])} />
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row>
-                                        <GenericBarChart
+                                        {ordersTurnoverGraph}
+
+                                        {/* <GenericBarChart
                                             data={rawOrderedOrders}
                                             xDataKey="monthAndYear"
                                             yDataKey="ordersCount"
-                                            avgDataKey="ordersCountMedian" />
+                                            avgDataKey="ordersCountMedian" /> */}
                                     </Grid.Row>
+                                    <Grid.Row>
+                                        <Grid.Column width={5}>
+                                            <Header as='h3' content={'Order count [order date] - ' + this.state.type} />
+                                        </Grid.Column>
+                                        <Grid.Column width={11}>
+                                            <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} />
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                    <Grid.Row>
+                                        {ordersCountGraph}
+                                    </Grid.Row>
+                                    {productsMonthlyCountRow}
+                                    {productsMonthlyTurnoverRow}
+                                    {ordersTotalPriceAvgRow}
+                                    {productCategoriesTurnoverRow}
                                 </Grid>
                             </Segment>
                         </Grid.Column>

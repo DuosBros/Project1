@@ -565,7 +565,7 @@ export default class GenericTable extends Component {
                     <Grid>
                         <Grid.Row>
                             {
-                                (Array.isArray(showTableHeader) && showTableHeader.includes("filter")) || showTableHeader === true && (
+                                ((Array.isArray(showTableHeader) && showTableHeader.includes("filter")) || showTableHeader === true) && (
                                     <Grid.Column floated='left' width={4}>
                                         <Input
                                             label={(
@@ -589,14 +589,14 @@ export default class GenericTable extends Component {
                                 )
                             }
                             {
-                                (Array.isArray(showTableHeader) && showTableHeader.includes("export") || showTableHeader === true) && (
+                                ((Array.isArray(showTableHeader) && showTableHeader.includes("export")) || showTableHeader === true) && (
                                     <Grid.Column verticalAlign='bottom' width={1}>
                                         <ExportDropdown data={filteredData} columns={columns} visibleColumnsList={visibleColumnsList} />
                                     </Grid.Column>
                                 )
                             }
                             {
-                                (Array.isArray(showTableHeader) && showTableHeader.includes("paging") || showTableHeader === true) && (
+                                ((Array.isArray(showTableHeader) && showTableHeader.includes("paging")) || showTableHeader === true) && (
                                     <>
                                         <Grid.Column verticalAlign='bottom' width={3}>
                                             <div style={{ float: "right", margin: "0 20px", display: limit === 0 ? "none" : "visible" }}>
@@ -618,7 +618,7 @@ export default class GenericTable extends Component {
                                 )
                             }
                             {
-                                (Array.isArray(showTableHeader) && showTableHeader.includes("columnfilters") || showTableHeader === true) && (
+                                ((Array.isArray(showTableHeader) && showTableHeader.includes("columnfilters")) || showTableHeader === true) && (
                                     <Grid.Column floated='right' width={4} textAlign="right">
                                         <>
                                             <Button

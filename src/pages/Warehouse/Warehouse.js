@@ -70,7 +70,7 @@ export default class Warehouse extends React.PureComponent {
         this.setState({ [b.id]: b.value },
             () => {
                 if (isNum(this.state.month) && isNum(this.state.year)) {
-                    this.props.fetchAndHandleWarehouseProducts(this.state.month - 1, this.state.year);
+                    this.props.fetchAndHandleWarehouseProducts(this.state.month, this.state.year);
                     this.updateRoute(this.state.month, this.state.year);
                 }
             });

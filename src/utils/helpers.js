@@ -3,6 +3,10 @@ import axios from 'axios';
 import moment from "moment";
 import React from 'react';
 
+export const getNonBillableProducts = (products) => {
+    return products.filter(x => x.category !== 'Nonbillable')
+}
+
 export const groupBy = (items, key) => items.reduce(
     (result, item) => ({
         ...result,
@@ -125,8 +129,8 @@ export const flattenObject = (ob) => {
 
 export const sortMonthYear = (array) => {
     array.sort(function (a, b) {
-        a = a.monthAndYear.split(".");
-        b = b.monthAndYear.split(".")
+        a = a.date.split(".");
+        b = b.date.split(".")
         return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
     })
 

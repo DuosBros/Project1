@@ -39,7 +39,7 @@ const ExportDropdown = (props) => {
     }
 
     return (
-        <Dropdown icon={<Icon className="iconMargin" name='share' />} item text='Export'>
+        <Dropdown direction={props.direction} style={props.style} icon={<Icon className="iconMargin" name='share' />} item text='Export'>
             <Dropdown.Menu>
                 <Dropdown.Item
                     onClick={() => handleExport(props.data)}

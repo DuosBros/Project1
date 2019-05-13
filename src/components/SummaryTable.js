@@ -6,7 +6,7 @@ export default class SummaryTable extends React.PureComponent {
     columns = [
         {
             name: "Month/Year",
-            prop: "monthAndYear",
+            prop: "date",
             width: 2,
         },
         {
@@ -23,6 +23,11 @@ export default class SummaryTable extends React.PureComponent {
             name: "Profit [CZK]",
             prop: "profit",
             width: 2,
+        },
+        {
+            name: "# Orders",
+            prop: "ordersCount",
+            width: 2,
         }
     ]
 
@@ -31,9 +36,13 @@ export default class SummaryTable extends React.PureComponent {
     }
 
     transformDataRow(data) {
+        if(data.monthAndYear === "Average") {
+            data.monthAndYear = (<strong><em>Average</em></strong>)
+        }
         data.turnover = numeral(data.turnover).format('0,0')
         data.costs = numeral(data.costs).format('0,0')
         data.profit = numeral(data.profit).format('0,0')
+        data.ordersCount = numeral(data.ordersCount).format('0,0')
 
         return data;
     }

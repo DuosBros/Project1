@@ -7,6 +7,7 @@ import {
 } from '../utils/actions';
 import Warehouse from '../pages/Warehouse/Warehouse';
 import { deleteProduct, getWarehouseProducts } from '../utils/requests';
+import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
 
 class WarehouseContainer extends React.PureComponent {
 
@@ -27,18 +28,12 @@ class WarehouseContainer extends React.PureComponent {
         if (!month && !year) {
             if (this.props.location.search) {
                 let param = new URLSearchParams(this.props.location.search)
-                month = param.get("month") - 1
+                month = param.get("month")
                 year = param.get("year")
             }
         }
 
-        getWarehouseProducts(month, year)
-            .then(res => {
-                this.props.getWarehouseProductsAction({ success: true, data: res.data })
-            })
-            .catch(err => {
-                this.props.getWarehouseProductsAction({ success: false, error: err })
-            })
+        fetchWarehouseProducts(month, year, this.props.getWarehouseProductsAction)
     }
 
     render() {

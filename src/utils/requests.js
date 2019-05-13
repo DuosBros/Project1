@@ -2,8 +2,24 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function getNotPaidOrders() {
+    return axios.get(MEDPHARMAVN_API + 'orders/notpaid')
+}
+
+export function getProductsDaily(from, to) {
+    return axios.get(MEDPHARMAVN_API + 'charts/products/daily?from=' + from + '&to=' + to)
+}
+
+export function getProductsMonthly() {
+    return axios.get(MEDPHARMAVN_API + 'charts/products/monthly')
+}
+
+export function getOrderedOrdersDaily(from, to) {
+    return axios.get(MEDPHARMAVN_API + 'orders/ordered/filter/daily?from=' + from + '&to=' + to)
+}
+
 export function getOrderedOrdersMonthly() {
-    return axios.get(MEDPHARMAVN_API + 'orders/ordered/filter/month')
+    return axios.get(MEDPHARMAVN_API + 'orders/ordered/filter/monthly')
 }
 
 export function getPaidOrdersMonthly() {
@@ -201,6 +217,15 @@ export function createOrder(order, user) {
 
 export function getProducts() {
     return axios.get(MEDPHARMAVN_API + 'products/v2')
+}
+
+export function getOrders(from, to) {
+    return axios.get(MEDPHARMAVN_API +
+        'orders?from=' +
+        from +
+        '&to=' +
+        to
+    )
 }
 
 export function getCurrentYearOrders(limit, sinceId) {
