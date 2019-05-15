@@ -106,7 +106,7 @@ class CreateZaslatModal extends React.PureComponent {
             shipment: parsed,
             orderId: this.props.order.id,
             shipmentType: parsed.shipments[0].type,
-            note: ""
+            note: document.getElementById("note").value
         }
 
 

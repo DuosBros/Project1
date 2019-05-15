@@ -6,7 +6,7 @@ import {
     getProductsAction, getWarehouseProductsAction, deleteProductAction
 } from '../utils/actions';
 import Warehouse from '../pages/Warehouse/Warehouse';
-import { deleteProduct, getWarehouseProducts } from '../utils/requests';
+import { deleteProduct } from '../utils/requests';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
 
 class WarehouseContainer extends React.PureComponent {

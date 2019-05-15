@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { LOCALSTORAGE_NAME } from '../appConfig';
-import { getCostsMonthly, getOrderedOrdersMonthly, getOrderedOrdersDaily, getProductsMonthly, getProductsDaily } from '../utils/requests';
+import { getCostsMonthly, getOrderedOrdersMonthly, getOrderedOrdersDaily, getProductsDaily } from '../utils/requests';
 import {
     getCostsMonthlyAction, getOrdersAction, mapOrdersToTransactionsActions, getBankTransactionsAction,
     getOrderedOrdersMonthlyAction, getOrderedOrdersDailyAction, getProductsDailyAction,
@@ -10,7 +10,7 @@ import {
 } from '../utils/actions';
 import Summary from '../pages/Summary';
 import { fetchBankTransactions } from '../handlers/bankHandler';
-import { sortMonthYear, getNonBillableProducts, groupBy } from '../utils/helpers';
+import { sortMonthYear, groupBy } from '../utils/helpers';
 import _ from 'lodash';
 import moment from 'moment';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
@@ -199,14 +199,14 @@ class SummaryContainer extends React.PureComponent {
 
 
         let turnoverDailySummary = 0;
-        let profitDailySummary = 0;
+        //let profitDailySummary = 0;
         let ordersCountDailySummary = 0;
 
         let dailyOrderedOrders = this.props.summaryStore.orderedOrdersDaily.data.slice();
         dailyOrderedOrders.map(x => {
 
             turnoverDailySummary += (x.turnover !== undefined || x.turnover !== null) ? x.turnover : 0
-            profitDailySummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
+            //profitDailySummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
             x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
             x.ordersCount = x.cashOrders.length + x.vsOrders.length
             ordersCountDailySummary += x.ordersCount
@@ -214,7 +214,7 @@ class SummaryContainer extends React.PureComponent {
             return x;
         })
 
-        dailyOrderedOrders.map(x => {
+        dailyOrderedOrders.forEach(x => {
             x.turnoverAverage = (turnoverDailySummary / dailyOrderedOrders.length).toFixed(2)
             x.ordersCountAverage = (ordersCountDailySummary / dailyOrderedOrders.length).toFixed(2)
         })
