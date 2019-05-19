@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { Grid, Header, Button, Table, Message, Image, Icon, Input, Transition } from 'semantic-ui-react';
+import { Grid, Header, Button, Table, Message, Image, Icon, Input, Transition, Popup } from 'semantic-ui-react';
 import _ from 'lodash';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
@@ -548,28 +548,28 @@ class Orders extends React.Component {
                                 {
                                     moment().add(-30, 'days').isAfter(order.payment.paymentDate) || (
                                         <>
-                                            <Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />
-                                            <Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
+                                            <Popup trigger={<Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />} content="Edit order" />
+                                            <Popup trigger={<Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
                                                 <>
                                                     <Icon name='dollar' />
                                                     {
                                                         order.payment.paid ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
                                                     }
                                                 </>
-                                            } />
+                                            } />} content="Mark as Paid" />
                                         </>
                                     )
                                 }
 
-                                <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+                                <Popup trigger={<Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />} content="Generate Invoice" />
                                 {
                                     !order.payment.paid && (
                                         <>
-                                            <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
-                                            <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
+                                            <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
+                                            <Popup trigger={<Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />} content="Delete order" />
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate && (
-                                                    <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
+                                                    <Popup trigger={<Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                         icon={
                                                             <>
                                                                 <Icon name='barcode' />
@@ -578,7 +578,7 @@ class Orders extends React.Component {
                                                                 }
                                                             </>
                                                         } >
-                                                    </Button>
+                                                    </Button>} content="Print label" />
                                                 )
                                             }
                                         </>
