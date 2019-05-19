@@ -29,7 +29,6 @@ class AddEditProductModal extends React.PureComponent {
             }
             else {
                 let res = await createProduct(payload)
-                debugger
                 this.props.addProductAction(res.data)
             }
         } catch (err) {

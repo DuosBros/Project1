@@ -31,6 +31,7 @@
         "eject": "react-scripts eject",
         "server": "node server.js",
         "deploy": "git push heroku herokutest:master",
+        "version": "git add package.json",
         "^^^^^^commentForDeploy^^^^^^^": "when heroku git will ask for username use 'blank' and token from heroku auth:token"
     },
     "eslintConfig": {

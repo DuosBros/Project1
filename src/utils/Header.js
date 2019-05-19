@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 
 import { authenticateAction, authenticateSucceededAction, authenticationInProgressAction } from './actions';
 import { LOCALSTORAGE_NAME } from '../appConfig';
+import packageJson from '../../package.json'
 
 class Header extends React.Component {
     constructor(props) {
@@ -125,6 +126,7 @@ class Header extends React.Component {
                         active={activeItem === 'summary'}
                         onClick={this.handleItemClick} />
                     <Menu.Menu position='right'>
+                        <Menu.Item>Version: {packageJson.version}</Menu.Item>
                         {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}
                         <Menu.Item
                             style={{ color: 'black' }}

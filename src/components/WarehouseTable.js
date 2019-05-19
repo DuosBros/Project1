@@ -115,7 +115,6 @@ class CostsTable extends React.PureComponent {
 
     customFilterCallback = (filteredData) => {
         const { showInactiveProducts } = this.state;
-debugger
         if (showInactiveProducts) {
             filteredData = filteredData.filter(x => x.active === true)
         }
@@ -126,6 +125,10 @@ debugger
         this.setState({
             [name]: !this.state[name]
         });
+    }
+
+    getDataKey(data) {
+        return data.name
     }
 
     renderCustomFilter = () => {
@@ -162,6 +165,7 @@ debugger
 
         return (
             <GenericTable
+                getDataKey={this.getDataKey}
                 renderCustomFilter={this.renderCustomFilter}
                 customFilterCallback={this.customFilterCallback}
                 disableGrouping={!this.props.isGroupingEnabled}
