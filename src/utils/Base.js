@@ -42,7 +42,10 @@ class Base extends React.Component {
                 if (error.response && error.response.data &&
                     (error.response.data.message.name === "TokenExpiredError" || error.response.data.message === "No authentication token!")) {
                     props.authenticateSucceededAction(false);
+                    props.history.push('/login');
                 }
+
+                throw error;
             });
 
         numeral.locale('cs');
@@ -110,7 +113,7 @@ class Base extends React.Component {
                     <Route exact path='/bank' render={(props) => <BankContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
-                    <Route exact path='/summary' render={(props) => <SummaryContainer {...props} isMobile={isMobile}  />} />
+                    <Route exact path='/summary' render={(props) => <SummaryContainer {...props} isMobile={isMobile} />} />
                 </Switch>
             </ErrorBoundary>
         )
