@@ -140,14 +140,14 @@ class Base extends React.Component {
                         render={(props) => <Header {...props} isMobile={isMobile} />}
                     />
                     {
-                        this.props.baseStore.showGenericModal ?
-                            <GenericModal
-                                show={this.props.baseStore.showGenericModal}
-                                header={this.props.baseStore.modal.modalHeader}
-                                content={this.props.baseStore.modal.modalContent}
-                                redirectTo={this.props.baseStore.modal.redirectTo}
-                                parentProps={this.props.baseStore.modal.parentProps}
-                                err={this.props.baseStore.modal.err} /> : null
+                        this.props.baseStore.showGenericModal &&
+                        <GenericModal
+                            show={this.props.baseStore.showGenericModal}
+                            header={this.props.baseStore.modal.header}
+                            content={this.props.baseStore.modal.modalContent}
+                            redirectTo={this.props.baseStore.modal.redirectTo}
+                            parentProps={this.props.baseStore.modal.parentProps}
+                            err={this.props.baseStore.modal.err} />
                     }
 
                     {body}

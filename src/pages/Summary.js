@@ -156,7 +156,7 @@ class Summary extends React.PureComponent {
                             <Header as='h3' content={'Products count [order date] - ' + this.state.type} />
                         </Grid.Column>
                         <Grid.Column width={11}>
-                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -180,7 +180,7 @@ class Summary extends React.PureComponent {
                             <Header as='h3' content={'Products turnover [order date] - ' + this.state.type} />
                         </Grid.Column>
                         <Grid.Column width={11}>
-                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -204,7 +204,7 @@ class Summary extends React.PureComponent {
                             <Header as='h3' content={'Product categories [order date] - ' + this.state.type} />
                         </Grid.Column>
                         <Grid.Column width={11}>
-                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -276,7 +276,7 @@ class Summary extends React.PureComponent {
                             <Header as='h3' content={'Orders total price average [order date] - ' + this.state.type} />
                         </Grid.Column>
                         <Grid.Column width={11}>
-                            {/* <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} /> */}
+                            <ExportDropdown floating='right' data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyAverage", "totalPriceTotalAverage"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>

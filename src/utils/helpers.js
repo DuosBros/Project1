@@ -129,8 +129,8 @@ export const flattenObject = (ob) => {
 
 export const sortMonthYear = (array) => {
     array.sort(function (a, b) {
-        a = a.date.split(".");
-        b = b.date.split(".")
+        a = a.monthAndYear ? a.monthAndYear.split(".") : a.date.split(".");
+        b = b.monthAndYear ? b.monthAndYear.split(".") : b.date.split(".");
         return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
     })
 

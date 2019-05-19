@@ -34,7 +34,11 @@ class GenericModal extends React.Component {
                         Error details
                 </Accordion.Title>
                     <Accordion.Content style={{ overflowY: 'scroll' }} active={active}>
-                        {this.props.err && this.props.err.toString()}
+                        {this.props.err.response && this.props.err.response.data && this.props.err.response.data.message && this.props.err.response.data.message}
+                        <br />
+                        {this.props.err.message && this.props.err.message.toString()}
+                        <br />
+                        {this.props.err.toString()}
                         <br />
                         {this.props.err.stack}
                     </Accordion.Content>

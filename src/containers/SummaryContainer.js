@@ -30,7 +30,7 @@ class SummaryContainer extends React.PureComponent {
         this.fetchOrdersAndHandleResult();
         fetchAndHandleNotPaidOrders(this.props.getNotPaidOrdersAction)
         fetchWarehouseProducts(moment().month() + 1, moment().year(), this.props.getWarehouseProductsAction)
-        //fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions);
+        fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions);
     }
 
     fetchOrdersAndHandleResult = (from, to) => {
