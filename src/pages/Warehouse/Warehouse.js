@@ -23,7 +23,7 @@ export default class Warehouse extends React.PureComponent {
 
         this.state = {
             productCountToEdit: null,
-            difference: 0,
+            difference: null,
             isMobile: props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
@@ -65,13 +65,7 @@ export default class Warehouse extends React.PureComponent {
     }
 
     handleOnChange = (e, { value, name }) => {
-        if (name === "difference") {
-            let parsed = parseInt(value)
-            this.setState({ difference: isNaN(parsed) ? 0 : parsed });
-        }
-        else {
-            this.setState({ [name]: value });
-        }
+        this.setState({ [name]: value });
     }
 
     updateFilters = (value) => {
@@ -93,10 +87,9 @@ export default class Warehouse extends React.PureComponent {
     }
 
     editWarehouseProductcount = () => {
-        let a = this.state.productCountToEdit
-        let b = this.state.difference
-        debugger
-        this.props.handleEditWarehouseProductCount();
+        let parsed = parseInt(this.state.difference)
+        this.props.handleEditWarehouseProductCount(this.state.productCountToEdit.id, parsed);
+        this.setState({ showEditProductCountModal: false });
     }
 
     render() {
@@ -167,10 +160,11 @@ export default class Warehouse extends React.PureComponent {
                         <Form.Input value={this.state.difference} name="difference" onChange={this.handleOnChange} />
 
                         <strong>New value:</strong>
-                        <Form.Input value={this.state.productCountToEdit.available + this.state.difference} name="difference" disabled />
+                        <Form.Input value={this.state.productCountToEdit.available + (isNaN(parseInt(this.state.difference)) ? 0 : parseInt(this.state.difference))} name="difference" disabled />
                     </Modal.Content>
                     <Modal.Actions>
                         <Button
+                            disabled={isNaN(parseInt(this.state.difference)) ? true : false}
                             onClick={() => this.editWarehouseProductcount()}
                             labelPosition='right'
                             icon='checkmark'

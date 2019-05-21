@@ -31,7 +31,7 @@ class AddEditProductModal extends React.PureComponent {
                 await editProduct(payload)
             }
             else {
-                let res = await createProduct(payload)
+                await createProduct(payload)
             }
         } catch (err) {
             this.props.showGenericModalAction({

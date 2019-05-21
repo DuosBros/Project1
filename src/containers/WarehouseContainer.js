@@ -6,9 +6,10 @@ import {
     getProductsAction, getWarehouseProductsAction, deleteProductAction, editProductAction
 } from '../utils/actions';
 import Warehouse from '../pages/Warehouse/Warehouse';
-import { deleteProduct, editProduct } from '../utils/requests';
+import { editProduct, editWarehouseProduct } from '../utils/requests';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
+import { LOCALSTORAGE_NAME } from '../appConfig';
 
 class WarehouseContainer extends React.PureComponent {
 
@@ -31,8 +32,13 @@ class WarehouseContainer extends React.PureComponent {
         this.fetchAllData()
     }
 
-    handleEditWarehouseProductCount = (payload) => {
-
+    handleEditWarehouseProductCount = async (id, difference) => {
+        let payload = {
+            difference: difference,
+            user: JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username
+        }
+        await editWarehouseProduct(id, payload)
+        this.fetchAllData()
     }
 
     fetchAndHandleWarehouseProducts = (month, year) => {

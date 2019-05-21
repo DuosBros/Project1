@@ -59,8 +59,8 @@ export function deleteProduct(id) {
     return axios.delete(MEDPHARMAVN_API + 'products/v2/' + id)
 }
 
-export function editWarehouseProduct(product) {
-    return axios.put(MEDPHARMAVN_API + 'warehouse/' + product.id, product)
+export function editWarehouseProduct(id, payload) {
+    return axios.put(MEDPHARMAVN_API + 'warehouse/products/' + id, payload)
 }
 
 /**
