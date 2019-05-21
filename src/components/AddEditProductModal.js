@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Modal, Form, Grid, Dropdown } from 'semantic-ui-react';
+import { Button, Modal, Form, Grid, Dropdown, Checkbox } from 'semantic-ui-react';
 import { editProduct, createProduct } from '../utils/requests';
 import { showGenericModalAction, addProductAction, editProductAction } from '../utils/actions';
 import { connect } from 'react-redux';
@@ -11,25 +11,27 @@ class AddEditProductModal extends React.PureComponent {
         this.setState({ [b.id]: b.value });
     }
 
+    handleOnChangeCheckbox = (e, { name, checked }) => {
+        this.setState({ [name]: checked });
+    }
     handleSaveProduct = async () => {
-        let { name, price, weight, tax, category } = this.state;
+        let { name, price, weight, tax, category, isActive } = this.state;
         let payload = {
             name: name,
             price: parseInt(price),
             weight: parseInt(weight),
             tax: parseInt(tax),
             category: category,
+            isActive: isActive
         }
 
         try {
             if (this.state.isEdit) {
                 payload.id = this.props.product.id
                 await editProduct(payload)
-                this.props.editProductAction(payload)
             }
             else {
                 let res = await createProduct(payload)
-                this.props.addProductAction(res.data)
             }
         } catch (err) {
             this.props.showGenericModalAction({
@@ -39,6 +41,7 @@ class AddEditProductModal extends React.PureComponent {
             })
         }
         finally {
+            this.props.fetchAllData()
             this.props.handleToggleProductModal()
         }
     }
@@ -49,7 +52,8 @@ class AddEditProductModal extends React.PureComponent {
         weight: this.props.product && this.props.product.weight,
         tax: this.props.product && this.props.product.tax,
         category: this.props.product && this.props.product.category,
-        isEdit: this.props.product ? true : false
+        isEdit: this.props.product ? true : false,
+        isActive: this.props.product && this.props.product.isActive
     }
 
     handleCategoryDropdownOnChange = (e, b) => {
@@ -68,7 +72,7 @@ class AddEditProductModal extends React.PureComponent {
         let productObj = this.props.product && this.props.product;
         let content;
 
-        let { name, price, weight, tax } = this.state;
+        let { name, price, weight, tax, isActive } = this.state;
         content = (
             <Grid>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -137,6 +141,16 @@ class AddEditProductModal extends React.PureComponent {
                             text={this.state.category ? this.state.category : productObj ? productObj.category && productObj.category : ""}
                             selectOnBlur={false}
                             selectOnNavigation={false} />
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                    <Grid.Column width={5}>
+                        <strong>
+                            Is Active:
+                        </strong>
+                    </Grid.Column>
+                    <Grid.Column width={11}>
+                        <Checkbox name="isActive" onChange={this.handleOnChangeCheckbox} checked={isActive} />
                     </Grid.Column>
                 </Grid.Row>
             </Grid>

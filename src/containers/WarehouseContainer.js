@@ -3,25 +3,36 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import {
-    getProductsAction, getWarehouseProductsAction, deleteProductAction
+    getProductsAction, getWarehouseProductsAction, deleteProductAction, editProductAction
 } from '../utils/actions';
 import Warehouse from '../pages/Warehouse/Warehouse';
-import { deleteProduct } from '../utils/requests';
+import { deleteProduct, editProduct } from '../utils/requests';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
+import { fetchAndHandleProducts } from '../handlers/productHandler';
 
 class WarehouseContainer extends React.PureComponent {
 
     componentDidMount() {
-        if (!this.props.productsStore.warehouseProducts.data) {
-            this.fetchAndHandleWarehouseProducts();
-        }
+        this.fetchAllData()
     }
 
-    handleDeleteProduct = (id) => {
-        deleteProduct(id)
-            .then(() => {
-                this.props.deleteProductAction(id)
-            })
+    fetchAllData = () => {
+        this.fetchAndHandleWarehouseProducts();
+
+        fetchAndHandleProducts(this.props.getProductsAction)
+    }
+
+    handleDeleteProduct = async (product) => {
+        let payload = Object.assign({}, product)
+        delete payload.actions
+        payload.isActive = false
+        await editProduct(payload)
+
+        this.fetchAllData()
+    }
+
+    handleEditWarehouseProductCount = (payload) => {
+
     }
 
     fetchAndHandleWarehouseProducts = (month, year) => {
@@ -37,13 +48,27 @@ class WarehouseContainer extends React.PureComponent {
     }
 
     render() {
+        let mappedWhProducts = [];
+        if (this.props.productsStore.warehouseProducts.success && this.props.productsStore.warehouseProducts.data
+            && this.props.productsStore.products.success && this.props.productsStore.products.data) {
+            mappedWhProducts = this.props.productsStore.warehouseProducts.data.slice();
+
+            mappedWhProducts.map(x => {
+                let found = this.props.productsStore.products.data.find(y => y.id === x.id)
+                // x.calculationDate = found.warehouse.calculationDate
+                x.isActive = found.isActive
+            })
+        }
+
         return (
             <Warehouse
+                fetchAllData={this.fetchAllData}
                 isMobile={this.props.isMobile}
-                products={this.props.productsStore.warehouseProducts}
+                warehouseProducts={mappedWhProducts.length > 0 ? { data: mappedWhProducts, success: true } : this.props.productsStore.warehouseProducts}
                 fetchAndHandleWarehouseProducts={this.fetchAndHandleWarehouseProducts}
                 productCategories={this.props.productsStore.productCategories}
                 handleDeleteProduct={this.handleDeleteProduct}
+                handleEditWarehouseProductCount={this.handleEditWarehouseProductCount}
                 {...this.props} />)
     }
 }
@@ -59,7 +84,8 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators({
         getProductsAction,
         getWarehouseProductsAction,
-        deleteProductAction
+        deleteProductAction,
+        editProductAction
     }, dispatch);
 }
 

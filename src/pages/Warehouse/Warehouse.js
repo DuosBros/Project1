@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Grid, Header, Button, Message, Icon, Input, Transition, Table } from 'semantic-ui-react';
+import { Grid, Header, Button, Message, Icon, Input, Transition, Table, Modal, Form } from 'semantic-ui-react';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE } from '../../appConfig';
 import WarehouseTable from '../../components/WarehouseTable';
@@ -22,6 +22,8 @@ export default class Warehouse extends React.PureComponent {
         }
 
         this.state = {
+            productCountToEdit: null,
+            difference: 0,
             isMobile: props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
@@ -62,6 +64,16 @@ export default class Warehouse extends React.PureComponent {
         this.updateFilters(value ? value : "");
     }
 
+    handleOnChange = (e, { value, name }) => {
+        if (name === "difference") {
+            let parsed = parseInt(value)
+            this.setState({ difference: isNaN(parsed) ? 0 : parsed });
+        }
+        else {
+            this.setState({ [name]: value });
+        }
+    }
+
     updateFilters = (value) => {
         this.setState({ multiSearchInput: value });
     }
@@ -76,10 +88,21 @@ export default class Warehouse extends React.PureComponent {
             });
     }
 
+    handleEditWarehouseProductcount = (product) => {
+        this.setState({ productCountToEdit: product, showEditProductCountModal: true });
+    }
+
+    editWarehouseProductcount = () => {
+        let a = this.state.productCountToEdit
+        let b = this.state.difference
+        debugger
+        this.props.handleEditWarehouseProductCount();
+    }
+
     render() {
 
         // in case of error
-        if (!this.props.products.success) {
+        if (!this.props.warehouseProducts.success) {
             return (
                 <Grid stackable>
                     <Grid.Row>
@@ -87,7 +110,7 @@ export default class Warehouse extends React.PureComponent {
                             <Header as='h1'>
                                 Warehouse
                             </Header>
-                            <ErrorMessage handleRefresh={this.props.fetchAndHandleWarehouseProducts} error={this.props.products.error} />
+                            <ErrorMessage handleRefresh={this.props.fetchAndHandleWarehouseProducts} error={this.props.warehouseProducts.error} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
@@ -95,7 +118,7 @@ export default class Warehouse extends React.PureComponent {
         }
 
         // in case it's still loading data
-        if (!this.props.products.data) {
+        if (!this.props.warehouseProducts.data) {
             return (
                 <div className="messageBox">
                     <Message info icon>
@@ -109,7 +132,8 @@ export default class Warehouse extends React.PureComponent {
         }
 
         const { isMobile, multiSearchInput, showFunctionsMobile,
-            isGroupingEnabled, productToEdit, showProductModal, month, year } = this.state
+            isGroupingEnabled, productToEdit, showProductModal, month, year,
+            showEditProductCountModal } = this.state
         let modal = null,
             pageHeader,
             mappedProducts,
@@ -118,6 +142,7 @@ export default class Warehouse extends React.PureComponent {
         if (showProductModal) {
             modal = (
                 <AddEditProductModal
+                    fetchAllData={this.props.fetchAllData}
                     handleToggleProductModal={this.handleToggleProductModal}
                     show={true}
                     product={productToEdit}
@@ -125,7 +150,38 @@ export default class Warehouse extends React.PureComponent {
             )
         }
 
-        let products = this.props.products.data
+        if (showEditProductCountModal) {
+            return (
+                <Modal
+                    closeOnDimmerClick={false}
+                    dimmer={true}
+                    size='tiny'
+                    open={showEditProductCountModal}
+                    closeOnEscape={true}
+                    closeIcon={true}
+                    onClose={() => this.setState({ showEditProductCountModal: !showEditProductCountModal })}
+                >
+                    <Modal.Header>Edit product count</Modal.Header>
+                    <Modal.Content>
+                        <strong>Difference:</strong>
+                        <Form.Input value={this.state.difference} name="difference" onChange={this.handleOnChange} />
+
+                        <strong>New value:</strong>
+                        <Form.Input value={this.state.productCountToEdit.available + this.state.difference} name="difference" disabled />
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button
+                            onClick={() => this.editWarehouseProductcount()}
+                            labelPosition='right'
+                            icon='checkmark'
+                            content='Edit'
+                        />
+                    </Modal.Actions>
+                </Modal>
+            )
+        }
+
+        let products = this.props.warehouseProducts.data
 
         // render page
         if (isMobile) {
@@ -151,7 +207,7 @@ export default class Warehouse extends React.PureComponent {
                         {showFunctionsMobile && (
                             <Grid.Row>
                                 <Grid.Column>
-                                    <Input style={{ marginBottom: '0.3em' }}  fluid label="Month" onChange={this.setInput} id="month" value={month} />
+                                    <Input style={{ marginBottom: '0.3em' }} fluid label="Month" onChange={this.setInput} id="month" value={month} />
                                     <Input fluid label="Year" onChange={this.setInput} id="year" value={year} />
                                 </Grid.Column>
                                 <Grid.Column>
@@ -185,7 +241,7 @@ export default class Warehouse extends React.PureComponent {
                                     <Grid.Column style={{ textAlign: 'right' }} width={3}>
                                         <>
                                             <Button
-                                                // onClick={() => this.handleDeleteCost(data)}
+                                                onClick={() => this.handleEditWarehouseProductcount(product)}
                                                 className='buttonIconPadding'
                                                 size='large'
                                                 icon='warehouse' />
@@ -196,7 +252,7 @@ export default class Warehouse extends React.PureComponent {
                                                 size='large'
                                                 icon='edit' />
                                             <Button
-                                                onClick={() => this.props.handleDeleteProduct(product.id)}
+                                                onClick={() => this.props.handleDeleteProduct(product)}
                                                 className='buttonIconPadding'
                                                 size='large'
                                                 icon='remove' />
@@ -256,11 +312,12 @@ export default class Warehouse extends React.PureComponent {
                     <Grid.Row>
                         <Grid.Column>
                             <WarehouseTable
+                                handleEditWarehouseProductcount={this.handleEditWarehouseProductcount}
                                 handleToggleProductModal={this.handleToggleProductModal}
                                 compact="very" isGroupingEnabled={isGroupingEnabled}
                                 categories={this.props.productCategories}
                                 rowsPerPage={0}
-                                data={this.props.products.data}
+                                data={this.props.warehouseProducts.data}
                                 handleDeleteProduct={this.props.handleDeleteProduct} />
                         </Grid.Column>
                     </Grid.Row>

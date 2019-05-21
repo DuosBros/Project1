@@ -84,7 +84,7 @@ class CostsTable extends React.PureComponent {
             <>
                 <Popup inverted trigger={
                     <Button
-                        // onClick={() => this.handleDeleteCost(data)}
+                        onClick={() => this.handleEditWarehouseProductcount(data)}
                         className='buttonIconPadding'
                         size='large'
                         icon='warehouse' />
@@ -98,7 +98,7 @@ class CostsTable extends React.PureComponent {
                 } content="Edit product" />
                 <Popup inverted trigger={
                     <Button
-                        onClick={() => this.handleDeleteProduct(data.id)}
+                        onClick={() => this.handleDeleteProduct(data)}
                         className='buttonIconPadding'
                         size='large'
                         icon='remove' />
@@ -116,7 +116,7 @@ class CostsTable extends React.PureComponent {
     customFilterCallback = (filteredData) => {
         const { showInactiveProducts } = this.state;
         if (showInactiveProducts) {
-            filteredData = filteredData.filter(x => x.active === true)
+            filteredData = filteredData.filter(x => x.isActive === true)
         }
         return filteredData;
     }
@@ -140,10 +140,10 @@ class CostsTable extends React.PureComponent {
                     name="showInactiveProducts"
                     onClick={this.handleStateToggle}
                     compact
-                    content={showInactiveProducts ? 'Hide inactive products' : 'Show inactive products'}
+                    content={showInactiveProducts ? 'Show inactive products' : 'Hide inactive products'}
                     style={{ padding: '0.3em', marginTop: '0.5em', textAlign: 'right' }}
                     id="secondaryButton"
-                    icon={showInactiveProducts ? 'eye slash' : 'eye'}
+                    icon={showInactiveProducts ? 'eye' : 'eye slash'}
                     labelPosition='right' />
             </div>
         );

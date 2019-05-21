@@ -59,6 +59,10 @@ export function deleteProduct(id) {
     return axios.delete(MEDPHARMAVN_API + 'products/v2/' + id)
 }
 
+export function editWarehouseProduct(product) {
+    return axios.put(MEDPHARMAVN_API + 'warehouse/' + product.id, product)
+}
+
 /**
  *
  * @param {Number} costId
