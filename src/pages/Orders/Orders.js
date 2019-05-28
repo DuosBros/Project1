@@ -16,8 +16,8 @@ import {
     getProductsAction
 } from '../../utils/actions';
 
-import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE } from '../../appConfig'
-import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport, buildFilter } from '../../utils/helpers';
+import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, deliveryCompanies } from '../../appConfig'
+import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport, buildFilter, contains } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
@@ -565,7 +565,11 @@ class Orders extends React.Component {
                                 {
                                     !order.payment.paid && (
                                         <>
-                                            <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
+                                            {
+                                                order.deliveryCompany && contains(order.deliveryCompany, deliveryCompanies[0]) && (
+                                                    <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
+                                                )
+                                            }
                                             <Popup trigger={<Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />} content="Delete order" />
                                             {
                                                 this.state.showPrintLabelsIcon && order.zaslatDate && (
@@ -706,16 +710,6 @@ class Orders extends React.Component {
                     </Message>
                 )
             }
-        }
-
-        let totalWeight = 0
-        if (showCreateZaslatModal && this.props.productsStore.products.data) {
-            this.props.ordersStore.ordersDetails.data.products.forEach(
-                x => totalWeight += this.props.productsStore.products.data.find(y => y.id === x.id).weight * x.count
-            )
-
-            totalWeight += 500
-            totalWeight = totalWeight / 1000
         }
 
         var orderPageHeader;
@@ -897,7 +891,6 @@ class Orders extends React.Component {
                 {
                     showCreateZaslatModal && (
                         <CreateZaslatModal
-                            totalWeight={totalWeight}
                             isMobile={isMobile}
                             order={this.props.ordersStore.ordersDetails.data}
                             show={showCreateZaslatModal}

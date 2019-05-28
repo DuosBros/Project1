@@ -208,7 +208,7 @@ class SummaryContainer extends React.PureComponent {
             turnoverDailySummary += (x.turnover !== undefined || x.turnover !== null) ? x.turnover : 0
             //profitDailySummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
             x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
-            x.ordersCount = x.cashOrders.length + x.vsOrders.length
+            x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
             ordersCountDailySummary += x.ordersCount
 
             return x;

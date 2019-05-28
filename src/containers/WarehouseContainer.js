@@ -63,6 +63,7 @@ class WarehouseContainer extends React.PureComponent {
                 let found = this.props.productsStore.products.data.find(y => y.id === x.id)
                 // x.calculationDate = found.warehouse.calculationDate
                 x.isActive = found.isActive
+                return x;
             })
         }
 

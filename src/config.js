@@ -19,7 +19,7 @@ export default {
         "localStorageName": "showBubsAndVagena",
         "defaultSmartformLimit": 10,
         "ordersPerPageAndRequestLimit": 100,
-        "deliveryCompanies": ["GLS", "CP"],
+        "deliveryCompanies": ["GLS", "CP", "None"],
         "deliveryTypes": ["VS", "CASH"],
         "defaultLockSeconds": 10,
         "appTitle": "MedpharmaVN - "

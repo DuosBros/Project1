@@ -21,6 +21,12 @@ class Login extends React.Component {
         }
     }
 
+    componentDidMount() {
+        if (this.props.loginStore.authenticationSucceeded && !this.props.loginStore.authenticationInProgress) {
+            this.props.history.push('/orders')
+        }
+    }
+
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.isMobile !== this.props.isMobile) {
             this.setState({ isMobile: this.props.isMobile });
@@ -83,7 +89,7 @@ class Login extends React.Component {
                 <Grid.Column>
                     {errorMessage}
                     <Image verticalAlign='middle' size={isMobile ? 'medium' : 'large'} src={logo} />
-                    <Form loading={this.props.loginPageStore.authenticationInProgress} size='large'>
+                    <Form loading={this.props.loginStore.authenticationInProgress} size='large'>
                         <Segment raised stacked>
                             <Form.Input
                                 fluid
@@ -117,7 +123,7 @@ class Login extends React.Component {
 
 function mapStateToProps(state) {
     return {
-        loginPageStore: state.LoginReducer
+        loginStore: state.LoginReducer
     };
 }
 

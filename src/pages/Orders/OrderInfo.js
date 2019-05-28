@@ -12,20 +12,27 @@ import { handleVerifyLockError, getGLSDeliveryPrice, contains } from '../../util
 import _ from 'lodash';
 import moment from 'moment';
 import { fetchAndHandleProducts } from '../../handlers/productHandler';
+import OrderProductsWeightTablePopup from '../../components/OrderProductsWeightTablePopup';
 
 const DeliveryCompanyButtonGroup = (props) => {
     return (
         <Button.Group fluid size='medium'>
             <Button
-                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[0].company)}
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[0])}
                 id={contains(props.deliveryCompany, deliveryCompanies[0]) ? "primaryButton" : "secondaryButton"}>
                 GLS
             </Button>
             <Button.Or text='OR' />
             <Button
-                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[1].company)}
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[1])}
                 id={contains(props.deliveryCompany, deliveryCompanies[1]) ? "primaryButton" : "secondaryButton"}>
                 Česká Pošta
+            </Button>
+            <Button.Or text='OR' />
+            <Button
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryCompany", deliveryCompanies[2])}
+                id={contains(props.deliveryCompany, deliveryCompanies[2]) ? "primaryButton" : "secondaryButton"}>
+                Delivery by BoMe
             </Button>
         </Button.Group>
     )
@@ -53,13 +60,13 @@ const PaymentTypeButtonGroup = (props) => {
     return (
         <Button.Group fluid size='medium'>
             <Button
-                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[0].type)}
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[0])}
                 id={contains(props.deliveryType, deliveryTypes[0]) ? "primaryButton" : "secondaryButton"}>
                 VS
         </Button>
             <Button.Or text='OR' />
             <Button
-                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[1].type)}
+                onClick={() => props.handleToggleDeliveryAndPaymentTypeButtons("deliveryType", deliveryTypes[1])}
                 id={contains(props.deliveryType, deliveryTypes[0]) ? "secondaryButton" : "primaryButton"}>
                 Cash
         </Button>
@@ -71,10 +78,10 @@ const TotalPriceForm = (props) => {
     if (props.isMobile) {
         return (
             <Form className='form' size='large'>
-                <Form.Input onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+                <Form.Input value={props.order.payment.price} onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                 <label><strong>Total price [CZK]</strong></label>
-                <input style={{ marginBottom: '0.5em' }} readOnly value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
-                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.note : null} id='note' label='Note' name='note' />
+                <input style={{ marginBottom: '0.5em' }} readOnly value={props.order.totalPrice ? props.order.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
+                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.order.note : null} id='note' label='Note' name='note' />
             </Form>
         )
     }
@@ -85,11 +92,15 @@ const TotalPriceForm = (props) => {
                     <Grid.Column width={4}>
                         <strong>
                             Delivery Price [CZK]
-                </strong>
+                            <OrderProductsWeightTablePopup
+                                isMobile={props.isMobile}
+                                order={props.order}
+                                productsStore={props.productsStore} />
+                        </strong>
                     </Grid.Column>
                     <Grid.Column width={12}>
                         <Form.Field>
-                            <Form.Input onChange={props.handleDeliveryPriceOnChange} fluid id="deliveryPrice" />
+                            <Form.Input value={props.order.payment.price} onChange={props.handleDeliveryPriceOnChange} fluid id="deliveryPrice" />
                         </Form.Field>
                     </Grid.Column>
                 </Grid.Row>
@@ -101,7 +112,7 @@ const TotalPriceForm = (props) => {
                     </Grid.Column>
                     <Grid.Column width={12}>
                         <Form.Field>
-                            <Form.Input disabled fluid value={props.totalPrice ? props.totalPrice.toLocaleString('cs-CZ') : 0} />
+                            <Form.Input disabled fluid value={props.order.totalPrice ? props.order.totalPrice.toLocaleString('cs-CZ') : 0} />
                         </Form.Field>
                     </Grid.Column>
                 </Grid.Row>
@@ -114,7 +125,7 @@ const TotalPriceForm = (props) => {
                     <Grid.Column width={12}>
                         <Form>
                             <Form.Field>
-                                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.note : null} id='note' />
+                                <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.order.note : null} id='note' />
                             </Form.Field>
                         </Form>
                     </Grid.Column>
@@ -131,7 +142,6 @@ class OrderInfo extends React.Component {
         var hasId = this.props.match.params.id ? true : false
         var isInStore = this.props.ordersPageStore.orderToEdit.data ? true : false
         var isEdit = hasId || isInStore
-        console.log("isEdit: ", isEdit)
 
         this.state = {
             streetAndNumberInput: null,
@@ -273,7 +283,7 @@ class OrderInfo extends React.Component {
         o.products[i] = product
         let weight = 0
         o.products.forEach(x => {
-            weight += this.props.productsStore.products.data.find(y => y.id === x.id).weight
+            weight += this.props.productsStore.products.data.find(y => y.id === x.id).weight * x.count
         })
         o.payment.price = getGLSDeliveryPrice(weight)
 
@@ -296,7 +306,7 @@ class OrderInfo extends React.Component {
     getTotalPriceHelper = (orderState) => {
         var sum = 0;
 
-        sum = orderState.payment.price
+        sum = orderState.payment.price ? orderState.payment.price : 0
 
         orderState.products.forEach(product => {
             sum += product.count * product.pricePerOne
@@ -371,7 +381,7 @@ class OrderInfo extends React.Component {
 
     handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
         var o = Object.assign({}, stateOrder)
-        if ((prop === "deliveryType" && type === deliveryTypes[0].type) || (prop === "deliveryCompany" && type === deliveryCompanies[0].company)) {
+        if ((prop === "deliveryType" && type === deliveryTypes[0]) || (prop === "deliveryCompany" && type === deliveryCompanies[0])) {
             o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
         }
         else {
@@ -380,8 +390,8 @@ class OrderInfo extends React.Component {
 
         o[prop] = type
 
-        if (o.deliveryType === deliveryTypes[0].type && !o.deliveryCompany) {
-            o.deliveryCompany = deliveryCompanies[0].company
+        if (o.deliveryType === deliveryTypes[0] && !o.deliveryCompany) {
+            o.deliveryCompany = deliveryCompanies[0]
         }
 
         return o;
@@ -412,7 +422,7 @@ class OrderInfo extends React.Component {
     }
 
     handleOrder = async (order, props) => {
-        if (contains(order.deliveryType, deliveryTypes[1].type)) {
+        if (contains(order.deliveryType, deliveryTypes[1])) {
             delete order.deliveryCompany
             delete order.payment.cashOnDelivery
             delete order.payment.vs
@@ -601,7 +611,7 @@ class OrderInfo extends React.Component {
                                         <PaymentTypeButtonGroup deliveryType={order.deliveryType} handleToggleDeliveryAndPaymentTypeButtons={this.handleToggleDeliveryAndPaymentTypeButtons} />
                                     </div>
                                     {
-                                        contains(order.deliveryType, deliveryTypes[0].type) ? (
+                                        contains(order.deliveryType, deliveryTypes[0]) ? (
                                             <>
                                                 <div className="marginTopAndBottomBig">
                                                     <label><strong>Delivery company</strong></label>
@@ -634,7 +644,7 @@ class OrderInfo extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm isMobile={isMobile} note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} totalPrice={order.totalPrice} />
+                                <TotalPriceForm order={order} productsStore={this.props.productsStore} isMobile={isMobile} isEdit={isEdit} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
@@ -919,7 +929,7 @@ class OrderInfo extends React.Component {
                                         </Grid.Column>
                                     </Grid.Row>
                                     {
-                                        contains(order.deliveryType, deliveryTypes[0].type) ? (
+                                        contains(order.deliveryType, deliveryTypes[0]) ? (
                                             <>
                                                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomMedium">
                                                     <Grid.Column width={5}>
@@ -958,7 +968,7 @@ class OrderInfo extends React.Component {
                                 Summary
                             </Header>
                             <Segment attached='bottom'>
-                                <TotalPriceForm isMobile={isMobile} note={order.note} isEdit={isEdit} deliveryPrice={order.payment.price} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} totalPrice={order.totalPrice} />
+                                <TotalPriceForm productsStore={this.props.productsStore} order={order} isMobile={isMobile} isEdit={isEdit} handleDeliveryPriceOnChange={this.handleDeliveryPriceOnChange} />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
