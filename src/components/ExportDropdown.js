@@ -39,13 +39,7 @@ const ExportDropdown = (props) => {
     }
 
     return (
-        <Dropdown direction={props.direction} style={props.style} icon={<Icon className="iconMargin" name='share' />} item text='Export'>
-            <Dropdown.Menu>
-                <Dropdown.Item
-                    onClick={() => handleExport(props.data)}
-                    icon={<Icon name='file excel' />}
-                    text='Export to XLS' />
-            </Dropdown.Menu>
+        <Dropdown onClick={() => handleExport(props.data)} direction={props.direction} style={props.style} icon={<Icon className="iconMargin" name='share' />} item text='Export'>
         </Dropdown>
     );
 }

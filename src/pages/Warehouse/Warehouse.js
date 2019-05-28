@@ -83,7 +83,7 @@ export default class Warehouse extends React.PureComponent {
     }
 
     handleEditWarehouseProductcount = (product) => {
-        this.setState({ productCountToEdit: product, showEditProductCountModal: true });
+        this.setState({ productCountToEdit: product, showEditProductCountModal: true, difference: "" });
     }
 
     editWarehouseProductcount = () => {
@@ -154,7 +154,7 @@ export default class Warehouse extends React.PureComponent {
                     closeIcon={true}
                     onClose={() => this.setState({ showEditProductCountModal: !showEditProductCountModal })}
                 >
-                    <Modal.Header>Edit product count</Modal.Header>
+                    <Modal.Header>Edit product count - {this.state.productCountToEdit.name}</Modal.Header>
                     <Modal.Content>
                         <strong>Difference:</strong>
                         <Form.Input value={this.state.difference} name="difference" onChange={this.handleOnChange} />
@@ -169,10 +169,20 @@ export default class Warehouse extends React.PureComponent {
                             labelPosition='right'
                             icon='checkmark'
                             content='Edit'
+                            primary
+                        />
+                        <Button
+                            onClick={() => this.setState({ showEditProductCountModal: false })}
+                            content='Close'
                         />
                     </Modal.Actions>
                 </Modal>
             )
+        }
+
+        let isOnCurrentMonth = false;
+        if (this.state.month === (moment().month() + 1).toString() && this.state.year === moment().year().toString()) {
+            isOnCurrentMonth = true;
         }
 
         let products = this.props.warehouseProducts.data
@@ -306,6 +316,7 @@ export default class Warehouse extends React.PureComponent {
                     <Grid.Row>
                         <Grid.Column>
                             <WarehouseTable
+                                isOnCurrentMonth={isOnCurrentMonth}
                                 handleEditWarehouseProductcount={this.handleEditWarehouseProductcount}
                                 handleToggleProductModal={this.handleToggleProductModal}
                                 compact="very" isGroupingEnabled={isGroupingEnabled}

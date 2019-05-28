@@ -281,6 +281,14 @@ class SummaryContainer extends React.PureComponent {
             ordersCount: ordersCountSummary / keys.length
         });
 
+        orderedOrdersYearly.unshift({
+            date: 'SUM',
+            costs: costsSummary,
+            turnover: turnoverSummary,
+            profit: profitSummary,
+            ordersCount: ordersCountSummary
+        });
+
         let median;
         let sorted = orderedOrders.sort((a, b) => {
             return a.ordersCount - b.ordersCount

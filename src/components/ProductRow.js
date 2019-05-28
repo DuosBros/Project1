@@ -7,12 +7,14 @@ const ProductRow = (props) => {
                 <label>Product Name</label>
                 <Dropdown
                     selection
-                    options={props.allProducts.map(x =>
-                        ({
-                            value: x.name,
-                            text: x.name
-                        })
-                    )}
+                    options={props.allProducts
+                        .filter(x => x.isActive)
+                        .map(x =>
+                            ({
+                                value: x.name,
+                                text: x.name
+                            })
+                        )}
                     onChange={(e, m) => {
                         let found = props.allProducts.find(x => x.name === m.value);
 

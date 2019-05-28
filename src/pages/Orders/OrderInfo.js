@@ -75,10 +75,18 @@ const PaymentTypeButtonGroup = (props) => {
 }
 
 const TotalPriceForm = (props) => {
+    let deliveryPrice;
+    if (props.order.payment.price) {
+        deliveryPrice = props.order.payment.price
+    }
+    else {
+        deliveryPrice = "0"
+    }
+
     if (props.isMobile) {
         return (
             <Form className='form' size='large'>
-                <Form.Input value={props.order.payment.price} onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
+                <Form.Input value={deliveryPrice} onChange={props.handleDeliveryPriceOnChange} label='Delivery Price [CZK]' fluid name='price' id='deliveryPrice' />
                 <label><strong>Total price [CZK]</strong></label>
                 <input style={{ marginBottom: '0.5em' }} readOnly value={props.order.totalPrice ? props.order.totalPrice.toLocaleString('cs-CZ') : 0} ></input>
                 <TextArea autoHeight rows={1} defaultValue={props.isEdit ? props.order.note : null} id='note' label='Note' name='note' />
@@ -100,7 +108,7 @@ const TotalPriceForm = (props) => {
                     </Grid.Column>
                     <Grid.Column width={12}>
                         <Form.Field>
-                            <Form.Input value={props.order.payment.price} onChange={props.handleDeliveryPriceOnChange} fluid id="deliveryPrice" />
+                            <Form.Input value={deliveryPrice} onChange={props.handleDeliveryPriceOnChange} fluid id="deliveryPrice" />
                         </Form.Field>
                     </Grid.Column>
                 </Grid.Row>
@@ -685,12 +693,14 @@ class OrderInfo extends React.Component {
 
             var mappedAllProductsForDropdown = []
             if (this.props.productsStore.products.data) {
-                mappedAllProductsForDropdown = this.props.productsStore.products.data.map(x =>
-                    ({
-                        value: x.name,
-                        text: x.name
-                    })
-                )
+                mappedAllProductsForDropdown = this.props.productsStore.products.data
+                    .filter(x => x.isActive)
+                    .map(x =>
+                        ({
+                            value: x.name,
+                            text: x.name
+                        })
+                    )
             }
 
             var productsTableRow = order.products.map((product, i) => {

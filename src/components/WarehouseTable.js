@@ -2,20 +2,21 @@ import React from 'react'
 import GenericTable from './GenericTable';
 import { Button, Popup } from 'semantic-ui-react';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 
-class CostsTable extends React.PureComponent {
+class WarehouseTable extends React.PureComponent {
     static defaultProps = {
-        defaultShowInactiveProducts: false
+        defaultHideInactiveProducts: true
     }
 
     static propTypes = {
-        defaultShowInactiveProducts: PropTypes.bool
+        defaultHideInactiveProducts: PropTypes.bool
     }
 
     constructor(props) {
         super(props);
         this.state = {
-            showInactiveProducts: props.defaultShowInactiveProducts
+            showInactiveProducts: props.defaultHideInactiveProducts
         };
     }
 
@@ -80,8 +81,9 @@ class CostsTable extends React.PureComponent {
     ]
 
     transformDataRow(data) {
-        data.actions = (
-            <>
+        let editProductCountButton;
+        if (this.isOnCurrentMonth) {
+            editProductCountButton = (
                 <Popup inverted trigger={
                     <Button
                         onClick={() => this.handleEditWarehouseProductcount(data)}
@@ -89,6 +91,26 @@ class CostsTable extends React.PureComponent {
                         size='large'
                         icon='warehouse' />
                 } content="Edit product count" />
+            )
+        }
+        else {
+            editProductCountButton = (
+                <Popup inverted trigger={
+                    <span>
+                        <Button
+                            disabled
+                            onClick={() => this.handleEditWarehouseProductcount(data)}
+                            className='buttonIconPadding'
+                            size='large'
+                            icon='warehouse' />
+                    </span>
+                } content={"To edit product count, go to current month (" + (moment().month() + 1) + ") and year (" + moment().year() + ")"} />
+
+            )
+        }
+        data.actions = (
+            <>
+                {editProductCountButton}
                 <Popup inverted trigger={
                     <Button
                         onClick={() => this.handleToggleProductModal(data)}
@@ -179,4 +201,4 @@ class CostsTable extends React.PureComponent {
     }
 }
 
-export default CostsTable;
+export default WarehouseTable;

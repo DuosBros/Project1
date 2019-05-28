@@ -566,7 +566,7 @@ export default class GenericTable extends Component {
                         <Grid.Row>
                             {
                                 ((Array.isArray(showTableHeader) && showTableHeader.includes("filter")) || showTableHeader === true) && (
-                                    <Grid.Column floated='left' width={4}>
+                                    <Grid.Column verticalAlign='bottom' floated='left' width={4}>
                                         <Input
                                             label={(
                                                 <Label className='iconMargin'>

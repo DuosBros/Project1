@@ -153,10 +153,10 @@ class Summary extends React.PureComponent {
                 <>
                     <Grid.Row>
                         <Grid.Column width={5}>
-                            <Header as='h3' content={'Products count [order date] - ' + this.state.type} />
+                            <Header as='h3' content={'Products count - ' + this.state.type} />
                         </Grid.Column>
-                        <Grid.Column width={11}>
-                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
+                        <Grid.Column textAlign="right" width={11}>
+                            <ExportDropdown data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -177,10 +177,10 @@ class Summary extends React.PureComponent {
                 <>
                     <Grid.Row>
                         <Grid.Column width={5}>
-                            <Header as='h3' content={'Products turnover [order date] - ' + this.state.type} />
+                            <Header as='h3' content={'Products turnover - ' + this.state.type} />
                         </Grid.Column>
-                        <Grid.Column width={11}>
-                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
+                        <Grid.Column textAlign="right" width={11}>
+                            <ExportDropdown data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -201,10 +201,10 @@ class Summary extends React.PureComponent {
                 <>
                     <Grid.Row>
                         <Grid.Column width={5}>
-                            <Header as='h3' content={'Product categories [order date] - ' + this.state.type} />
+                            <Header as='h3' content={'Product categories - ' + this.state.type} />
                         </Grid.Column>
-                        <Grid.Column width={11}>
-                            <ExportDropdown floating='right' data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
+                        <Grid.Column textAlign="right" width={11}>
+                            <ExportDropdown data={pick(this.props.productsDaily.data, ["name", "category", "totalAmount", "totalCount"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -273,10 +273,10 @@ class Summary extends React.PureComponent {
                 <>
                     <Grid.Row>
                         <Grid.Column width={5}>
-                            <Header as='h3' content={'Orders total price average [order date] - ' + this.state.type} />
+                            <Header as='h3' content={'Orders total price average - ' + this.state.type} />
                         </Grid.Column>
-                        <Grid.Column width={11}>
-                            <ExportDropdown floating='right' data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyAverage", "totalPriceTotalAverage"])} />
+                        <Grid.Column textAlign="right" width={11}>
+                            <ExportDropdown data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyAverage", "totalPriceTotalAverage"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -342,17 +342,22 @@ class Summary extends React.PureComponent {
                             Summary
                             </Header>
                     </Grid.Column>
-                    <Grid.Column width={3} textAlign='left' verticalAlign='bottom' >
+                    <Grid.Column width={5} textAlign='left' verticalAlign='bottom' >
                         <Header as='h4'>
-                            <strong>Balance: {this.props.bankAccountInfo.closingBalance ? this.props.bankAccountInfo.closingBalance : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
-                            <strong>Receivables: {this.props.receivables ? numeral(this.props.receivables).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</strong> <br />
-                            <strong>WH value: {this.props.warehouseValue ? numeral(this.props.warehouseValue).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</strong>
+                            <dl className="dl-horizontal">
+                                <dt>Balance:</dt>
+                                <dd>{this.props.bankAccountInfo.closingBalance ? numeral(this.props.bankAccountInfo.closingBalance).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</dd>
+                                <dt>Receivables:</dt>
+                                <dd>{this.props.receivables ? numeral(this.props.receivables).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</dd>
+                                <dt>WH value:</dt>
+                                <dd>{this.props.warehouseValue ? numeral(this.props.warehouseValue).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</dd>
+                            </dl>
                         </Header>
                     </Grid.Column>
-                    <Grid.Column width={11} textAlign='left' verticalAlign='bottom' >
-                        <Header as='h4'>
+                    <Grid.Column width={9} textAlign='left' verticalAlign='bottom' >
+                        {/* <Header as='h4'>
                             <strong>Turnover: {numeral(this.props.sum.turnover).format('0,0')} CZK</strong> | <strong>Costs: {numeral(this.props.sum.costs).format('0,0')} CZK</strong> | <strong>Profit: {numeral(this.props.sum.profit).format('0,0')}</strong> CZK | <strong># Orders: {numeral(this.props.sum.ordersCount).format('0,0')}</strong>
-                        </Header>
+                        </Header> */}
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row columns='equal'>
@@ -394,10 +399,10 @@ class Summary extends React.PureComponent {
                             <Grid>
                                 <Grid.Row>
                                     <Grid.Column width={5}>
-                                        <Header as='h3' content={'Orders turnover [order date] - ' + this.state.type} />
+                                        <Header as='h3' content={'Orders turnover - ' + this.state.type} />
                                     </Grid.Column>
-                                    <Grid.Column width={11}>
-                                        <ExportDropdown floating='right' data={pick(dataToExport, ["date", "turnover", "turnoverAverage"])} />
+                                    <Grid.Column textAlign="right" width={11}>
+                                        <ExportDropdown data={pick(dataToExport, ["date", "turnover", "turnoverAverage"])} />
                                     </Grid.Column>
                                 </Grid.Row>
                                 <Grid.Row>
@@ -411,10 +416,10 @@ class Summary extends React.PureComponent {
                                 </Grid.Row>
                                 <Grid.Row>
                                     <Grid.Column width={5}>
-                                        <Header as='h3' content={'Order count [order date] - ' + this.state.type} />
+                                        <Header as='h3' content={'Order count - ' + this.state.type} />
                                     </Grid.Column>
-                                    <Grid.Column width={11}>
-                                        <ExportDropdown floating='right' data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} />
+                                    <Grid.Column textAlign="right" width={11}>
+                                        <ExportDropdown data={pick(dataToExport, ["date", "ordersCount", "ordersCountAverage"])} />
                                     </Grid.Column>
                                 </Grid.Row>
                                 <Grid.Row>
