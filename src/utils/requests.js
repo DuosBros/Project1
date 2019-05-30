@@ -109,18 +109,8 @@ export function sendAuthenticationData(payload) {
  * Validate localStorage token
  */
 export function validateToken() {
-    // get from (start of year) and to (end of year) date
-    var from = new Date(new Date().getUTCFullYear(), 0, 0, 24, 59, 59).toISOString();
-    var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
-
     // limit 1 -> its enough to know if token is valid
-    // axios.defaults.headers.common['x-access-token'] (see helpers.js)
-    return axios.get(MEDPHARMAVN_API +
-        'orders?from=' +
-        from +
-        '&to=' +
-        to +
-        '&limit=1')
+    return getCurrentYearOrders(1, null)
 }
 
 /**
@@ -223,18 +213,25 @@ export function getProducts() {
     return axios.get(MEDPHARMAVN_API + 'products/v2')
 }
 
+export function getAllOrders() {
+    return axios.get(MEDPHARMAVN_API + 'orders'
+    )
+}
+
 export function getOrders(from, to) {
+    let query = "";
+    if (from && to) {
+        query = "?from=" + from + '&to=' + to;
+    }
+
     return axios.get(MEDPHARMAVN_API +
-        'orders?from=' +
-        from +
-        '&to=' +
-        to
+        'orders' + query
     )
 }
 
 export function getCurrentYearOrders(limit, sinceId) {
-    var from = new Date(new Date().getUTCFullYear() - 1, 0, 0, 24, 59, 59).toISOString();
-    var to = new Date(new Date().getUTCFullYear(), 12, 0, 24, 59, 59).toISOString();
+    var from = moment().utc().startOf('year').toISOString()
+    var to = moment().utc().endOf('year').toISOString()
 
     if (!limit) {
         return axios.get(MEDPHARMAVN_API +

@@ -113,6 +113,13 @@ class WarehouseTable extends React.PureComponent {
                 {editProductCountButton}
                 <Popup inverted trigger={
                     <Button
+                        onClick={() => this.handleToggleProductHistoryModal(data)}
+                        className='buttonIconPadding'
+                        size='large'
+                        icon='history' />
+                } content="History" />
+                <Popup inverted trigger={
+                    <Button
                         onClick={() => this.handleToggleProductModal(data)}
                         className='buttonIconPadding'
                         size='large'

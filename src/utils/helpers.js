@@ -3,6 +3,40 @@ import axios from 'axios';
 import moment from "moment";
 import React from 'react';
 
+export const getMedian = (array, prop) => {
+
+    let sorted, median;
+    if (prop) {
+        sorted = array.sort((a, b) => {
+            return a[prop] - b[prop]
+        })
+    }
+    else {
+        sorted = array.sort()
+    }
+
+    var half = Math.floor(sorted.length / 2);
+
+    if (sorted.length % 2) {
+        if (prop) {
+            median = sorted[half][prop];
+        }
+        else {
+            median = sorted[half].ordersCount;
+        }
+    }
+    else {
+        if (prop) {
+            median = (sorted[half - 1][prop] + sorted[half][prop]) / 2.0;
+        }
+        else {
+            median = (sorted[half - 1] + sorted[half]) / 2.0;
+        }
+    }
+
+    return median;
+}
+
 export const getNonBillableProducts = (products) => {
     return products.filter(x => x.category !== 'Nonbillable')
 }
@@ -127,11 +161,16 @@ export const flattenObject = (ob) => {
     return toReturn;
 }
 
-export const sortMonthYear = (array) => {
+export const sortMonthYear = (array, isDesc) => {
     array.sort(function (a, b) {
         a = a.monthAndYear ? a.monthAndYear.split(".") : a.date.split(".");
         b = b.monthAndYear ? b.monthAndYear.split(".") : b.date.split(".");
-        return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
+        if (isDesc) {
+            return new Date(b[1], b[0], 1) - new Date(a[1], a[0], 1)
+        }
+        else {
+            return new Date(a[1], a[0], 1) - new Date(b[1], b[0], 1)
+        }
     })
 
     return array;

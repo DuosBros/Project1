@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -200,7 +200,7 @@ class Orders extends React.Component {
         this.setState({ showMultiSearchFilter: true })
 
         // fetch _all_ orders
-        getCurrentYearOrders(null, null)
+        getAllOrders()
             .then(res => {
                 this.props.getOrdersAction({ data: res.data, success: true })
             })
@@ -826,41 +826,39 @@ class Orders extends React.Component {
                             {notPaidNotificationsMessage}
                         </Grid.Column>
                         <Grid.Column width={3} textAlign='left' floated='right'>
-                            <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
-                                <>
+                            <>
+                                <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
                                     <Input
                                         style={{ width: this.state.inputWidth }}
                                         ref={this.handleRef}
                                         name="multiSearchInput"
                                         placeholder='Search...'
                                         onChange={this.handleFilterChange} />
-                                </>
-                            </Transition>
-                            {
-                                this.state.showMultiSearchFilter || (
-                                    <div style={{ textAlign: 'right' }}>
-                                        <Icon
-                                            name='search'
-                                            style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
-                                            circular
-                                            link
-                                            onClick={this.showFilter} />
-                                    </div>
-                                )
-                            }
-
-
-                            <Button
-                                ref={this.showTogglePaidOrdersButtonRef}
-                                fluid
-                                size="small"
-                                onClick={this.handleToggleShowPaidOrders}
-                                compact
-                                content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
-                                style={{ padding: '0.3em', marginTop: '0.5em' }}
-                                id="secondaryButton"
-                                icon={showPaidOrders ? 'eye' : 'eye slash'}
-                                labelPosition='left' />
+                                </Transition>
+                                {
+                                    this.state.showMultiSearchFilter || (
+                                        <div style={{ textAlign: 'right' }}>
+                                            <Icon
+                                                name='search'
+                                                style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
+                                                circular
+                                                link
+                                                onClick={this.showFilter} />
+                                        </div>
+                                    )
+                                }
+                                <Button
+                                    ref={this.showTogglePaidOrdersButtonRef}
+                                    fluid
+                                    size="small"
+                                    onClick={this.handleToggleShowPaidOrders}
+                                    compact
+                                    content={showPaidOrders ? 'Hide Paid Orders' : 'Show Paid Orders'}
+                                    style={{ padding: '0.3em', marginTop: '0.5em' }}
+                                    id="secondaryButton"
+                                    icon={showPaidOrders ? 'eye' : 'eye slash'}
+                                    labelPosition='left' />
+                            </>
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

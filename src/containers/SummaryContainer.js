@@ -10,10 +10,9 @@ import {
 } from '../utils/actions';
 import Summary from '../pages/Summary';
 import { fetchBankTransactions } from '../handlers/bankHandler';
-import { sortMonthYear, groupBy } from '../utils/helpers';
+import { sortMonthYear, groupBy, getMedian } from '../utils/helpers';
 import _ from 'lodash';
 import moment from 'moment';
-import { fetchAndHandleProducts } from '../handlers/productHandler';
 import { fetchAndHandleOrders, fetchAndHandleNotPaidOrders } from '../handlers/orderHandler';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
 
@@ -25,35 +24,21 @@ class SummaryContainer extends React.PureComponent {
 
     componentDidMount() {
         this.fetchDataAndHandleResult();
-        this.fetchProductsAndHandleResult();
-        fetchAndHandleProducts(this.props.getProductsAction);
+        this.fetchProductsDaily();
+
+        // get all orders
         this.fetchOrdersAndHandleResult();
+
+        // get receivables
         fetchAndHandleNotPaidOrders(this.props.getNotPaidOrdersAction)
+
+        // get current WH value
         fetchWarehouseProducts(moment().month() + 1, moment().year(), this.props.getWarehouseProductsAction)
-        fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions);
+        //fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions);
     }
 
     fetchOrdersAndHandleResult = (from, to) => {
-        if (!from) {
-            from = moment().utc().startOf('year').toISOString()
-        }
-        if (!to) {
-            to = moment().utc().endOf('year').toISOString()
-        }
-
         fetchAndHandleOrders(from, to, this.props.getOrdersAction)
-    }
-
-    fetchProductsAndHandleResult = async () => {
-        // try {
-        //     let res = await getProductsMonthly()
-        //     this.props.getProductsMonthlyAction({ success: true, data: res.data })
-
-        // } catch (err) {
-        //     this.props.getProductsMonthlyAction({ success: false, error: err })
-        // }
-
-        this.fetchProductsDaily();
     }
 
     fetchProductsDaily = async (from, to) => {
@@ -132,52 +117,61 @@ class SummaryContainer extends React.PureComponent {
                 />
             )
         }
-        let ordersTotalPriceAvg = []
+        //#region order's total price [monthly, yearly]
+        let ordersTotalPriceMedian = []
         if (this.props.ordersStore.orders.data) {
+            // map each order to get month, year and string form of monthAndYear
             let temp = this.props.ordersStore.orders.data.map(x => {
                 x.month = moment(x.payment.orderDate).month() + 1
                 x.year = moment(x.payment.orderDate).year()
-                x.monthAndYear = x.month + "." + x.year
+                x.monthAndYear = (x.month < 10 ? "0" + x.month : x.month) + "." + x.year
 
                 return x
             });
+
+            // filter out 2016 as this year contains incomplete data
+            temp = temp.filter(x => x.year !== 2016)
             let groupedOrders = _.groupBy(temp, (item) => {
-                return item.month
+                return item.monthAndYear
             })
             let keys = Object.keys(groupedOrders)
-            let temp2 = keys.map(x => {
+
+            // getting monthly data of order's total price based on all orders
+            temp = keys.map(x => {
                 let y = {}
-                y.totalPriceSum = groupedOrders[x].map(x => x.totalPrice).reduce((a, b) => a + b, 0)
-                y.totalPriceMonthlyAverage = Number.parseFloat((y.totalPriceSum / groupedOrders[x].length).toFixed(2))
-                y.monthAndYear = groupedOrders[x][0].monthAndYear
+                y.totalPriceMonthlyMedian = getMedian(groupedOrders[x], "totalPrice")
+                y.monthAndYear = x
+                y.month = groupedOrders[x][0].month
+                y.year = groupedOrders[x][0].year
                 return y
             })
 
-            let sum = temp2.map(x => x.totalPriceMonthlyAverage).reduce((a, b) => a + b)
-            let avg = (sum / temp2.length).toFixed(2)
-
-            ordersTotalPriceAvg = temp2.map(x => {
-                x.totalPriceTotalAverage = avg
+            let totalMedian = getMedian(temp, "totalPriceMonthlyMedian")
+            ordersTotalPriceMedian = temp.map(x => {
+                x.totalPriceTotalMedian = totalMedian
                 return x
             })
-        }
 
+            ordersTotalPriceMedian = sortMonthYear(ordersTotalPriceMedian, false)
+        }
+        //#endregion
+
+        //#region current month products and categories [monthly]
         let productsDaily = this.props.summaryStore.productsDaily.data.slice();
-        // let productsMonthly = this.props.summaryStore.productsMonthly.data.slice();
         productsDaily = productsDaily.map(x => x.products).flat(1)
 
         let grouped = groupBy(productsDaily, "name")
         let groupedCategories = groupBy(productsDaily, "category")
         let keys = Object.keys(grouped);
-        let keysCategories = Object.keys(groupedCategories);
+        let keysCategories = Object.keys(groupedCategories).filter(x => x !== "null"); // filter out products with no category
 
         productsDaily = []
         let categoriesDaily = [];
 
         keys.forEach(x => {
             if (grouped[x].length > 1) {
-                grouped[x][0].totalAmount = grouped[x].reduce((a, b) => (Number.isInteger(a.totalAmount) ? a.totalAmount : 0) + (Number.isInteger(b.totalAmount) ? b.totalAmount : 0))
-                grouped[x][0].totalCount = grouped[x].reduce((a, b) => (Number.isInteger(a.totalCount) ? a.totalCount : 0) + (Number.isInteger(b.totalCount) ? b.totalCount : 0))
+                grouped[x][0].totalAmount = grouped[x].reduce((a, b) => { return { totalAmount: (Number.isInteger(a.totalAmount) ? a.totalAmount : 0) + (Number.isInteger(b.totalAmount) ? b.totalAmount : 0) } }).totalAmount
+                grouped[x][0].totalCount = grouped[x].reduce((a, b) => { return { totalCount: (Number.isInteger(a.totalCount) ? a.totalCount : 0) + (Number.isInteger(b.totalCount) ? b.totalCount : 0) } }).totalCount
                 productsDaily.push(grouped[x][0])
             }
             else {
@@ -188,25 +182,21 @@ class SummaryContainer extends React.PureComponent {
 
         keysCategories.forEach(x => {
             if (groupedCategories[x].length > 1) {
-                groupedCategories[x][0].totalAmount = groupedCategories[x].map(x => x.totalAmount).reduce((a, b) => a + b)
-                groupedCategories[x][0].totalCount = groupedCategories[x].map(x => x.totalCount).reduce((a, b) => a + b)
-                categoriesDaily.push(groupedCategories[x][0])
-            }
-            else {
-                categoriesDaily.push(groupedCategories[x][0])
+                let tempObject = {}
+                tempObject.totalAmount = groupedCategories[x].reduce((a, b) => { return { totalAmount: (Number.isInteger(a.totalAmount) ? a.totalAmount : 0) + (Number.isInteger(b.totalAmount) ? b.totalAmount : 0) } }).totalAmount
+                tempObject.category = x
+                categoriesDaily.push(tempObject)
             }
         })
-
+        //#endregion
 
         let turnoverDailySummary = 0;
-        //let profitDailySummary = 0;
         let ordersCountDailySummary = 0;
 
         let dailyOrderedOrders = this.props.summaryStore.orderedOrdersDaily.data.slice();
         dailyOrderedOrders.map(x => {
 
             turnoverDailySummary += (x.turnover !== undefined || x.turnover !== null) ? x.turnover : 0
-            //profitDailySummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
             x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
             x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
             ordersCountDailySummary += x.ordersCount
@@ -305,7 +295,7 @@ class SummaryContainer extends React.PureComponent {
 
         orderedOrders.map(x => x.ordersCountMedian = median)
 
-        orderedOrders = sortMonthYear(orderedOrders);
+        orderedOrders = sortMonthYear(orderedOrders, true);
 
         orderedOrders.unshift({
             date: 'Average',
@@ -331,6 +321,7 @@ class SummaryContainer extends React.PureComponent {
                 warehouseValue += x.price * x.available
             })
         }
+
         return (
             <Summary
                 isMobile={this.props.isMobile}
@@ -351,7 +342,7 @@ class SummaryContainer extends React.PureComponent {
                 productsDaily={{ success: true, data: productsDaily }}
                 categoriesDaily={categoriesDaily}
                 fetchOrdersAndHandleResult={this.fetchOrdersAndHandleResult}
-                ordersTotalPriceAvg={ordersTotalPriceAvg}
+                ordersTotalPriceMedian={ordersTotalPriceMedian}
                 receivables={receivables}
                 warehouseValue={warehouseValue}
             />

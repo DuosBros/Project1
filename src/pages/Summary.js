@@ -117,7 +117,7 @@ class Summary extends React.PureComponent {
             )
         }
 
-        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length).reverse();
+        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length);
         let yearlyOrderedOrdersFiltered = rawOrderedOrders.filter(x => x._id.year === this.state.year)
         let dropdowns, ordersTurnoverGraph, ordersCountGraph, dataToExport, ordersTotalPriceAvgRow,
             productsMonthlyCountRow, productsMonthlyTurnoverRow, productCategoriesTurnoverRow;
@@ -273,18 +273,18 @@ class Summary extends React.PureComponent {
                 <>
                     <Grid.Row>
                         <Grid.Column width={5}>
-                            <Header as='h3' content={'Orders total price average - ' + this.state.type} />
+                            <Header as='h3' content={'Total price of order - ' + this.state.type} />
                         </Grid.Column>
                         <Grid.Column textAlign="right" width={11}>
-                            <ExportDropdown data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyAverage", "totalPriceTotalAverage"])} />
+                            <ExportDropdown data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyMedian", "totalPriceTotalMedian"])} />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
                         <GenericLineChart
-                            data={this.props.ordersTotalPriceAvg}
+                            data={this.props.ordersTotalPriceMedian.filter(x => x.year === this.state.year)}
                             xDataKey="monthAndYear"
-                            ydataKey1="totalPriceMonthlyAverage"
-                            ydataKey2="totalPriceTotalAverage"
+                            ydataKey1="totalPriceMonthlyMedian"
+                            ydataKey2="totalPriceTotalMedian"
                             tooltipFormatter={{
                                 formatter: "CZK"
                             }}
@@ -331,7 +331,33 @@ class Summary extends React.PureComponent {
                     }}
                 />
             )
+
+            ordersTotalPriceAvgRow = (
+                <>
+                    <Grid.Row>
+                        <Grid.Column width={5}>
+                            <Header as='h3' content={'Total price of order - ' + this.state.type} />
+                        </Grid.Column>
+                        <Grid.Column textAlign="right" width={11}>
+                            <ExportDropdown data={pick(dataToExport, ["monthAndYear", "totalPriceMonthlyMedian", "totalPriceTotalMedian"])} />
+                        </Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row>
+                        <GenericLineChart
+                            data={this.props.ordersTotalPriceMedian}
+                            xDataKey="monthAndYear"
+                            ydataKey1="totalPriceMonthlyMedian"
+                            ydataKey2="totalPriceTotalMedian"
+                            tooltipFormatter={{
+                                formatter: "CZK"
+                            }}
+                        />
+                    </Grid.Row>
+                </>
+            )
         }
+
+        let totalAssets = this.props.bankAccountInfo.closingBalance ? (this.props.receivables + this.props.warehouseValue + this.props.bankAccountInfo.closingBalance) : <Icon fitted loading name='circle notched' />
 
         // render page
         return (
@@ -351,6 +377,8 @@ class Summary extends React.PureComponent {
                                 <dd>{this.props.receivables ? numeral(this.props.receivables).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</dd>
                                 <dt>WH value:</dt>
                                 <dd>{this.props.warehouseValue ? numeral(this.props.warehouseValue).format('0,0') : <Icon fitted loading name='circle notched' />} CZK</dd>
+                                <dt>Total assets:</dt>
+                                <dd>{numeral(totalAssets).format('0,0')} CZK</dd>
                             </dl>
                         </Header>
                     </Grid.Column>

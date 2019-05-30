@@ -7,6 +7,7 @@ import WarehouseTable from '../../components/WarehouseTable';
 import { optionsDropdownMapper, buildFilter, filterInArrayOfObjects, debounce, isNum } from '../../utils/helpers';
 import AddEditProductModal from '../../components/AddEditProductModal';
 import moment from 'moment';
+import ProductHistoryTable from '../../components/ProductHistoryTable';
 
 export default class Warehouse extends React.PureComponent {
 
@@ -22,6 +23,7 @@ export default class Warehouse extends React.PureComponent {
         }
 
         this.state = {
+            showProductHistoryModal: false,
             productCountToEdit: null,
             difference: null,
             isMobile: props.isMobile,
@@ -50,6 +52,10 @@ export default class Warehouse extends React.PureComponent {
 
     handleToggleGrouping = () => {
         this.setState({ isGroupingEnabled: !this.state.isGroupingEnabled });
+    }
+
+    handleToggleProductHistoryModal = (product) => {
+        this.setState({ showProductHistoryModal: !this.state.showProductHistoryModal, productHistoryToShow: product });
     }
 
     handleToggleProductModal = (product) => {
@@ -126,7 +132,7 @@ export default class Warehouse extends React.PureComponent {
 
         const { isMobile, multiSearchInput, showFunctionsMobile,
             isGroupingEnabled, productToEdit, showProductModal, month, year,
-            showEditProductCountModal } = this.state
+            showEditProductCountModal, showProductHistoryModal } = this.state
         let modal = null,
             pageHeader,
             mappedProducts,
@@ -173,6 +179,31 @@ export default class Warehouse extends React.PureComponent {
                         />
                         <Button
                             onClick={() => this.setState({ showEditProductCountModal: false })}
+                            content='Close'
+                        />
+                    </Modal.Actions>
+                </Modal>
+            )
+        }
+
+        if (showProductHistoryModal) {
+            return (
+                <Modal
+                    closeOnDimmerClick={false}
+                    dimmer={true}
+                    size='tiny'
+                    open={showProductHistoryModal}
+                    closeOnEscape={true}
+                    closeIcon={true}
+                    onClose={() => this.setState({ showProductHistoryModal: !showProductHistoryModal })}
+                >
+                    <Modal.Header>Product history - {this.state.productHistoryToShow.name}</Modal.Header>
+                    <Modal.Content>
+                        <ProductHistoryTable data={this.state.productHistoryToShow.history} tableHeader={false} compact="very" rowsPerPage={10} />
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button
+                            onClick={() => this.setState({ showProductHistoryModal: false })}
                             content='Close'
                         />
                     </Modal.Actions>
@@ -250,6 +281,11 @@ export default class Warehouse extends React.PureComponent {
                                                 size='large'
                                                 icon='warehouse' />
                                             <Button
+                                                onClick={() => this.handleToggleProductHistoryModal(product)}
+                                                className='buttonIconPadding'
+                                                size='large'
+                                                icon='history' />
+                                            <Button
                                                 onClick={() => this.handleToggleProductModal(product)}
                                                 className='buttonIconPadding'
                                                 style={{ marginBottom: '0.25em' }}
@@ -316,6 +352,7 @@ export default class Warehouse extends React.PureComponent {
                     <Grid.Row>
                         <Grid.Column>
                             <WarehouseTable
+                                handleToggleProductHistoryModal={this.handleToggleProductHistoryModal}
                                 isOnCurrentMonth={isOnCurrentMonth}
                                 handleEditWarehouseProductcount={this.handleEditWarehouseProductcount}
                                 handleToggleProductModal={this.handleToggleProductModal}
