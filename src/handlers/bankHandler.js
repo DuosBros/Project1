@@ -7,7 +7,9 @@ export const fetchBankTransactions = (getBankTransactionsAction, getOrdersAction
             getBankTransactionsAction({ success: true, data: res.data })
         })
         .then(() => {
-            fetchAndHandleThisYearOrders(getOrdersAction, null, null, mapOrdersToTransactionsActions)
+            if(mapOrdersToTransactionsActions) {
+                fetchAndHandleThisYearOrders(getOrdersAction, null, null, mapOrdersToTransactionsActions)
+            }
         })
         .catch(err => {
             getBankTransactionsAction({ success: false, error: err })

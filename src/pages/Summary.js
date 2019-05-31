@@ -48,11 +48,11 @@ class Summary extends React.PureComponent {
             this.props.fetchOrderedOrdersDaily(start, end);
         }
 
-        if (this.state.type === "Yearly") {
-            this.props.fetchOrdersAndHandleResult(
-                moment().year(value).utc().startOf('year').toISOString(),
-                moment().year(value).utc().endOf('year').toISOString());
-        }
+        // if (this.state.type === "Yearly") {
+        //     this.props.fetchOrdersAndHandleResult(
+        //         moment().year(value).utc().startOf('year').toISOString(),
+        //         moment().year(value).utc().endOf('year').toISOString());
+        // }
 
         this.setState({ year: Number.parseInt(value) });
     }
@@ -117,7 +117,7 @@ class Summary extends React.PureComponent {
             )
         }
 
-        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length);
+        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length).reverse().filter(x => x._id.year !== 2016);
         let yearlyOrderedOrdersFiltered = rawOrderedOrders.filter(x => x._id.year === this.state.year)
         let dropdowns, ordersTurnoverGraph, ordersCountGraph, dataToExport, ordersTotalPriceAvgRow,
             productsMonthlyCountRow, productsMonthlyTurnoverRow, productCategoriesTurnoverRow;
@@ -130,7 +130,7 @@ class Summary extends React.PureComponent {
                     data={this.props.orderedOrdersDaily.data}
                     xDataKey="date"
                     ydataKey1="turnover"
-                    ydataKey2="turnoverAverage"
+                    ydataKey2="turnoverMedian"
                     tooltipFormatter={{
                         formatter: "CZK"
                     }}
@@ -142,7 +142,7 @@ class Summary extends React.PureComponent {
                     data={this.props.orderedOrdersDaily.data}
                     xDataKey="date"
                     ydataKey1="ordersCount"
-                    ydataKey2="ordersCountAverage"
+                    ydataKey2="ordersCountMedian"
                     tooltipFormatter={{
                         formatter: "pcs"
                     }}
@@ -324,8 +324,8 @@ class Summary extends React.PureComponent {
                 <GenericLineChart
                     data={rawOrderedOrders}
                     xDataKey="date"
-                    ydataKey1="turnover"
-                    ydataKey2="turnoverAverage"
+                    ydataKey1="ordersCount"
+                    ydataKey2="ordersCountMedian"
                     tooltipFormatter={{
                         formatter: "pcs"
                     }}

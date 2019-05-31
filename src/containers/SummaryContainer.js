@@ -34,7 +34,7 @@ class SummaryContainer extends React.PureComponent {
 
         // get current WH value
         fetchWarehouseProducts(moment().month() + 1, moment().year(), this.props.getWarehouseProductsAction)
-        //fetchBankTransactions(this.props.getBankTransactionsAction, this.props.getOrdersAction, this.props.mapOrdersToTransactionsActions);
+        fetchBankTransactions(this.props.getBankTransactionsAction);
     }
 
     fetchOrdersAndHandleResult = (from, to) => {
@@ -190,26 +190,24 @@ class SummaryContainer extends React.PureComponent {
         })
         //#endregion
 
-        let turnoverDailySummary = 0;
-        let ordersCountDailySummary = 0;
-
+        //#region orders turnover and count [monthly]
         let dailyOrderedOrders = this.props.summaryStore.orderedOrdersDaily.data.slice();
         dailyOrderedOrders.map(x => {
-
-            turnoverDailySummary += (x.turnover !== undefined || x.turnover !== null) ? x.turnover : 0
             x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
             x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
-            ordersCountDailySummary += x.ordersCount
-
             return x;
         })
 
+        let turnoverMedian = getMedian(dailyOrderedOrders, "turnover");
+        let ordersCountMedian = getMedian(dailyOrderedOrders, "ordersCount");
         dailyOrderedOrders.forEach(x => {
-            x.turnoverAverage = (turnoverDailySummary / dailyOrderedOrders.length).toFixed(2)
-            x.ordersCountAverage = (ordersCountDailySummary / dailyOrderedOrders.length).toFixed(2)
+            x.turnoverMedian = turnoverMedian
+            x.ordersCountMedian = ordersCountMedian
         })
 
         dailyOrderedOrders = dailyOrderedOrders.sort((a, b) => a.date - b.date)
+
+        //#endregion
 
         let orderedOrders = this.props.summaryStore.orderedOrders.data.slice();
         let orderedOrdersYearly = [];
@@ -228,10 +226,13 @@ class SummaryContainer extends React.PureComponent {
             profitSummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
 
             x.date = (x._id.month < 10 ? "0" + x._id.month : x._id.month) + "." + x._id.year
-            x.ordersCount = x.cashOrders.length + x.vsOrders.length
+            x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
             ordersCountSummary += x.ordersCount
             return x;
         })
+
+        ordersCountMedian = getMedian(orderedOrders, "ordersCount")
+        orderedOrders.map(x => x.ordersCountMedian = ordersCountMedian)
 
         grouped = _.groupBy(orderedOrders, (item) => {
             return item._id.year
@@ -278,22 +279,6 @@ class SummaryContainer extends React.PureComponent {
             profit: profitSummary,
             ordersCount: ordersCountSummary
         });
-
-        let median;
-        let sorted = orderedOrders.sort((a, b) => {
-            return a.ordersCount - b.ordersCount
-        })
-
-        var half = Math.floor(sorted.length / 2);
-
-        if (sorted.length % 2) {
-            median = sorted[half].ordersCount;
-        }
-        else {
-            median = (sorted[half - 1].ordersCount + sorted[half].ordersCount) / 2.0;
-        }
-
-        orderedOrders.map(x => x.ordersCountMedian = median)
 
         orderedOrders = sortMonthYear(orderedOrders, true);
 
