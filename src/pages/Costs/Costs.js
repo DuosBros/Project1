@@ -227,7 +227,7 @@ class Costs extends React.Component {
                             </Header>
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
-                            <Button onClick={() => this.handleToggleEditCostModal()} fluid size='large' compact content='Add Cost' id="primaryButton" />
+                            {/* <Button onClick={() => this.handleToggleEditCostModal()} fluid size='large' compact content='Add Cost' id="primaryButton" /> */}
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>

@@ -160,23 +160,48 @@ class Bank extends React.Component {
                     closeIcon={true}
                     onClose={() => this.setState({ showCategoryModal: !this.state.showCategoryModal })}
                 >
-                    <Modal.Header>Add Category</Modal.Header>
+                    <Modal.Header>
+                        Add Category
+                    </Modal.Header>
                     <Modal.Content>
-                        Category
-                        <Dropdown
-                            search
-                            allowAdditions
-                            onAddItem={this.handleAddition}
-                            fluid
-                            selection
-                            text={this.state.category}
-                            onChange={this.handleCategoryDropdownOnChange}
-                            options={this.props.costCategories}
-                            selectOnBlur={false}
-                            selectOnNavigation={false} />
+                        <Grid>
+                            <Grid.Row>
+                                <Grid.Column>
+                                    <dl className="dl-horizontal">
+                                        <dt>Date:</dt>
+                                        <dd>{this.state.transaction.date}</dd>
+                                        <dt>Cost:</dt>
+                                        <dd>{this.state.transaction.value}</dd>
+                                        <dt>Note:</dt>
+                                        <dd>{this.state.transaction.note}</dd>
+                                    </dl>
+                                </Grid.Column>
+                            </Grid.Row>
+                            <Grid.Row>
+                                <Grid.Column>
+                                    Category
+                                <Dropdown
+                                        search
+                                        allowAdditions
+                                        onAddItem={this.handleAddition}
+                                        fluid
+                                        selection
+                                        text={this.state.category}
+                                        onChange={this.handleCategoryDropdownOnChange}
+                                        options={this.props.costCategories}
+                                        selectOnBlur={false}
+                                        selectOnNavigation={false} />
+                                </Grid.Column>
+                            </Grid.Row>
+                        </Grid>
                     </Modal.Content>
                     <Modal.Actions>
                         <Button
+                            content="Close"
+                            onClick={() => this.setState({ showCategoryModal: false })}
+                        />
+                        <Button
+                            primary
                             onClick={() => this.handleCategoryModalAddCost()}
                             labelPosition='right'
                             icon='checkmark'
