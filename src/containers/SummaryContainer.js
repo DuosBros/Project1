@@ -192,20 +192,22 @@ class SummaryContainer extends React.PureComponent {
 
         //#region orders turnover and count [monthly]
         let dailyOrderedOrders = this.props.summaryStore.orderedOrdersDaily.data.slice();
-        dailyOrderedOrders.map(x => {
-            x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
-            x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
-            return x;
-        })
+        if (dailyOrderedOrders.length > 0) {
+            dailyOrderedOrders.map(x => {
+                x.date = (x._id.day < 10 ? "0" + x._id.day : x._id.day) + "." + (x._id.month < 10 ? "0" + x._id.month : x._id.month)
+                x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length
+                return x;
+            })
 
-        let turnoverMedian = getMedian(dailyOrderedOrders, "turnover");
-        let ordersCountMedian = getMedian(dailyOrderedOrders, "ordersCount");
-        dailyOrderedOrders.forEach(x => {
-            x.turnoverMedian = turnoverMedian
-            x.ordersCountMedian = ordersCountMedian
-        })
+            let turnoverMedian = getMedian(dailyOrderedOrders, "turnover");
+            let ordersCountMedian = getMedian(dailyOrderedOrders, "ordersCount");
+            dailyOrderedOrders.forEach(x => {
+                x.turnoverMedian = turnoverMedian
+                x.ordersCountMedian = ordersCountMedian
+            })
 
-        dailyOrderedOrders = dailyOrderedOrders.sort((a, b) => a.date - b.date)
+            dailyOrderedOrders = dailyOrderedOrders.sort((a, b) => a.date - b.date)
+        }
 
         //#endregion
 
