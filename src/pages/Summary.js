@@ -119,7 +119,17 @@ class Summary extends React.PureComponent {
 
         // remove average which was used for table
         let rawOrderedOrders = this.props.orderedOrders.data.slice(1, this.props.orderedOrders.data.length).reverse().filter(x => x._id.year !== 2016);
-        let yearlyOrderedOrdersFiltered = rawOrderedOrders.filter(x => x._id.year === this.state.year)
+        let yearlyOrderedOrdersFiltered = rawOrderedOrders
+            .filter(x => x._id.year === this.state.year)
+
+        let tempSum = yearlyOrderedOrdersFiltered.reduce((a, b) => { return { turnoverAverage: Number.parseFloat(a.turnoverAverage) + Number.parseFloat(b.turnoverAverage) } }).turnoverAverage
+        let tempSumCount = yearlyOrderedOrdersFiltered.reduce((a, b) => { return { ordersCountAverage: Number.parseFloat(a.ordersCountAverage) + Number.parseFloat(b.ordersCountAverage) } }).ordersCountAverage
+
+        yearlyOrderedOrdersFiltered.map(x => {
+            x.turnoverAverage = (tempSum / yearlyOrderedOrdersFiltered.length).toFixed(2)
+            x.ordersCountAverage = (tempSumCount / yearlyOrderedOrdersFiltered.length).toFixed(2)
+        })
+
         let dropdowns, ordersTurnoverGraph, ordersCountGraph, dataToExport, ordersTotalPriceAvgRow,
             productsMonthlyCountRow, productsMonthlyTurnoverRow, productCategoriesTurnoverRow;
 
