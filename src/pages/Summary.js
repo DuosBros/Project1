@@ -117,7 +117,8 @@ class Summary extends React.PureComponent {
             )
         }
 
-        let rawOrderedOrders = this.props.orderedOrders.data.slice(2, this.props.orderedOrders.data.length).reverse().filter(x => x._id.year !== 2016);
+        // remove average which was used for table
+        let rawOrderedOrders = this.props.orderedOrders.data.slice(1, this.props.orderedOrders.data.length).reverse().filter(x => x._id.year !== 2016);
         let yearlyOrderedOrdersFiltered = rawOrderedOrders.filter(x => x._id.year === this.state.year)
         let dropdowns, ordersTurnoverGraph, ordersCountGraph, dataToExport, ordersTotalPriceAvgRow,
             productsMonthlyCountRow, productsMonthlyTurnoverRow, productCategoriesTurnoverRow;
