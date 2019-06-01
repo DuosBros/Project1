@@ -293,7 +293,9 @@ class OrderInfo extends React.Component {
         o.products.forEach(x => {
             weight += this.props.productsStore.products.data.find(y => y.id === x.id).weight * x.count
         })
-        o.payment.price = getGLSDeliveryPrice(weight)
+        if (stateOrder.deliveryType === deliveryTypes[0]) {
+            o.payment.price = getGLSDeliveryPrice(weight)
+        }
 
         return o;
     }
