@@ -24,6 +24,7 @@ import WarehouseContainer from '../containers/WarehouseContainer';
 import BankContainer from '../containers/BankContainer';
 import SummaryContainer from '../containers/SummaryContainer';
 import numeral from 'numeral';
+// eslint-disable-next-line
 import cs from 'numeral/locales/cs';
 
 class Base extends React.Component {

@@ -233,7 +233,7 @@ class SummaryContainer extends React.PureComponent {
             return x;
         })
 
-        ordersCountMedian = getMedian(orderedOrders, "ordersCount")
+        let ordersCountMedian = getMedian(orderedOrders, "ordersCount")
         orderedOrders.map(x => x.ordersCountMedian = ordersCountMedian)
 
         grouped = _.groupBy(orderedOrders, (item) => {
