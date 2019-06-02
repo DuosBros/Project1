@@ -26,6 +26,8 @@ import SummaryContainer from '../containers/SummaryContainer';
 import numeral from 'numeral';
 // eslint-disable-next-line
 import cs from 'numeral/locales/cs';
+import GmailContainer from '../containers/GmailContainer';
+import NotFound from '../pages/NotFound';
 
 class Base extends React.Component {
 
@@ -115,6 +117,8 @@ class Base extends React.Component {
                     <Route exact path='/costs' render={(props) => <Costs {...props} isMobile={isMobile} />} />
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/summary' render={(props) => <SummaryContainer {...props} isMobile={isMobile} />} />
+                    <Route exact path='/gmail' render={(props) => <GmailContainer {...props} isMobile={isMobile} />} />
+                    <Route component={NotFound} />
                 </Switch>
             </ErrorBoundary>
         )

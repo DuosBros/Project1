@@ -1,6 +1,7 @@
 import config from './config';
 
-export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? config.url.api.dev : config.url.api.prod
+// export const MEDPHARMAVN_API = process.env.NODE_ENV === 'development' ? config.url.api.dev : config.url.api.prod
+export const MEDPHARMAVN_API = config.url.api.local
 export const DEFAULT_SMARTFORM_LIMIT = config.config.defaultSmartformLimit
 
 export const LOCALSTORAGE_NAME = config.config.localStorageName
@@ -51,6 +52,8 @@ export const YEARS = [
     { key: 2, text: "2018", value: "2018" },
     { key: 3, text: "2019", value: "2019" },
 ]
+
+export const GMAIL = config.gmail;
 
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b | clip.exe
 

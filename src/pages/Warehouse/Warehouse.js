@@ -212,7 +212,9 @@ export default class Warehouse extends React.PureComponent {
         }
 
         let isOnCurrentMonth = false;
-        if (this.state.month === (moment().month() + 1).toString() && this.state.year === moment().year().toString()) {
+        let currentMonth = (moment().month() + 1).toString()
+        let currentYear = moment().year().toString()
+        if (this.state.month === currentMonth && this.state.year === currentYear) {
             isOnCurrentMonth = true;
         }
 

@@ -19,6 +19,27 @@ export function getProductsDailyAction(payload) {
     }
 }
 
+export function gmailGetEmailsAction(payload) {
+    return {
+        payload,
+        type: 'GMAIL_GET_EMAILS'
+    }
+}
+
+export function validateTokenAction(payload) {
+    return {
+        payload,
+        type: 'GMAIL_VALIDATE_TOKEN'
+    }
+}
+
+export function gmailAuthAction(payload) {
+    return {
+        payload,
+        type: 'GMAIL_AUTH'
+    }
+}
+
 export function getCostsMonthlyAction(payload) {
     return {
         payload,

@@ -2,6 +2,22 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function gmailGetEmails() {
+    return axios.get(MEDPHARMAVN_API + 'gmail/emails')
+}
+
+export function gmailValidateToken(token) {
+    return axios.get(MEDPHARMAVN_API + 'gmail/token?code=' + token)
+}
+
+export function gmailIsLogged() {
+    return axios.get(MEDPHARMAVN_API + 'gmail/is_logged')
+}
+
+export function gmailAuth() {
+    return axios.get(MEDPHARMAVN_API + 'gmail/auth')
+}
+
 export function getNotPaidOrders() {
     return axios.get(MEDPHARMAVN_API + 'orders/notpaid')
 }

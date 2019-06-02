@@ -125,7 +125,7 @@ class Summary extends React.PureComponent {
         let tempSum = yearlyOrderedOrdersFiltered.reduce((a, b) => { return { turnoverAverage: Number.parseFloat(a.turnoverAverage) + Number.parseFloat(b.turnoverAverage) } }).turnoverAverage
         let tempSumCount = yearlyOrderedOrdersFiltered.reduce((a, b) => { return { ordersCountAverage: Number.parseFloat(a.ordersCountAverage) + Number.parseFloat(b.ordersCountAverage) } }).ordersCountAverage
 
-        yearlyOrderedOrdersFiltered.map(x => {
+        yearlyOrderedOrdersFiltered.forEach(x => {
             x.turnoverAverage = (tempSum / yearlyOrderedOrdersFiltered.length).toFixed(2)
             x.ordersCountAverage = (tempSumCount / yearlyOrderedOrdersFiltered.length).toFixed(2)
         })

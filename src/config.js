@@ -3,7 +3,7 @@ export default {
     {
         "api":
         {
-            "local": "http://localhost:3000/rest/",
+            "local": "http://localhost:3001/rest/",
             "dev": "https://medpharmavn-test.herokuapp.com/rest/",
             "prod": "https://medpharmavn.herokuapp.com/rest/"
         }
@@ -77,5 +77,13 @@ export default {
                 ]
             }
         ]
-    }
+    },
+    "gmail": {
+        "isLoggedCode": 1559480317761,
+        "isNotLoggedCode": 1559431970211
+    },
+    "emailSuppliers": [
+        "hlasenska@medpharma.cz",
+        "obchody.milota@seznam.cz"
+    ]
 }
