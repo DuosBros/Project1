@@ -22,6 +22,8 @@ export default class Warehouse extends React.PureComponent {
             year = param.get("year")
         }
 
+        let currentMonth = (moment().month() + 1).toString();
+        let currentYear = (moment().year()).toString()
         this.state = {
             showProductHistoryModal: false,
             productCountToEdit: null,
@@ -32,8 +34,8 @@ export default class Warehouse extends React.PureComponent {
             isGroupingEnabled: true,
             showProductModal: false,
             productToEdit: null,
-            month: month ? month : (moment().month() + 1).toString,
-            year: year ? year : (moment().year()).toString
+            month: month ? month : currentMonth,
+            year: year ? year : currentYear
         }
 
         this.updateFilters = debounce(this.updateFilters, 1000);
@@ -212,9 +214,7 @@ export default class Warehouse extends React.PureComponent {
         }
 
         let isOnCurrentMonth = false;
-        let currentMonth = (moment().month() + 1).toString()
-        let currentYear = moment().year().toString()
-        if (this.state.month === currentMonth && this.state.year === currentYear) {
+        if (this.state.month === this.state.currentMonth && this.state.year === this.state.currentYear) {
             isOnCurrentMonth = true;
         }
 
