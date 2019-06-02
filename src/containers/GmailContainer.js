@@ -5,21 +5,20 @@ import { gmailAuthAction, validateTokenAction, gmailGetEmailsAction } from '../u
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { GMAIL } from '../appConfig';
 
 class GmailContainer extends React.Component {
     state = {}
 
     async componentDidMount() {
         let code = await gmailIsLogged()
-        if (code.data !== GMAIL.isLoggedCode) {
+        if (code.data !== true) {
             gmailAuth()
                 .then((res) => {
-                    if (res.data === GMAIL.isLoggedCode) {
-                        this.props.gmailAuthAction({ data: true, url: null })
+                    if (res.data) {
+                        this.props.gmailAuthAction({ data: false, url: res.data })
                     }
                     else {
-                        this.props.gmailAuthAction({ data: false, url: res.data })
+                        this.props.gmailAuthAction({ data: true, url: null })
                     }
                 })
         }
@@ -30,7 +29,6 @@ class GmailContainer extends React.Component {
     }
 
     gmailGetEmailsAndHandleResult = async () => {
-        debugger
         try {
             let res = await gmailGetEmails();
             this.props.gmailGetEmailsAction({ success: true, data: res.data })

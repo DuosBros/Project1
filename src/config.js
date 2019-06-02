@@ -79,8 +79,6 @@ export default {
         ]
     },
     "gmail": {
-        "isLoggedCode": 1559480317761,
-        "isNotLoggedCode": 1559431970211
     },
     "emailSuppliers": [
         "hlasenska@medpharma.cz",
