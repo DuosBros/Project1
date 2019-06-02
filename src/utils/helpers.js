@@ -121,8 +121,8 @@ export const mapOrderToExcelExport = (data) => {
         formattedOrder.zip = data[i].address.psc;
         formattedOrder.company = data[i].address.company;
         formattedOrder.totalPrice = data[i].totalPrice;
-        formattedOrder.orderDate = moment(data[i].payment.orderDate).format("DD.MM.YYYY");
-        formattedOrder.paymentDate = data[i].payment.paymentDate ? moment(data[i].payment.paymentDate).format("DD.MM.YYYY") : "Not paid";
+        formattedOrder.orderDate = moment(data[i].payment.orderDate).local().format("DD.MM.YYYY");
+        formattedOrder.paymentDate = data[i].payment.paymentDate ? moment(data[i].payment.paymentDate).local().format("DD.MM.YYYY") : "Not paid";
 
         for (let j = 0; j < maxProductCount; j++) {
             formattedOrder['product' + (j + 1)] = '';

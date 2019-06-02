@@ -166,7 +166,7 @@ class Costs extends React.Component {
                                 <Grid.Row style={{ padding: '0.25em' }} verticalAlign='middle'>
                                     <Grid.Column width={13}>
                                         {cost.description}
-                                        <strong> |</strong> {cost.cost} <strong>|</strong> {moment(cost.date).format('DD.MM.')} <strong>|</strong> {cost.note}
+                                        <strong> |</strong> {cost.cost} <strong>|</strong> {moment(cost.date).local().format('DD.MM.')} <strong>|</strong> {cost.note}
                                     </Grid.Column>
                                     <Grid.Column style={{ textAlign: 'right' }} width={3}>
                                         <>

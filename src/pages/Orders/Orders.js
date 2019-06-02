@@ -480,7 +480,7 @@ class Orders extends React.Component {
                     <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
                         textAlign='center'>
                         <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                        <Table.Cell>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
+                        <Table.Cell>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).local().format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
                         <Table.Cell>
                             {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? null : (
@@ -541,7 +541,7 @@ class Orders extends React.Component {
                             <Table.Cell>{rowCounter}</Table.Cell>
                             <Table.Cell>{(order.address.lastName && order.address.lastName) + " " + (order.address.firstName && order.address.firstName)}</Table.Cell>
                             <Table.Cell>{order.payment.vs}</Table.Cell>
-                            <Table.Cell>{moment(order.payment.orderDate).format("DD.MM")}</Table.Cell>
+                            <Table.Cell>{moment(order.payment.orderDate).local().format("DD.MM")}</Table.Cell>
                             <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
                             <Table.Cell>{order.note}</Table.Cell>
                             <Table.Cell>

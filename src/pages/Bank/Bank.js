@@ -275,7 +275,7 @@ class Bank extends React.Component {
                                 </Grid.Row>
                                 <Grid.Row style={{ padding: '0.5em' }}>
                                     <Grid.Column width={13}>
-                                        {transaction.vs} <strong>|</strong> {moment(transaction.date, 'DD.MM.YYYY').format('DD.MM')} <strong>|</strong> {transaction.value}
+                                        {transaction.vs} <strong>|</strong> {moment(transaction.date, 'DD.MM.YYYY').local().format('DD.MM')} <strong>|</strong> {transaction.value}
                                     </Grid.Column>
                                     <Grid.Column style={{ textAlign: 'right' }} width={3}>
                                     </Grid.Column>

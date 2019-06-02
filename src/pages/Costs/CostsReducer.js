@@ -13,15 +13,15 @@ const CostsReducer = (state = initialState, action) => {
                 categories = [...new Set(action.payload.data.map(item => item.category).filter(x => x))];
                 action.payload.data.forEach(x => {
                     x.cost = x.cost ? x.cost : 0
-                    x.monthAndYear = moment(x.date).format('MM.YYYY')
-                    x.dateFormated = moment(x.date).format('DD.MM.YYYY')
+                    x.monthAndYear = moment(x.date).local().format('MM.YYYY')
+                    x.dateFormated = moment(x.date).local().format('DD.MM.YYYY')
                 })
             }
 
             return Object.assign({}, state, { costs: action.payload, costCategories: categories })
         case 'ADD_COST':
-            action.payload.monthAndYear = moment(action.payload.date).format('MM.YYYY')
-            action.payload.dateFormated = moment(action.payload.date).format('DD.MM.YYYY')
+            action.payload.monthAndYear = moment(action.payload.date).local().format('MM.YYYY')
+            action.payload.dateFormated = moment(action.payload.date).local().format('DD.MM.YYYY')
 
             let temp = Object.assign({}, state.costs)
             temp.data = temp.data.slice()

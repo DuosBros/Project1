@@ -20,9 +20,13 @@ export default class ProductHistoryTable extends React.PureComponent {
 
 
     transformDataRow(data) {
-        data.timestamp = moment(data.timestamp).format("DD.MM.YYYY hh:mm:ss")
+        data.timestamp = moment(data.timestamp).local().format("DD.MM.YYYY HH:mm:ss")
 
         return data;
+    }
+
+    getDataKey(data) {
+        return data.timestamp + data.difference + data.user
     }
 
     render() {
