@@ -35,7 +35,9 @@ export default class Warehouse extends React.PureComponent {
             showProductModal: false,
             productToEdit: null,
             month: month ? month : currentMonth,
-            year: year ? year : currentYear
+            year: year ? year : currentYear,
+            currentMonth,
+            currentYear
         }
 
         this.updateFilters = debounce(this.updateFilters, 1000);
