@@ -120,7 +120,7 @@ class Bank extends React.Component {
 
     render() {
         // in case of error
-        if (!this.props.transactions.success) {
+        if (!(this.props.transactions.success && this.props.costs.success)) {
             return (
                 <Grid stackable>
                     <Grid.Row>
@@ -136,7 +136,7 @@ class Bank extends React.Component {
         }
 
         // in case it's still loading data
-        if (!this.props.transactions.data) {
+        if (!(this.props.transactions.data && this.props.costs.data)) {
             return (
                 <div className="messageBox">
                     <Message info icon>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import moment from 'moment';
 
 import {
     getProductsAction, getWarehouseProductsAction, deleteProductAction, editProductAction
@@ -47,6 +48,10 @@ class WarehouseContainer extends React.PureComponent {
                 let param = new URLSearchParams(this.props.location.search)
                 month = param.get("month")
                 year = param.get("year")
+            }
+            else {
+                month = moment().month() + 1
+                year = moment().year()
             }
         }
 

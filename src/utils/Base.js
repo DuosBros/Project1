@@ -28,6 +28,7 @@ import numeral from 'numeral';
 import cs from 'numeral/locales/cs';
 import GmailContainer from '../containers/GmailContainer';
 import NotFound from '../pages/NotFound';
+import ScriptsContainer from '../containers/ScriptsContainer';
 
 class Base extends React.Component {
 
@@ -118,6 +119,7 @@ class Base extends React.Component {
                     <Route exact path='/warehouse' render={(props) => <WarehouseContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/summary' render={(props) => <SummaryContainer {...props} isMobile={isMobile} />} />
                     <Route exact path='/gmail' render={(props) => <GmailContainer {...props} isMobile={isMobile} />} />
+                    <Route exact path='/scripts' render={(props) => <ScriptsContainer {...props} isMobile={isMobile} />} />
                     <Route component={NotFound} />
                 </Switch>
             </ErrorBoundary>
