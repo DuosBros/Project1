@@ -10,7 +10,7 @@ import Warehouse from '../pages/Warehouse/Warehouse';
 import { editProduct, editWarehouseProduct } from '../utils/requests';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
-import { LOCALSTORAGE_NAME } from '../appConfig';
+import { LOCALSTORAGE_NAME, errorColor } from '../appConfig';
 
 class WarehouseContainer extends React.PureComponent {
 
@@ -70,6 +70,7 @@ class WarehouseContainer extends React.PureComponent {
                 x.isActive = found.isActive
                 x.history = found.warehouse.history.reverse()
                 x.notificationThreshold = found.notificationThreshold
+                x.availableAlert = x.available < x.notificationThreshold && { backgroundColor: errorColor }
                 return x;
             })
         }

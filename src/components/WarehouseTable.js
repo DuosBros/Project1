@@ -56,6 +56,7 @@ class WarehouseTable extends React.PureComponent {
         {
             name: "Currently Available",
             prop: "available",
+            styleProp: "availableAlert",
             width: 1
         },
         {

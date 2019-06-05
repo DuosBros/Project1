@@ -7,7 +7,7 @@ import moment from 'moment';
 import { Link } from 'react-router-dom';
 
 import {
-    getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
+    getCurrentYearOrders, getNotPaidNotificationsNotifications,
     getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders, getWarehouseProducts
 } from '../../utils/requests';
 import {
@@ -100,7 +100,7 @@ class Orders extends React.Component {
             let filtered = [];
 
             if (res.data) {
-                filtered = res.data.products.filter(x => x.available < x.notificationThreshold)
+                filtered = res.data.products.filter(x => x.available < this.props.productsStore.products.data.find(y => y.id === x.id).notificationThreshold)
             }
 
             this.props.getWarehouseNotificationsAction({ data: filtered, success: true })
