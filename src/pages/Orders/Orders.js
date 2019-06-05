@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getWarehouseNotifications, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders, getWarehouseProducts
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
@@ -94,14 +94,19 @@ class Orders extends React.Component {
             })
     }
 
-    fetchAndHandleWarehouseNotifications = () => {
-        getWarehouseNotifications()
-            .then(res => {
-                this.props.getWarehouseNotificationsAction({ data: res.data, success: true })
-            })
-            .catch(err => {
-                this.props.getWarehouseNotificationsAction({ error: err, success: false })
-            })
+    fetchAndHandleWarehouseNotifications = async () => {
+        try {
+            let res = await getWarehouseProducts()
+            let filtered = [];
+
+            if (res.data) {
+                filtered = res.data.products.filter(x => x.available < x.notificationThreshold)
+            }
+
+            this.props.getWarehouseNotificationsAction({ data: filtered, success: true })
+        } catch (err) {
+            this.props.getWarehouseNotificationsAction({ error: err, success: false })
+        }
     }
 
     verifyLockAndHandleError = (orderId) => {
@@ -645,7 +650,7 @@ class Orders extends React.Component {
                     var message = this.props.ordersStore.warehouseNotifications.data.map((notification, i) => {
                         return (
                             <React.Fragment key={i}>
-                                <strong>{notification.product}: </strong> {notification.current} <br />
+                                <strong>{notification.name}: </strong> {notification.available} <br />
                             </React.Fragment>
                         )
                     })

@@ -53,7 +53,7 @@ export function getCostsMonthly() {
  */
 export function getWarehouseProducts(month, year) {
     if (!month) {
-        month = moment().month();
+        month = moment().month() + 1;
     }
 
     if (!year) {

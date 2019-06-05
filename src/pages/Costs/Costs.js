@@ -140,7 +140,7 @@ class Costs extends React.Component {
                         {showFunctionsMobile && (
                             <Grid.Row>
                                 <Grid.Column>
-                                    <Button onClick={this.handleToggleEditCostModal} fluid size='large' compact content='Add Cost' id="primaryButton" style={{ marginBottom: '0.3em' }} />
+                                    {/* <Button onClick={this.handleToggleEditCostModal} fluid size='large' compact content='Add Cost' id="primaryButton" style={{ marginBottom: '0.3em' }} /> */}
                                     <Input
                                         style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
                                         ref={this.handleRef}

@@ -15,14 +15,15 @@ class AddEditProductModal extends React.PureComponent {
         this.setState({ [name]: checked });
     }
     handleSaveProduct = async () => {
-        let { name, price, weight, tax, category, isActive } = this.state;
+        let { name, price, weight, tax, category, isActive, notificationThreshold } = this.state;
         let payload = {
             name: name,
             price: parseInt(price),
             weight: parseInt(weight),
             tax: parseInt(tax),
             category: category,
-            isActive: isActive
+            isActive: isActive,
+            notificationThreshold: parseInt(notificationThreshold)
         }
 
         try {
@@ -53,7 +54,8 @@ class AddEditProductModal extends React.PureComponent {
         tax: this.props.product && this.props.product.tax,
         category: this.props.product && this.props.product.category,
         isEdit: this.props.product ? true : false,
-        isActive: this.props.product && this.props.product.isActive
+        isActive: this.props.product && this.props.product.isActive,
+        notificationThreshold: this.props.product ? this.props.product.notificationThreshold : 0
     }
 
     handleCategoryDropdownOnChange = (e, b) => {
@@ -72,7 +74,7 @@ class AddEditProductModal extends React.PureComponent {
         let productObj = this.props.product && this.props.product;
         let content;
 
-        let { name, price, weight, tax, isActive } = this.state;
+        let { name, price, weight, tax, isActive, notificationThreshold } = this.state;
         content = (
             <Grid>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -141,6 +143,16 @@ class AddEditProductModal extends React.PureComponent {
                             text={this.state.category ? this.state.category : productObj ? productObj.category && productObj.category : ""}
                             selectOnBlur={false}
                             selectOnNavigation={false} />
+                    </Grid.Column>
+                </Grid.Row>
+                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                    <Grid.Column width={5}>
+                        <strong>
+                            Notification Threshold:
+                        </strong>
+                    </Grid.Column>
+                    <Grid.Column width={11}>
+                        <Form.Input onChange={this.setInput} fluid id="notificationThreshold" value={notificationThreshold ? notificationThreshold : productObj && productObj.notificationThreshold} />
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">

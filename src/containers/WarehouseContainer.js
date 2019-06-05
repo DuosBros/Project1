@@ -69,6 +69,7 @@ class WarehouseContainer extends React.PureComponent {
                 // x.calculationDate = found.warehouse.calculationDate
                 x.isActive = found.isActive
                 x.history = found.warehouse.history.reverse()
+                x.notificationThreshold = found.notificationThreshold
                 return x;
             })
         }

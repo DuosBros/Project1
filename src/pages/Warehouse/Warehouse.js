@@ -273,9 +273,10 @@ export default class Warehouse extends React.PureComponent {
                             <Grid columns={2} style={{ marginTop: '0', marginBottom: '0', paddingLeft: '0.25em', paddingRight: '0.25em' }}>
                                 <Grid.Row style={{ padding: '0.25em' }} verticalAlign='middle'>
                                     <Grid.Column width={13}>
-                                        {product.name} <br /> {product.category}
-                                        <strong>|</strong> {product.price} <strong>|</strong> {product.beginning}
-                                        <strong>|</strong> {product.input} <strong>|</strong> {product.output}
+                                        {product.name} <br />
+                                        {product.price}
+                                        <strong> | </strong>{product.input}<strong> | </strong>{product.output}
+                                        <strong> | </strong>{product.available}
                                     </Grid.Column>
                                     <Grid.Column style={{ textAlign: 'right' }} width={3}>
                                         <>
@@ -314,7 +315,7 @@ export default class Warehouse extends React.PureComponent {
                     <Table.Header>
                         <Table.Row className="textAlignCenter">
                             <Table.HeaderCell width={2}>Name</Table.HeaderCell>
-                            <Table.HeaderCell width={1}>Category | Price</Table.HeaderCell>
+                            <Table.HeaderCell width={1}>Price | Input | Output | Available</Table.HeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
