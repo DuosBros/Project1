@@ -22,7 +22,13 @@ class Header extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log('isMobileprops: ' + this.props.isMobile)
+
+        let activeItem = this.props.location.pathname.replace("/", "");
+
+        if (prevState.activeItem !== activeItem) {
+
+            this.setState({ activeItem });
+        }
 
         if (prevProps.isMobile !== this.props.isMobile) {
             this.setState({ isMobile: this.props.isMobile });
@@ -130,13 +136,13 @@ class Header extends React.Component {
                         content='Gmail'
                         name='gmail'
                         active={activeItem === 'gmail'}
-                        onClick={this.handleItemClick} />
+                        onClick={this.handleItemClick} /> */}
                     <Menu.Item
                         as={Link} to='/scripts'
                         content='Scripts'
                         name='scripts'
                         active={activeItem === 'scripts'}
-                        onClick={this.handleItemClick} /> */}
+                        onClick={this.handleItemClick} />
                     <Menu.Menu position='right'>
                         <Menu.Item>Version: {packageJson.version}</Menu.Item>
                         {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}

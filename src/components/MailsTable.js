@@ -31,7 +31,7 @@ export default class MailsTable extends React.PureComponent {
     }
 
     transformDataRow(data) {
-        data.date = moment(data.date).format("DD.MM.YYYY hh:mm:ss")
+        data.date = moment(data.date).local().format("DD.MM.YYYY HH:mm:ss")
 
         return data;
     }

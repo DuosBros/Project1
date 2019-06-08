@@ -1,7 +1,8 @@
 const initialState = {
     isLogged: { data: false, url: null },
     token: { isValid: false, token: null },
-    emails: { success: true }
+    emails: { success: true },
+    nextPageToken: null
 }
 
 const GmailReducer = (state = initialState, action) => {
@@ -11,7 +12,13 @@ const GmailReducer = (state = initialState, action) => {
         case 'GMAIL_VALIDATE_TOKEN':
             return Object.assign({}, state, { token: action.payload })
         case 'GMAIL_GET_EMAILS':
-            return Object.assign({}, state, { emails: action.payload })
+            debugger
+            let emails, nextPageToken;
+            if (action.payload.data && action.payload.success) {
+                emails = action.payload.data.emails;
+                nextPageToken = action.payload.data.nextPageToken;
+            }
+            return Object.assign({}, state, { emails: { data: emails, success: action.payload.success }, nextPageToken: nextPageToken })
         default:
             return state;
     }

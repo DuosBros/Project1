@@ -502,13 +502,10 @@ class OrderInfo extends React.Component {
     }
 
     handleStreetInputOnChange = (e) => {
-        console.log("fired");
-
         this.scrollToTop()
         if (this.state.isEdit) {
             this.handleStreetInput(e);
         }
-
     }
 
     render() {

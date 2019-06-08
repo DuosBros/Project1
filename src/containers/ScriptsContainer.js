@@ -3,11 +3,25 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import Scripts from '../pages/Scripts';
+import { exportCashOrders, exportOrders, exportOrderByVS, expireOrder } from '../utils/requests';
 
 class ScriptsContainer extends React.Component {
-    state = {}
 
-    async componentDidMount() {
+    // return promise to await in presentation component for loading and other stuff
+    handleExportCashOrders = (from, to, customerInfo) => {
+        return exportCashOrders(from, to, customerInfo);
+    }
+
+    handleExportOrders = (from, to) => {
+        return exportOrders(from, to);
+    }
+
+    handleExportByVs = (vs) => {
+        return exportOrderByVS(vs);
+    }
+
+    handleExpireByVs = (vs) => {
+        return expireOrder(vs);
     }
 
     render() {
@@ -15,7 +29,12 @@ class ScriptsContainer extends React.Component {
 
         if (pathname === "/scripts") {
             return (
-                <Scripts />
+                <Scripts
+                    handleExportCashOrders={this.handleExportCashOrders}
+                    handleExportOrders={this.handleExportOrders}
+                    handleExportByVs={this.handleExportByVs}
+                    handleExpireByVs={this.handleExpireByVs}
+                />
             )
         }
     }

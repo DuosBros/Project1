@@ -10,8 +10,8 @@ class GmailContainer extends React.Component {
     state = {}
 
     async componentDidMount() {
-        let code = await gmailIsLogged()
-        if (code.data !== true) {
+        let res = await gmailIsLogged()
+        if (res.data !== true) {
             gmailAuth()
                 .then((res) => {
                     if (res.data) {
@@ -32,10 +32,8 @@ class GmailContainer extends React.Component {
         try {
             let res = await gmailGetEmails();
             this.props.gmailGetEmailsAction({ success: true, data: res.data })
-            debugger
         } catch (err) {
             this.props.gmailGetEmailsAction({ success: false, err: err })
-            debugger
         }
     }
     render() {

@@ -2,6 +2,53 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function exportCashOrders(from, to, customer) {
+
+    let momentFrom = moment(from);
+    let momentTo = moment(to);
+
+    let payload = {
+        fromDay : momentFrom.day,
+        fromMonth : momentFrom.month,
+        fromYear : momentFrom.year,
+        toDay : momentTo.day,
+        toMonth : momentTo.month,
+        toYear : momentTo.year,
+        firstName : customer.firstName,
+        lastName : customer.lastName,
+        street : customer.street,
+        city : customer.city,
+        zip : customer.zip,
+        streetNumber : customer.streetNumber,
+        phone : customer.phone
+    }
+    return axios.post(MEDPHARMAVN_API + 'scripts/exportNoVs', payload);
+}
+
+export function exportOrders(from, to) {
+
+    let momentFrom = moment(from);
+    let momentTo = moment(to);
+
+    let payload = {
+        fromDay : momentFrom.day,
+        fromMonth : momentFrom.month,
+        fromYear : momentFrom.year,
+        toDay : momentTo.day,
+        toMonth : momentTo.month,
+        toYear : momentTo.year
+    }
+    return axios.post(MEDPHARMAVN_API + 'scripts/export', payload);
+}
+
+export function expireOrder(variableSymbols) {
+    return axios.post(MEDPHARMAVN_API + 'scripts/expire', variableSymbols);
+}
+
+export function exportOrderByVS(variableSymbol) {
+    return axios.get(MEDPHARMAVN_API + 'scripts/vs/' + variableSymbol);
+}
+
 export function gmailGetEmails() {
     return axios.get(MEDPHARMAVN_API + 'gmail/emails')
 }

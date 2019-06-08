@@ -75,7 +75,7 @@ class Gmail extends React.PureComponent {
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column>
-                        <MailsTable data={this.props.emails.emails} />
+                        <MailsTable rowsPerPage={50} compact="very" data={this.props.emails.data} />
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
