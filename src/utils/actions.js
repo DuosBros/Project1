@@ -1,3 +1,10 @@
+export function getAllProductsCustomTimeRangeAction(payload) {
+    return {
+        payload,
+        type: 'GET_PRODUCTS_CUSTOM_TIME_RANGE'
+    }
+}
+
 export function getNotPaidOrdersAction(payload) {
     return {
         payload,

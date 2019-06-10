@@ -4,7 +4,8 @@ const initialState = {
     paidOrders: { success: true },
     orderedOrders: { success: true },
     orderedOrdersDaily: { success: true },
-    costs: { success: true }
+    costs: { success: true },
+    productsCustom: { success: true }
 }
 
 const SummaryReducer = (state = initialState, action) => {
@@ -29,6 +30,8 @@ const SummaryReducer = (state = initialState, action) => {
             return Object.assign({}, state, { costs: action.payload })
         case 'GET_ORDERED_ORDERS_DAILY':
             return Object.assign({}, state, { orderedOrdersDaily: action.payload })
+        case 'GET_PRODUCTS_CUSTOM_TIME_RANGE':
+            return Object.assign({}, state, { productsCustom: action.payload })
         default:
             return state;
     }

@@ -28,7 +28,8 @@ export const CHART_COLORS = ['#8884d8', '#82ca9d', '#ffc658'];
 export const SUMMARY_TYPES = [
     { key: 0, text: "Monthly", value: "Monthly" },
     { key: 1, text: "Yearly", value: "Yearly" },
-    { key: 2, text: "Total", value: "Total" }
+    { key: 2, text: "Total", value: "Total" },
+    { key: 3, text: "Custom", value: "Custom" }
 ]
 
 export const MONTHS = [

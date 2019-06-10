@@ -15,6 +15,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { fetchAndHandleOrders, fetchAndHandleNotPaidOrders } from '../handlers/orderHandler';
 import { fetchWarehouseProducts } from '../handlers/warehouseHandler';
+import { fetchAndHandleProducts } from '../handlers/productHandler';
 
 class SummaryContainer extends React.PureComponent {
 
@@ -25,6 +26,9 @@ class SummaryContainer extends React.PureComponent {
     componentDidMount() {
         this.fetchDataAndHandleResult();
         this.fetchProductsDaily();
+
+        // get products for custom type
+        fetchAndHandleProducts(this.props.getProductsAction)
 
         // get all orders
         this.fetchOrdersAndHandleResult();
@@ -311,6 +315,7 @@ class SummaryContainer extends React.PureComponent {
 
         return (
             <Summary
+                products={this.props.productsStore.products}
                 isMobile={this.props.isMobile}
                 fetchDataAndHandleResult={this.fetchDataAndHandleResult}
                 orderedOrders={{ success: this.props.summaryStore.orderedOrders.success, data: orderedOrders }}
@@ -332,6 +337,7 @@ class SummaryContainer extends React.PureComponent {
                 ordersTotalPriceMedian={ordersTotalPriceMedian}
                 receivables={receivables}
                 warehouseValue={warehouseValue}
+                productsCustom={this.props.productsStore.productsCustom}
             />
         )
     }

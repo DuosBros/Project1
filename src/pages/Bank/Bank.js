@@ -242,7 +242,7 @@ class Bank extends React.Component {
                     }
                     if (!transaction.order.payment.paid) {
                         notPaidOrders.push(transaction.order)
-                        actionButtons = <Button onClick={() => this.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                        actionButtons = <Button onClick={() => this.props.handleTogglePaidOrder(transaction.order)} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                     }
                 }
             } else {

@@ -2,41 +2,43 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function getAllProductsCustomTimeRange(from, to) {
+    return axios.get(MEDPHARMAVN_API + 'charts/products?from=' + from + '&to=' + to);
+}
+
 export function exportCashOrders(from, to, customer) {
 
+    debugger
     let momentFrom = moment(from);
     let momentTo = moment(to);
 
     let payload = {
-        fromDay : momentFrom.day,
-        fromMonth : momentFrom.month,
-        fromYear : momentFrom.year,
-        toDay : momentTo.day,
-        toMonth : momentTo.month,
-        toYear : momentTo.year,
-        firstName : customer.firstName,
-        lastName : customer.lastName,
-        street : customer.street,
-        city : customer.city,
-        zip : customer.zip,
-        streetNumber : customer.streetNumber,
-        phone : customer.phone
+        fromDay: momentFrom.date(),
+        fromMonth: momentFrom.month() + 1,
+        fromYear: momentFrom.year(),
+        toDay: momentTo.date(),
+        toMonth: momentTo.month() + 1,
+        toYear: momentTo.year(),
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        street: customer.streetName,
+        city: customer.city,
+        zip: customer.zip,
+        streetNumber: customer.streetNumber,
+        phone: customer.phone
     }
     return axios.post(MEDPHARMAVN_API + 'scripts/exportNoVs', payload);
 }
 
 export function exportOrders(from, to) {
 
-    let momentFrom = moment(from);
-    let momentTo = moment(to);
-
     let payload = {
-        fromDay : momentFrom.day,
-        fromMonth : momentFrom.month,
-        fromYear : momentFrom.year,
-        toDay : momentTo.day,
-        toMonth : momentTo.month,
-        toYear : momentTo.year
+        fromDay: from.date(),
+        fromMonth: from.month() + 1,
+        fromYear: from.year(),
+        toDay: to.date(),
+        toMonth: to.month() + 1,
+        toYear: to.year(),
     }
     return axios.post(MEDPHARMAVN_API + 'scripts/export', payload);
 }

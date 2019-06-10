@@ -2,6 +2,7 @@ import React from 'react';
 import { Grid, Header, Form, Button, Input } from 'semantic-ui-react';
 import Flatpickr from 'react-flatpickr';
 import '../../node_modules/flatpickr/dist/themes/dark.css';
+import moment from 'moment';
 
 class Scripts extends React.PureComponent {
     state = {
@@ -12,7 +13,7 @@ class Scripts extends React.PureComponent {
     }
 
     handleFlatpickr = (event, m, c) => {
-        this.setState({ [c.element.className.split(" ")[0]]: event[0] });
+        this.setState({ [c.element.className.split(" ")[0]]: moment(event[0]) });
     }
 
     handleExportCashOrders = async () => {
@@ -29,10 +30,11 @@ class Scripts extends React.PureComponent {
             phone
         }
 
-        let from = this.state.exportCashOrdersFrom.toISOString()
-        let to = this.state.exportCashOrdersTo.toISOString()
+        // so iso string hours will be 00:00:00
+        // let from = this.state.exportCashOrdersFrom.format('YYYY-MM-DDT00:00:00.000[Z]')
+        // let to = this.state.exportCashOrdersTo.format('YYYY-MM-DDT00:00:00.000[Z]')
         try {
-            await this.props.handleExportCashOrders(from, to, customerInfo)
+            await this.props.handleExportCashOrders(this.state.exportCashOrdersFrom, this.state.exportCashOrdersTo, customerInfo)
         } catch (error) {
             this.setState({ error });
         }
@@ -47,10 +49,8 @@ class Scripts extends React.PureComponent {
 
     handleExportOrders = async () => {
         this.setState({ isExportOrdersRunning: true });
-        let from = this.state.exportOrdersFrom.toISOString()
-        let to = this.state.exportOrdersTo.toISOString()
         try {
-            await this.props.handleExportOrders(from, to)
+            await this.props.handleExportOrders(this.state.exportOrdersFrom, this.state.exportOrdersTo)
         } catch (error) {
             this.setState({ error });
         }
@@ -90,34 +90,45 @@ class Scripts extends React.PureComponent {
                     <Grid.Column width={2}>
                         <Header as='h1'>
                             Scripts
-                    </Header>
+                        </Header>
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
                     <Grid.Column width={5}>
                         <Header as='h3' content="Export And Replace Cash Orders" />
                         <Form>
-                            <Form.Field>
-                                From:
-                            <Flatpickr
+                            <Form.Field required>
+                                <label>From:</label>
+                                <Flatpickr
                                     className="exportCashOrdersFrom"
                                     onChange={this.handleFlatpickr}
-                                    options={{ dateFormat: 'd.m.Y', disableMobile: true }} />
+                                    options={{
+                                        dateFormat: 'd.m.Y', disableMobile: true, locale: {
+                                            "firstDayOfWeek": 1 // start week on Monday
+                                        }
+                                    }} />
                             </Form.Field>
-                            <Form.Field>
-                                To:
-                            <Flatpickr
-                                    className="exportCashOrdersFrom"
+                            <Form.Field required>
+                                <label>To:</label>
+                                <Flatpickr
+                                    className="exportCashOrdersTo"
                                     onChange={this.handleFlatpickr}
-                                    options={{ dateFormat: 'd.m.Y', disableMobile: true }} />
+                                    options={{
+                                        dateFormat: 'd.m.Y', disableMobile: true, locale: {
+                                            "firstDayOfWeek": 1 // start week on Monday
+                                        }
+                                    }} />
                             </Form.Field>
-                            <Input onChange={this.handleChange} name="firstName" placeholder="First Name" />
-                            <Input onChange={this.handleChange} name="lastName" placeholder="Last Name" />
-                            <Input onChange={this.handleChange} name="streetName" placeholder="Street Name" />
-                            <Input onChange={this.handleChange} name="streetNumber" placeholder="Street Number" />
-                            <Input onChange={this.handleChange} name="city" placeholder="City" />
-                            <Input onChange={this.handleChange} name="zip" placeholder="ZIP" />
-                            <Input onChange={this.handleChange} name="phone" placeholder="Phone" />
+                            <Form.Field required>
+                                <label>Customer Info:</label>
+                                <Input onChange={this.handleChange} name="firstName" placeholder="First Name" />
+                                <Input onChange={this.handleChange} name="lastName" placeholder="Last Name" />
+                                <Input onChange={this.handleChange} name="streetName" placeholder="Street Name" />
+                                <Input onChange={this.handleChange} name="streetNumber" placeholder="Street Number" />
+                                <Input onChange={this.handleChange} name="city" placeholder="City" />
+                                <Input onChange={this.handleChange} name="zip" placeholder="ZIP" />
+                                <Input onChange={this.handleChange} name="phone" placeholder="Phone" />
+                            </Form.Field>
                             <Form.Field>
                                 <Button
                                     onClick={this.handleExportCashOrders}
@@ -130,16 +141,16 @@ class Scripts extends React.PureComponent {
                     <Grid.Column width={3}>
                         <Header as='h3' content="Export Orders" />
                         <Form>
-                            <Form.Field>
-                                From:
-                            <Flatpickr
+                            <Form.Field required>
+                                <label>From:</label>
+                                <Flatpickr
                                     className="exportOrdersFrom"
                                     onChange={this.handleFlatpickr}
                                     options={{ dateFormat: 'd.m.Y', disableMobile: true }} />
                             </Form.Field>
-                            <Form.Field>
-                                To:
-                            <Flatpickr
+                            <Form.Field required>
+                                <label>To:</label>
+                                <Flatpickr
                                     className="exportOrdersTo"
                                     onChange={this.handleFlatpickr}
                                     options={{ dateFormat: 'd.m.Y', disableMobile: true }} />
@@ -149,13 +160,23 @@ class Scripts extends React.PureComponent {
                     </Grid.Column>
                     <Grid.Column width={4}>
                         <Header as='h3' content="Export By VS" />
-                        <Input onChange={this.handleChange} name="exportByVs" placeholder='VS' />
-                        <Button loading={this.state.isExportByVsRunning} onClick={this.handleExportByVs} primary content="Export" />
+                        <Form>
+                            <Form.Field required>
+                                <label>VS:</label>
+                                <Form.Input onChange={this.handleChange} name="exportByVs" />
+                                <Button loading={this.state.isExportByVsRunning} onClick={this.handleExportByVs} primary content="Export" />
+                            </Form.Field>
+                        </Form>
                     </Grid.Column>
                     <Grid.Column width={4}>
                         <Header as='h3' content="Expire Order" />
-                        <Input onChange={this.handleChange} name="expireByVs" placeholder='VS' />
-                        <Button loading={this.state.isExpireByVsRunning} onClick={this.handleExpireByVs} primary content="Expire" />
+                        <Form>
+                            <Form.Field required>
+                                <label>VS:</label>
+                                <Form.Input onChange={this.handleChange} name="expireByVs" />
+                                <Button loading={this.state.isExpireByVsRunning} onClick={this.handleExpireByVs} primary content="Expire" />
+                            </Form.Field>
+                        </Form>
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
