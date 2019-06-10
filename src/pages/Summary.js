@@ -17,6 +17,7 @@ class Summary extends React.PureComponent {
         super(props);
 
         this.state = {
+            isProductsCustomGraphDrawing: false,
             showModalWarning: false,
             isMobile: props.isMobile,
             recordsLimit: 5,
@@ -66,6 +67,11 @@ class Summary extends React.PureComponent {
         })
 
         this.setState({ selectedProducts: productToAdd })
+    }
+
+    handleDrawProductsCustomGraphOnClick = () => {
+        this.setState({ isProductsCustomGraphDrawing: true });
+        this.props.handleGetProductsCustom(this.state.customProductsCountFrom, this.state.customProductsCountTo)
     }
 
     render() {
@@ -156,6 +162,7 @@ class Summary extends React.PureComponent {
                                     className="customProductsCountFrom"
                                     onChange={this.handleFlatpickr}
                                     options={{
+                                        position: 'above',
                                         dateFormat: 'd.m.Y', disableMobile: true, locale: {
                                             "firstDayOfWeek": 1 // start week on Monday
                                         }
@@ -167,6 +174,7 @@ class Summary extends React.PureComponent {
                                     className="customProductsCountTo"
                                     onChange={this.handleFlatpickr}
                                     options={{
+                                        position: 'above',
                                         dateFormat: 'd.m.Y', disableMobile: true, locale: {
                                             "firstDayOfWeek": 1 // start week on Monday
                                         }
@@ -188,7 +196,10 @@ class Summary extends React.PureComponent {
                                 this.state.customProductsCountFrom && this.state.customProductsCountTo && (
                                     <Form.Field>
                                         <Button
-                                            onClick={() => this.props.handleGetProductsCustom(this.state.customProductsCountFrom, this.state.customProductsCountTo)} id="primaryButton" content="Draw graph!" />
+                                            loading={(this.state.isProductsCustomGraphDrawing && !(this.props.productsCustom && this.props.productsCustom.data))}
+                                            onClick={this.handleDrawProductsCustomGraphOnClick}
+                                            id="primaryButton"
+                                            content="Draw graph!" />
                                     </Form.Field>
                                 )
                             }
