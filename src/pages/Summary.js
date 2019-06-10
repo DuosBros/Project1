@@ -59,8 +59,13 @@ class Summary extends React.PureComponent {
     }
 
     handleDropdownMultipleOnChange = (e, { options, value }) => {
-        let productToAdd = options.find(x => x.value === value[0])
-        this.setState({ selectedProducts: [...this.state.selectedProducts, productToAdd] })
+        let productToAdd = options.filter((array_el) => {
+            return value.filter((anotherOne_el) => {
+                return anotherOne_el === array_el.value;
+            }).length !== 0
+        })
+
+        this.setState({ selectedProducts: productToAdd })
     }
 
     render() {
@@ -143,22 +148,7 @@ class Summary extends React.PureComponent {
         if (this.state.type === SUMMARY_TYPES[3].value) {
             customProductsCountSelectors = (
                 <Grid.Row>
-                    <Grid.Column width={10}>
-                        <Form>
-                            <Form.Field required>
-                                <label>Products:</label>
-                                <Dropdown onChange={this.handleDropdownMultipleOnChange} fluid multiple search selection options={this.props.products.data.map((e, i) => ({ key: e.id, text: e.name, value: e.name }))} />
-                            </Form.Field>
-                            {
-                                this.state.selectedProducts.length > 0 && this.state.customProductsCountFrom && this.state.customProductsCountTo && (
-                                    <Form.Field>
-                                        <Button id="primaryButton" content="Draw graph!" />
-                                    </Form.Field>
-                                )
-                            }
-                        </Form>
-                    </Grid.Column>
-                    <Grid.Column width={6}>
+                    <Grid.Column>
                         <Form>
                             <Form.Field required>
                                 <label>From:</label>
@@ -182,33 +172,65 @@ class Summary extends React.PureComponent {
                                         }
                                     }} />
                             </Form.Field>
+                            {
+                                this.props.productsCustom && this.props.productsCustom.data && (
+                                    <Form.Field>
+                                        <label>Filter products:</label>
+                                        <Dropdown
+                                            value={this.state.selectedProducts.map(x => x.value)}
+                                            onChange={this.handleDropdownMultipleOnChange} fluid multiple search selection
+                                            options={this.props.productsCustom.data
+                                                .map((e) => ({ key: e.id, text: e._id, value: e._id }))} />
+                                    </Form.Field>
+                                )
+                            }
+                            {/* filter((el) => */}
+                                                {/* this.state.selectedProducts.findIndex(x => x.key === el.id) >= 0) */}
+                            {
+                                this.state.customProductsCountFrom && this.state.customProductsCountTo && (
+                                    <Form.Field>
+                                        <Button
+                                            onClick={() => this.props.handleGetProductsCustom(this.state.customProductsCountFrom, this.state.customProductsCountTo)} id="primaryButton" content="Draw graph!" />
+                                    </Form.Field>
+                                )
+                            }
                         </Form>
                     </Grid.Column>
                 </Grid.Row>
             )
-            productsMonthlyCountRow = (
-                <>
-                    <Grid.Row>
-                        <Grid.Column width={5}>
-                            <Header as='h3' content={'Products count - ' + this.state.type} />
-                        </Grid.Column>
-                        <Grid.Column textAlign="right" width={11}>
-                            <ExportDropdown data={pick(this.props.productsDaily.data, ["_id", "id", "totalAmount", "totalCount"])} />
-                        </Grid.Column>
-                    </Grid.Row>
-                    <Grid.Row>
-                        <GenericLineChart
-                            longNames={true}
-                            data={this.props.productsDaily.data}
-                            xDataKey="_id"
-                            ydataKey1="totalCount"
-                            tooltipFormatter={{
-                                formatter: "pcs"
-                            }}
-                        />
-                    </Grid.Row>
-                </>
-            )
+            if (this.props.productsCustom && this.props.productsCustom.data) {
+                let data = this.props.productsCustom.data.slice()
+                if (this.state.selectedProducts.length > 0) {
+                    data = data.filter((array_el) => {
+                        return this.state.selectedProducts.filter((anotherOne_el) => {
+                            return anotherOne_el.key === array_el.id;
+                        }).length === 0
+                    });
+                }
+                productsMonthlyCountRow = (
+                    <>
+                        <Grid.Row>
+                            <Grid.Column width={5}>
+                                <Header as='h3' content={'Products count - ' + this.state.type} />
+                            </Grid.Column>
+                            <Grid.Column textAlign="right" width={11}>
+                                <ExportDropdown data={pick(data, ["_id", "id", "totalAmount", "totalCount"])} />
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <GenericLineChart
+                                longNames={true}
+                                data={data}
+                                xDataKey="_id"
+                                ydataKey1="totalCount"
+                                tooltipFormatter={{
+                                    formatter: "pcs"
+                                }}
+                            />
+                        </Grid.Row>
+                    </>
+                )
+            }
         }
 
         if (this.state.type === "Monthly") {

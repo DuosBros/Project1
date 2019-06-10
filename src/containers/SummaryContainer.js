@@ -2,11 +2,11 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { LOCALSTORAGE_NAME } from '../appConfig';
-import { getCostsMonthly, getOrderedOrdersMonthly, getOrderedOrdersDaily, getProductsDaily } from '../utils/requests';
+import { getCostsMonthly, getOrderedOrdersMonthly, getOrderedOrdersDaily, getProductsDaily, getAllProductsCustomTimeRange } from '../utils/requests';
 import {
     getCostsMonthlyAction, getOrdersAction, mapOrdersToTransactionsActions, getBankTransactionsAction,
     getOrderedOrdersMonthlyAction, getOrderedOrdersDailyAction, getProductsDailyAction,
-    getProductsAction, getNotPaidOrdersAction, getWarehouseProductsAction
+    getProductsAction, getNotPaidOrdersAction, getWarehouseProductsAction, getAllProductsCustomTimeRangeAction
 } from '../utils/actions';
 import Summary from '../pages/Summary';
 import { fetchBankTransactions } from '../handlers/bankHandler';
@@ -96,6 +96,19 @@ class SummaryContainer extends React.PureComponent {
 
         } catch (err) {
             this.props.getOrderedOrdersDailyAction({ success: false, error: err })
+        }
+    }
+
+    handleGetProductsCustom = async (from, to) => {
+        from = moment(from).format('YYYY-MM-DDT00:00:00.000[Z]')
+        to = moment(to).format('YYYY-MM-DDT00:00:00.000[Z]')
+
+        try {
+            let res = await getAllProductsCustomTimeRange(from, to)
+            this.props.getAllProductsCustomTimeRangeAction({ success: true, data: res.data })
+
+        } catch (err) {
+            this.props.getAllProductsCustomTimeRangeAction({ success: false, error: err })
         }
     }
 
@@ -337,7 +350,8 @@ class SummaryContainer extends React.PureComponent {
                 ordersTotalPriceMedian={ordersTotalPriceMedian}
                 receivables={receivables}
                 warehouseValue={warehouseValue}
-                productsCustom={this.props.productsStore.productsCustom}
+                productsCustom={this.props.summaryStore.productsCustom}
+                handleGetProductsCustom={this.handleGetProductsCustom}
             />
         )
     }
@@ -363,7 +377,8 @@ function mapDispatchToProps(dispatch) {
         getProductsDailyAction,
         getProductsAction,
         getNotPaidOrdersAction,
-        getWarehouseProductsAction
+        getWarehouseProductsAction,
+        getAllProductsCustomTimeRangeAction
     }, dispatch);
 }
 
