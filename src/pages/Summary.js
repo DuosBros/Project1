@@ -20,7 +20,7 @@ class Summary extends React.PureComponent {
             showModalWarning: false,
             isMobile: props.isMobile,
             recordsLimit: 5,
-            type: SUMMARY_TYPES[3].value,
+            type: SUMMARY_TYPES[0].value,
             month: moment().month() + 1,
             year: moment().year(),
             selectedProducts: []
@@ -184,8 +184,6 @@ class Summary extends React.PureComponent {
                                     </Form.Field>
                                 )
                             }
-                            {/* filter((el) => */}
-                                                {/* this.state.selectedProducts.findIndex(x => x.key === el.id) >= 0) */}
                             {
                                 this.state.customProductsCountFrom && this.state.customProductsCountTo && (
                                     <Form.Field>
