@@ -74,7 +74,9 @@ class Scripts extends React.PureComponent {
     handleExpireByVs = async () => {
         this.setState({ isExpireByVsRunning: true });
         try {
-            await this.props.handleExpireByVs(this.state.expireByVs)
+            let array = []
+            array.push(this.state.expireByVs)
+            await this.props.handleExpireByVs(array)
         } catch (error) {
             this.setState({ error });
         }
@@ -133,7 +135,7 @@ class Scripts extends React.PureComponent {
                                 <Button
                                     onClick={this.handleExportCashOrders}
                                     loading={this.state.isExportCashOrdersRunning}
-                                    primary
+                                    className="primaryButton"
                                     content="Export" />
                             </Form.Field>
                         </Form>
@@ -155,7 +157,7 @@ class Scripts extends React.PureComponent {
                                     onChange={this.handleFlatpickr}
                                     options={{ dateFormat: 'd.m.Y', disableMobile: true }} />
                             </Form.Field>
-                            <Button onClick={this.handleExportOrders} loading={this.state.isExportOrdersRunning} primary content="Export" />
+                            <Button onClick={this.handleExportOrders} loading={this.state.isExportOrdersRunning} className="primaryButton" content="Export" />
                         </Form>
                     </Grid.Column>
                     <Grid.Column width={4}>
@@ -164,7 +166,7 @@ class Scripts extends React.PureComponent {
                             <Form.Field required>
                                 <label>VS:</label>
                                 <Form.Input onChange={this.handleChange} name="exportByVs" />
-                                <Button loading={this.state.isExportByVsRunning} onClick={this.handleExportByVs} primary content="Export" />
+                                <Button loading={this.state.isExportByVsRunning} onClick={this.handleExportByVs} className="primaryButton" content="Export" />
                             </Form.Field>
                         </Form>
                     </Grid.Column>
@@ -174,7 +176,7 @@ class Scripts extends React.PureComponent {
                             <Form.Field required>
                                 <label>VS:</label>
                                 <Form.Input onChange={this.handleChange} name="expireByVs" />
-                                <Button loading={this.state.isExpireByVsRunning} onClick={this.handleExpireByVs} primary content="Expire" />
+                                <Button loading={this.state.isExpireByVsRunning} onClick={this.handleExpireByVs} className="primaryButton" content="Expire" />
                             </Form.Field>
                         </Form>
                     </Grid.Column>

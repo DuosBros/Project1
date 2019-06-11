@@ -311,6 +311,10 @@ export const getOrderTableRowStyle = (order) => {
         return null
     }
 
+    if (order.state !== "active") {
+        return { backgroundColor: notActiveColor }
+    }
+
     if (order.payment.paid) {
         backgroundColor = successColor
     }
