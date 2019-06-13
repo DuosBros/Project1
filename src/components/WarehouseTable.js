@@ -68,6 +68,12 @@ class WarehouseTable extends React.PureComponent {
             // searchable: false
         },
         {
+            name: "Notification",
+            prop: "notificationThreshold",
+            width: 1,
+            visibleByDefault: false
+        },
+        {
             name: "Weight [gr]",
             prop: "weight",
             width: 1,
