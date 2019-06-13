@@ -8,12 +8,12 @@ import { Link } from 'react-router-dom';
 
 import {
     getCurrentYearOrders, getNotPaidNotificationsNotifications,
-    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders, getWarehouseProducts
+    getAllZaslatOrders, verifyLock, getInvoice, getOrder, printLabels, deleteOrder, getAllOrders, getWarehouseProducts, getTrackingInfo
 } from '../../utils/requests';
 import {
     getOrdersAction, openOrderDetailsAction, getNotPaidNotificationsAction, getWarehouseNotificationsAction,
     getMoreOrdersAction, showGenericModalAction, getAllZaslatOrdersAction, getOrderAction, deleteOrderAction,
-    getProductsAction
+    getProductsAction, getTrackingInfoAction
 } from '../../utils/actions';
 
 import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, deliveryCompanies } from '../../appConfig'
@@ -25,6 +25,7 @@ import CreateZaslatModal from '../../components/CreateZaslatModal';
 import { handleTogglePaidOrder, getOrderAndHandleResult, fetchAndHandleThisYearOrders } from '../../handlers/orderHandler';
 import ExportDropdown from '../../components/ExportDropdown';
 import { fetchAndHandleProducts } from '../../handlers/productHandler';
+import TrackingInfoModal from '../../components/TrackingInfoModal';
 
 class Orders extends React.Component {
 
@@ -32,6 +33,7 @@ class Orders extends React.Component {
         super(props);
 
         this.state = {
+            isTrackingInfoModalShowing: false,
             isMobile: props.isMobile,
             multiSearchInput: "",
             showFunctionsMobile: false,
@@ -403,7 +405,31 @@ class Orders extends React.Component {
                 header: "Failed to get order details"
             })
         }
+    }
 
+    handleToggleTrackingInfoModal = () => {
+        this.setState({ isTrackingInfoModalShowing: !this.state.isTrackingInfoModalShowing });
+    }
+
+    handleTrackingInfoButtonOnClick = (zaslatId) => {
+        this.setState({ isFetchingTrackingInfoRunning: true, zaslatId });
+        let payload = {
+            shipments: Array(1).fill(zaslatId)
+        };
+
+        getTrackingInfo(payload)
+            .then(res => {
+                this.props.getTrackingInfoAction({ success: true, data: res.data })
+                this.handleToggleTrackingInfoModal();
+            })
+            .catch(err => {
+                this.props.showGenericModalAction({
+                    err: err, header: "Failed to get tracking info"
+                })
+            })
+            .finally(() => {
+                this.setState({ isFetchingTrackingInfoRunning: false });
+            })
     }
 
     render() {
@@ -428,7 +454,7 @@ class Orders extends React.Component {
             );
         }
 
-        var orders = this.props.ordersStore.orders.data;
+        let orders = this.props.ordersStore.orders.data;
         // in case it's still loading data
         if (!orders) {
             return (
@@ -445,16 +471,24 @@ class Orders extends React.Component {
             );
         }
 
-        console.log(orders)
-        var {
+        let {
             showPaidOrders,
             multiSearchInput,
             orderLabelsToPrint,
             showFunctionsMobile,
-            showCreateZaslatModal
+            showCreateZaslatModal,
+            isTrackingInfoModalShowing,
+            isFetchingTrackingInfoRunning,
+            zaslatId
         } = this.state;
-        var rowCounter = 0;
-        var filteredByMultiSearch, mappedOrders, sortedOrders;
+        let rowCounter = 0;
+        let filteredByMultiSearch, mappedOrders, sortedOrders, trackingInfoModal;
+
+        if (this.props.zaslatStore.trackingInfo.data && this.props.zaslatStore.trackingInfo.success) {
+            let key = Object.keys(this.props.zaslatStore.trackingInfo.data)
+            let data = this.props.zaslatStore.trackingInfo.data[key[0]].packages[0]
+            trackingInfoModal = <TrackingInfoModal handleToggleTrackingInfoModal={this.handleToggleTrackingInfoModal} data={data} show={isTrackingInfoModalShowing} />
+        }
 
         // sort orders by order date and render orders count based by orderLimit
         sortedOrders = _.orderBy(orders.slice(0, this.state.ordersLimit), ['payment.orderDate'], ['desc']);
@@ -504,15 +538,27 @@ class Orders extends React.Component {
                             }
 
                             <Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />
+
                             {
                                 !order.payment.paid && (
                                     <>
                                         <Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />
+                                        {
+                                            order.zaslatShipmentId && (
+                                                <Button
+                                                    loading={zaslatId === order.zaslatShipmentId && isFetchingTrackingInfoRunning}
+                                                    onClick={() => this.handleTrackingInfoButtonOnClick(order.zaslatShipmentId)}
+                                                    className="buttonIconPadding"
+                                                    size='huge'
+                                                    icon={
+                                                        <Image src={window.location.protocol + '//' + window.location.host + "/icons/zaslat.png"} />
+                                                    } />
+                                            )
+                                        }
                                         <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
-
                                         {
                                             this.state.showPrintLabelsIcon && order.zaslatDate && (
-                                                <Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
+                                                <Button loading={isFetchingTrackingInfoRunning} onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
                                                     icon={
                                                         <>
                                                             <Icon name='barcode' />
@@ -549,7 +595,7 @@ class Orders extends React.Component {
                             <Table.Cell>{moment(order.payment.orderDate).local().format("DD.MM")}</Table.Cell>
                             <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
                             <Table.Cell>{order.note}</Table.Cell>
-                            <Table.Cell>
+                            <Table.Cell verticalAlign="bottom">
                                 {
                                     moment().add(-30, 'days').isAfter(order.payment.paymentDate) || (
                                         <>
@@ -573,6 +619,21 @@ class Orders extends React.Component {
                                             {
                                                 order.deliveryCompany && contains(order.deliveryCompany, deliveryCompanies[0]) && (
                                                     <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
+                                                )
+                                            }
+                                            {
+                                                order.zaslatShipmentId && (
+                                                    <Popup
+                                                        trigger={
+                                                            <Button
+                                                                loading={zaslatId === order.zaslatShipmentId && isFetchingTrackingInfoRunning}
+                                                                onClick={() => this.handleTrackingInfoButtonOnClick(order.zaslatShipmentId)}
+                                                                className="buttonIconPadding"
+                                                                size='huge'
+                                                                icon={
+                                                                    <Image src={window.location.protocol + '//' + window.location.host + "/icons/zaslat.png"} />
+                                                                } />}
+                                                        content="Tracking history" />
                                                 )
                                             }
                                             <Popup trigger={<Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />} content="Delete order" />
@@ -873,6 +934,7 @@ class Orders extends React.Component {
         // desktop return
         return (
             <>
+                {trackingInfoModal}
                 {
                     this.state.generateInvoice.generateInvoiceDone === false && (
                         <div className="messageBox">
@@ -932,7 +994,8 @@ function mapDispatchToProps(dispatch) {
         getAllZaslatOrdersAction,
         getOrderAction,
         deleteOrderAction,
-        getProductsAction
+        getProductsAction,
+        getTrackingInfoAction
     }, dispatch);
 }
 

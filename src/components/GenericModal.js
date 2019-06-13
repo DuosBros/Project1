@@ -56,7 +56,7 @@ class GenericModal extends React.Component {
                 closeIcon={true}
                 onClose={() => this.close()}
             >
-                <Modal.Header style={{ backgroundColor: errorColor }}>{this.props.header || "Error"}</Modal.Header>
+                <Modal.Header style={this.props.err && { backgroundColor: errorColor }}>{this.props.header || "Error"}</Modal.Header>
                 <Modal.Content>
                     {this.props.content || "Something happened!"}
                     {accordion}

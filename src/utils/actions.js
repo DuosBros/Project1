@@ -1,3 +1,10 @@
+export function getTrackingInfoAction(payload) {
+    return {
+        payload,
+        type: 'GET_TRACKING'
+    }
+}
+
 export function getAllProductsCustomTimeRangeAction(payload) {
     return {
         payload,

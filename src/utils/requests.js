@@ -2,13 +2,16 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function getTrackingInfo(zaslatId) {
+    return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/tracking', zaslatId);
+}
+
 export function getAllProductsCustomTimeRange(from, to) {
     return axios.get(MEDPHARMAVN_API + 'charts/products?from=' + from + '&to=' + to);
 }
 
 export function exportCashOrders(from, to, customer) {
 
-    debugger
     let momentFrom = moment(from);
     let momentTo = moment(to);
 
