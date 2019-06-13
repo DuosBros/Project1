@@ -143,6 +143,12 @@ class Header extends React.Component {
                         name='scripts'
                         active={activeItem === 'scripts'}
                         onClick={this.handleItemClick} />
+                    <Menu.Item
+                        as={Link} to='/purchases'
+                        content='Purchases'
+                        name='purchases'
+                        active={activeItem === 'purchases'}
+                        onClick={this.handleItemClick} />
                     <Menu.Menu position='right'>
                         <Menu.Item>Version: {packageJson.version}</Menu.Item>
                         {!isMobile ? (<Menu.Item>{localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""}</Menu.Item>) : null}

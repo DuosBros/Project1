@@ -2,6 +2,22 @@ import axios from 'axios';
 import { MEDPHARMAVN_API, DEFAULT_ORDER_LOCK_SECONDS } from '../appConfig';
 import moment from 'moment';
 
+export function getPurchases() {
+    return axios.get(MEDPHARMAVN_API + 'purchases');
+}
+
+export function editPurchase(payload) {
+    return axios.put(MEDPHARMAVN_API + 'purchases', payload);
+}
+
+export function createPurchase(payload) {
+    return axios.post(MEDPHARMAVN_API + 'purchases', payload);
+}
+
+export function deletePurchase(id) {
+    return axios.delete(MEDPHARMAVN_API + 'purchases/' + id);
+}
+
 export function getTrackingInfo(zaslatId) {
     return axios.post(MEDPHARMAVN_API + 'zaslat/shipments/tracking', zaslatId);
 }

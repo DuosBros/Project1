@@ -8,10 +8,11 @@ import CostsReducer from '../pages/Costs/CostsReducer';
 import ProductsReducer from '../reducers/ProductsReducer';
 import SummaryReducer from '../reducers/SummaryReducer';
 import GmailReducer from '../reducers/GmailReducer';
+import PurchasesReducer from '../reducers/PurchasesReducer';
 
 const CommonReducer = combineReducers({
     LoginReducer, OrdersReducer, BankReducer, BaseReducer, ZaslatReducer,
-    CostsReducer, ProductsReducer, SummaryReducer, GmailReducer
+    CostsReducer, ProductsReducer, SummaryReducer, GmailReducer, PurchasesReducer
 });
 
 export default CommonReducer;

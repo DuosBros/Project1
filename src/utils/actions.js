@@ -1,3 +1,29 @@
+export function getPurchasesAction(payload) {
+    return {
+        payload,
+        type: 'GET_PURCHASES'
+    }
+}
+
+export function editPurchaseAction(payload) {
+    return {
+        payload,
+        type: 'EDIT_PURCHASE'
+    }
+}
+export function createPurchaseAction(payload) {
+    return {
+        payload,
+        type: 'CREATE_PURCHASE'
+    }
+}
+export function deletePurchaseAction(payload) {
+    return {
+        payload,
+        type: 'DELETE_PURCHASE'
+    }
+}
+
 export function getTrackingInfoAction(payload) {
     return {
         payload,
