@@ -39,7 +39,7 @@ class WarehouseTable extends React.PureComponent {
             width: 1,
         },
         {
-            name: "Beginning",
+            name: "Begin",
             prop: "beginning",
             width: 1,
         },
@@ -54,7 +54,7 @@ class WarehouseTable extends React.PureComponent {
             width: 1
         },
         {
-            name: "Currently Available",
+            name: "Available Now",
             prop: "available",
             styleProp: "availableAlert",
             width: 1
