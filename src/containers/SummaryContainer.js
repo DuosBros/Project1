@@ -240,9 +240,9 @@ class SummaryContainer extends React.PureComponent {
                 x.costs = found.costs
                 x.profit = x.turnover - x.costs
             }
-            costsSummary += (x.costs !== undefined || x.costs !== null) ? x.costs : 0
-            turnoverSummary += (x.turnover !== undefined || x.turnover !== null) ? x.turnover : 0
-            profitSummary += (x.profit !== undefined || x.profit !== null) ? x.profit : 0
+            costsSummary += (x.costs !== undefined || x.costs != null) ? x.costs : 0
+            turnoverSummary += (x.turnover !== undefined || x.turnover != null) ? x.turnover : 0
+            profitSummary += (x.profit !== undefined || x.profit != null) ? x.profit : 0
 
             x.date = (x._id.month < 10 ? "0" + x._id.month : x._id.month) + "." + x._id.year
             x.ordersCount = x.cashOrders.filter(x => x).length + x.vsOrders.filter(x => x).length

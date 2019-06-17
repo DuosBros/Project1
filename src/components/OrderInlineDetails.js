@@ -30,7 +30,7 @@ const OrderInlineDetails = (props) => {
                         </Grid.Column>
                         <Grid.Column textAlign='left'>
                             <strong>Company:</strong> {props.order.address.company} <br />
-                            <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                            <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
                             <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
                             <strong>Note:</strong> {props.order.note} <br />
                         </Grid.Column>
@@ -197,7 +197,7 @@ const OrderInlineDetails = (props) => {
                                 <strong>Phone:</strong> {props.order.address.phone} <br />
                                 <strong>Company:</strong> {props.order.address.company} <br />
                                 <Divider />
-                                <strong>Bank account payment:</strong> {props.order.payment.cashOnDelivery ? "yes" : "no"} <br />
+                                <strong>Bank account payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
                             </Grid.Column>
                             <Grid.Column width={4}>
                                 <strong>Street:</strong> {props.order.address.street} <br />

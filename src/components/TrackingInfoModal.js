@@ -24,7 +24,7 @@ class TrackingInfoModal extends React.PureComponent {
                 closeIcon={true}
                 onClose={() => this.close()}
             >
-                <Modal.Header>Tracking Info</Modal.Header>
+                <Modal.Header>Tracking Info - {this.props.zaslatId}</Modal.Header>
                 <Modal.Content>
                     <Grid>
                         <Grid.Row>

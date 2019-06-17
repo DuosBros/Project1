@@ -487,7 +487,7 @@ class Orders extends React.Component {
         if (this.props.zaslatStore.trackingInfo.data && this.props.zaslatStore.trackingInfo.success) {
             let key = Object.keys(this.props.zaslatStore.trackingInfo.data)
             let data = this.props.zaslatStore.trackingInfo.data[key[0]].packages[0]
-            trackingInfoModal = <TrackingInfoModal handleToggleTrackingInfoModal={this.handleToggleTrackingInfoModal} data={data} show={isTrackingInfoModalShowing} />
+            trackingInfoModal = <TrackingInfoModal zaslatId={key[0]} handleToggleTrackingInfoModal={this.handleToggleTrackingInfoModal} data={data} show={isTrackingInfoModalShowing} />
         }
 
         // sort orders by order date and render orders count based by orderLimit
@@ -551,7 +551,7 @@ class Orders extends React.Component {
                                                     className="buttonIconPadding"
                                                     size='huge'
                                                     icon={
-                                                        <Image src={window.location.protocol + '//' + window.location.host + "/icons/zaslat.png"} />
+                                                        <Icon name="history" />
                                                     } />
                                             )
                                         }
@@ -585,12 +585,13 @@ class Orders extends React.Component {
                 return (
                     <React.Fragment key={order.id}>
                         <Table.Row
+                            verticalAlign="bottom"
                             onClick={(e) => this.toggleInlineOrderDetails(order.id, e)}
                             style={getOrderTableRowStyle(order)}
                             textAlign='center'
                             key={order.id}>
                             <Table.Cell>{rowCounter}</Table.Cell>
-                            <Table.Cell>{(order.address.lastName && order.address.lastName) + " " + (order.address.firstName && order.address.firstName)}</Table.Cell>
+                            <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                             <Table.Cell>{order.payment.vs}</Table.Cell>
                             <Table.Cell>{moment(order.payment.orderDate).local().format("DD.MM")}</Table.Cell>
                             <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
@@ -631,7 +632,7 @@ class Orders extends React.Component {
                                                                 className="buttonIconPadding"
                                                                 size='huge'
                                                                 icon={
-                                                                    <Image src={window.location.protocol + '//' + window.location.host + "/icons/zaslat.png"} />
+                                                                    <Icon name="history" />
                                                                 } />}
                                                         content="Tracking history" />
                                                 )
@@ -812,17 +813,17 @@ class Orders extends React.Component {
 
                                 </Grid.Row>
                                 {
-                                    (warehouseNotificationsMessage === null && notPaidNotificationsMessage === null) || (
+                                    (warehouseNotificationsMessage == null && notPaidNotificationsMessage == null) || (
                                         <Grid.Row>
                                             {
-                                                warehouseNotificationsMessage === null || (
+                                                warehouseNotificationsMessage == null || (
                                                     <Grid.Column>
                                                         {warehouseNotificationsMessage}
                                                     </Grid.Column>
                                                 )
                                             }
                                             {
-                                                notPaidNotificationsMessage === null || (
+                                                notPaidNotificationsMessage == null || (
                                                     <Grid.Column>
                                                         {notPaidNotificationsMessage}
                                                     </Grid.Column>

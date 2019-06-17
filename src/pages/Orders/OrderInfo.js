@@ -367,7 +367,7 @@ class OrderInfo extends React.Component {
                         options={this.props.productsStore.products.data.map(x =>
                             ({
                                 value: x.name,
-                                text: x.name
+                                text: x.name + " | " + x.category
                             })
                         )}
                         fluid
@@ -579,7 +579,7 @@ class OrderInfo extends React.Component {
                                         </label>
                                         {isEdit ?
                                             <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
-                                                this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
+                                                this.state.streetAndNumberInput != null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
                                             } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
                                             <input onChange={this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
@@ -697,7 +697,7 @@ class OrderInfo extends React.Component {
                     .map(x =>
                         ({
                             value: x.name,
-                            text: x.name
+                            text: x.name + " | " + x.category
                         })
                     )
             }
@@ -828,7 +828,7 @@ class OrderInfo extends React.Component {
                                                     <Form.Input >
                                                         {isEdit ?
                                                             <input name="nope" id="streetAndNumber" className="smartform-street-and-number" value={
-                                                                this.state.streetAndNumberInput !== null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
+                                                                this.state.streetAndNumberInput != null ? this.state.streetAndNumberInput : order.address.street + " " + order.address.streetNumber
                                                             } onChange={(e) => this.handleStreetInputOnChange(e)}></input> :
                                                             <input onChange={this.handleStreetInputOnChange} name="nope" id="streetAndNumber" className="smartform-street-and-number"></input>}
 
