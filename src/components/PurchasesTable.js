@@ -25,6 +25,7 @@ class PurchasesTable extends React.PureComponent {
         {
             name: "Products",
             prop: "products",
+            display: "productsList",
             width: 9,
         },
         {
@@ -39,16 +40,23 @@ class PurchasesTable extends React.PureComponent {
 
     transformDataRow(data) {
         data.date = moment(data.date).local().format("DD.MM.YYYY HH:mm:ss")
-
+        data.productsList = <ul>{data.products.map(x => {
+            return (
+                <li key={x.productId}>
+                    {x.productName + ": " + x.count}
+                </li>
+            )
+        })}</ul>
+        data.products = JSON.stringify(data.products)
         data.actions = (
             <>
                 <Button
-                    onClick={() => this.handleToggleEditCostModal(data)}
+                    onClick={() => this.handleTogglePurchaseModal(data)}
                     className='buttonIconPadding'
                     size='large'
                     icon='edit' />
                 <Button
-                    onClick={() => this.handleDeleteCost(data)}
+                    onClick={() => this.handleDeletePurchase(data.id)}
                     className='buttonIconPadding'
                     size='large'
                     icon='remove' />
@@ -58,18 +66,17 @@ class PurchasesTable extends React.PureComponent {
         return data;
     }
 
-    // grouping = [
-    //     "monthAndYear"
-    // ]
-
-
+    getDataKey(data) {
+        return data.date + "-" + data.to + "-" + data.user
+    }
     render() {
 
         return (
             <GenericTable
-                // grouping={this.grouping}
+                recurseSearch={true}
                 columns={this.columns}
                 transformDataRow={this.transformDataRow}
+                getDataKey={this.getDataKey}
                 {...this.props}
             />
         );

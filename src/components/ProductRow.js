@@ -12,7 +12,7 @@ const ProductRow = (props) => {
                         .map(x =>
                             ({
                                 value: x.name,
-                                text: x.name
+                                text: x.name + " | " + x.category
                             })
                         )}
                     onChange={(e, m) => {

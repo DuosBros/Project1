@@ -2,9 +2,23 @@ import React from 'react';
 import ErrorMessage from '../components/ErrorMessage';
 import { Grid, Header, Message, Icon, Button } from 'semantic-ui-react';
 import PurchasesTable from '../components/PurchasesTable';
+import AddEditPurchaseModal from '../components/AddEditPurchaseModal';
+import { deletePurchase } from '../utils/requests';
+
 
 class Purchases extends React.PureComponent {
-    state = {}
+    state = {
+        isPurchaseModalShowing: false
+    }
+
+    handleTogglePurchaseModal = (purchaseToEdit) => {
+        if (purchaseToEdit) {
+            purchaseToEdit.products = JSON.parse(purchaseToEdit.products)
+        }
+
+        this.setState({ isPurchaseModalShowing: !this.state.isPurchaseModalShowing, purchaseToEdit });
+    }
+
     render() {
 
         // in case of error
@@ -37,12 +51,22 @@ class Purchases extends React.PureComponent {
             )
         }
 
+        let purchaseModal;
+        let { isPurchaseModalShowing, purchaseToEdit } = this.state;
+
+        if (isPurchaseModalShowing) {
+            purchaseModal = (
+                <AddEditPurchaseModal purchase={purchaseToEdit} products={this.props.products} show={isPurchaseModalShowing} handleTogglePurchaseModal={this.handleTogglePurchaseModal} />
+            )
+        }
+
         if (this.props.isMobile) {
 
         }
         else {
             return (
                 <Grid stackable>
+                    {purchaseModal}
                     <Grid.Row style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
                             <Header as='h1'>
@@ -50,12 +74,12 @@ class Purchases extends React.PureComponent {
                             </Header>
                         </Grid.Column>
                         <Grid.Column width={2} textAlign='left'>
-                            <Button fluid size='large' compact content='Add Purchase' className="primaryButton" />
+                            <Button onClick={() => this.handleTogglePurchaseModal()} fluid size='large' compact content='Add Purchase' className="primaryButton" />
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
                         <Grid.Column>
-                            <PurchasesTable compact="very" rowsPerPage={50} data={this.props.purchases.data} />
+                            <PurchasesTable handleDeletePurchase={this.props.handleDeletePurchase} handleTogglePurchaseModal={this.handleTogglePurchaseModal} compact="very" rowsPerPage={50} data={this.props.purchases.data} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

@@ -7,7 +7,7 @@ export function getPurchases() {
 }
 
 export function editPurchase(payload) {
-    return axios.put(MEDPHARMAVN_API + 'purchases', payload);
+    return axios.put(MEDPHARMAVN_API + 'purchases/' + payload.id, payload);
 }
 
 export function createPurchase(payload) {

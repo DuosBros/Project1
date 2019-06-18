@@ -78,10 +78,14 @@ export default {
             }
         ]
     },
-    "gmail": {
-    },
-    "emailSuppliers": [
-        "hlasenska@medpharma.cz",
-        "obchody.milota@seznam.cz"
+    "suppliers": [
+        {
+            "email": "hlasenska@medpharma.cz",
+            "category": "Medpharma"
+        },
+        {
+            "email": "obchody.milota@seznam.cz",
+            "category": "Milota"
+        }
     ]
 }

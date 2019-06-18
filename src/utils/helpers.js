@@ -147,7 +147,7 @@ export const flattenObject = (ob) => {
     for (var i in ob) {
         if (!ob.hasOwnProperty(i)) continue;
 
-        if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+        if ((typeof ob[i]) == 'object' && ob[i] != null) {
             var flatObject = flattenObject(ob[i]);
             for (var x in flatObject) {
                 if (!flatObject.hasOwnProperty(x)) continue;
@@ -266,17 +266,30 @@ export const contains = (sourceString, pattern) => {
     return sourceString.toString().search(new RegExp(pattern, "i")) >= 0
 }
 
+export const isISOString = (string) => {
+    return /^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(.[0-9]+)?(Z)?$/.test(string)
+}
 /*
  * "keys" (optional) Specifies which properties of objects should be inspected.
  *                   If omitted, all properties will be inspected.
  */
-export const filterInArrayOfObjects = (filter, array, keys) => {
+export const filterInArrayOfObjects = (filter, array, keys, recurse) => {
     return array.filter(element => {
         let objk = keys ? keys : Object.keys(element);
         for (let key of objk) {
-            if (element[key] !== undefined &&
-                element[key] !== null &&
-                filter(element[key])
+            let elementToTest = element[key]
+            if (recurse && Array.isArray(elementToTest)) {
+                let recurseRes = filterInArrayOfObjects(filter, elementToTest, null, true)
+                if (recurseRes.length > 0) {
+                    return true;
+                }
+            }
+            if (isISOString(elementToTest)) {
+                elementToTest = moment(elementToTest).local().format("DD.MM.YYYY HH:mm:ss");
+            }
+            if (elementToTest !== undefined &&
+                elementToTest != null &&
+                filter(elementToTest)
             ) { // fuken lodash returning isEmpty true for numbers
                 return true;
             }
@@ -353,7 +366,7 @@ const REGEX_DIGITS = /^\d+$/;
  * @param {*} value
  */
 export const isNum = (value) => {
-    if (value === null || value === undefined) {
+    if (value == null || value === undefined) {
         return false;
     }
     const valueString = value.toString();

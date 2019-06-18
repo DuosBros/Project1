@@ -22,6 +22,7 @@ export default class GenericTable extends Component {
         columns: PropTypes.arrayOf(PropTypes.shape({
             prop: PropTypes.string.isRequired,
             name: PropTypes.string.isRequired,
+            display: PropTypes.string,
             collapsing: PropTypes.bool,
             exportable: PropTypes.bool,
             skipRendering: PropTypes.bool,
@@ -38,6 +39,7 @@ export default class GenericTable extends Component {
         ]),
         customFilterCallback: PropTypes.func,
         disableGrouping: PropTypes.bool,
+        recurseSearch: PropTypes.bool,
         expandable: PropTypes.bool,
         getDataKey: PropTypes.func,
         grouping: PropTypes.array,
@@ -94,6 +96,7 @@ export default class GenericTable extends Component {
 
 
         this.state = {
+            recurseSearch: this.props.recurseSearch ? true : false,
             showGenericModal: { show: false },
             columnDistinctValues,
             columns,
@@ -173,7 +176,7 @@ export default class GenericTable extends Component {
             if (!fromProps) {
                 let filteredData = mappedData.filter(e =>
                     e !== undefined &&
-                    e !== null)
+                    e != null)
                     .map(e => e.toString());
                 values = _.uniq(filteredData).sort().map(optionsDropdownMapper);
             }
@@ -183,7 +186,7 @@ export default class GenericTable extends Component {
                 }
             }
 
-            let index = mappedData.findIndex(x => x === undefined || x === null || x.toString().trim().length === 0)
+            let index = mappedData.findIndex(x => x === undefined || x == null || x.toString().trim().length === 0)
             if (index >= 0) {
                 values.push({ key: -2, text: (<em>empty</em>), value: -2 });
             }
@@ -198,7 +201,7 @@ export default class GenericTable extends Component {
         if (state.propData !== nextProps.data) {
             let data;
             let { grouping, columns } = GenericTable.generateColumnsAndGrouping(nextProps)
-            if (nextProps.data !== null && Array.isArray(nextProps.data)) {
+            if (nextProps.data != null && Array.isArray(nextProps.data)) {
                 data = GenericTable.sort(nextProps.data, grouping ? grouping : state.grouping, null);
             }
 
@@ -305,24 +308,24 @@ export default class GenericTable extends Component {
             if (needle === -2) {
                 return heystack => (
                     heystack[key] === undefined ||
-                    heystack[key] === null ||
+                    heystack[key] == null ||
                     heystack[key].toString().trim().length === 0
                 );
             }
 
             return heystack => (
                 heystack[key] !== undefined &&
-                heystack[key] !== null &&
+                heystack[key] != null &&
                 heystack[key].toString() === this.state.columnDistinctValues[key][needle + 1].text.toString()
             );
         }
         let func = buildFilter(needle);
-        if (func == null) {
+        if (func == null || this.props.recurseSearch) {
             return func;
         }
         return heystack => (
             heystack[key] !== undefined &&
-            heystack[key] !== null &&
+            heystack[key] != null &&
             func(heystack[key])
         );
     }
@@ -423,16 +426,16 @@ export default class GenericTable extends Component {
                 return res;
             }
         }
-        if (prop === null) {
+        if (prop == null) {
             return res;
         }
         return sortFactor * GenericTable.compareBase(a[prop], b[prop]);
     }
 
     static compareBase(a, b) {
-        if (a === null || a === undefined) {
-            return b === null ? 0 : -1;
-        } else if (b === null || b === undefined) {
+        if (a == null || a === undefined) {
+            return b == null ? 0 : -1;
+        } else if (b == null || b === undefined) {
             return 1;
         }
         if (typeof a === "number" && typeof b === "number") {
@@ -680,7 +683,8 @@ export default class GenericTable extends Component {
             filterInputs,
             filterInputsValid,
             offset,
-            expandedRows
+            expandedRows,
+            recurseSearch
         } = this.state;
 
         const {
@@ -765,7 +769,7 @@ export default class GenericTable extends Component {
         }
 
         if (multiSearchInputValid && multiSearch != null) {
-            filteredData = filterInArrayOfObjects(multiSearch, data, visibleColumns.filter(c => c.searchable !== false).map(c => c.prop));
+            filteredData = filterInArrayOfObjects(multiSearch, data, visibleColumns.filter(c => c.searchable !== false).map(c => c.prop), recurseSearch);
         } else {
             filteredData = data;
         }
@@ -775,7 +779,12 @@ export default class GenericTable extends Component {
         if (showColumnFilters) {
             for (let col of Object.getOwnPropertyNames(filters)) {
                 if (filters[col] != null) {
-                    filteredData = filteredData.filter(filters[col]);
+                    if (recurseSearch) {
+                        filteredData = filterInArrayOfObjects(filters[col], filteredData, [col], recurseSearch)
+                    }
+                    else {
+                        filteredData = filteredData.filter(filters[col]);
+                    }
                 }
             }
         }
