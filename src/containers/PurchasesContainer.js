@@ -52,6 +52,7 @@ class PurchasesContainer extends React.Component {
                     products={this.props.productsStore.products}
                     purchases={this.props.purchasesStore.purchases}
                     handleDeletePurchase={this.handleDeletePurchase}
+                    {...this.props}
                 />
             )
         }

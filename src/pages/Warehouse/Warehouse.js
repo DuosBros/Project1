@@ -179,7 +179,7 @@ export default class Warehouse extends React.PureComponent {
                             labelPosition='right'
                             icon='checkmark'
                             content='Edit'
-                            primary
+                            className="primaryButton"
                         />
                         <Button
                             onClick={() => this.setState({ showEditProductCountModal: false })}

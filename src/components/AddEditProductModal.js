@@ -185,7 +185,7 @@ class AddEditProductModal extends React.PureComponent {
                     <Button
                         disabled={!(this.state.name && this.state.price && this.state.category)}
                         onClick={this.handleSaveProduct}
-                        positive
+                        className="primaryButton"
                         labelPosition='right'
                         icon='checkmark'
                         content='OK'

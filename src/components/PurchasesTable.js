@@ -51,7 +51,7 @@ class PurchasesTable extends React.PureComponent {
         data.actions = (
             <>
                 <Button
-                    onClick={() => this.handleTogglePurchaseModal(data)}
+                    onClick={() => this.handleTogglePurchaseModal(data, false)}
                     className='buttonIconPadding'
                     size='large'
                     icon='edit' />

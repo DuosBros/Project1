@@ -6,7 +6,7 @@ import moment from 'moment';
 import {
     getBankTransactionsAction, mapOrdersToTransactionsActions, getOrdersAction,
     showGenericModalAction, getWarehouseProductsAction, getProductsAction,
-    updateOrderInTransactionAction, getCostsAction, addCostAction, getOrderAction
+    updateOrderInTransactionAction, getCostsAction, addCostAction, getOrderAction, createPurchaseAction
 } from '../utils/actions';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
 import { handleTogglePaidOrder, fetchCostsAndHandleResult } from '../handlers/orderHandler';
@@ -45,7 +45,6 @@ class BankContainer extends React.PureComponent {
     }
 
     handleAddTransactionToCost = async (transaction) => {
-        //TODO: check if the cost is already there
         let payload = {
             date: moment(transaction.date, "DD.MM.YYYY").toISOString(),
             description: transaction.note,
@@ -99,6 +98,9 @@ class BankContainer extends React.PureComponent {
     render() {
         return (
             <Bank
+                showGenericModalAction={this.props.showGenericModalAction}
+                createPurchaseAction={this.props.createPurchaseAction}
+                user={this.state.user}
                 isMobile={this.props.isMobile}
                 hasMarkAllAsPaidStarted={this.state.hasMarkAllAsPaidStarted}
                 handleMarkAllAsPaidButton={this.handleMarkAllAsPaidButton}
@@ -135,7 +137,8 @@ function mapDispatchToProps(dispatch) {
         showGenericModalAction,
         mapOrdersToTransactionsActions,
         getOrdersAction,
-        getOrderAction
+        getOrderAction,
+        createPurchaseAction
     }, dispatch);
 }
 

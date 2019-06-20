@@ -1,11 +1,14 @@
 import React from 'react';
-import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown } from 'semantic-ui-react';
+import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown, Form, Segment } from 'semantic-ui-react';
 import moment from 'moment';
 import ErrorMessage from '../../components/ErrorMessage';
-import { APP_TITLE, GET_ORDERS_LIMIT } from '../../appConfig';
+import { APP_TITLE, GET_ORDERS_LIMIT, SUPPLIERS } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import ExportDropdown from '../../components/ExportDropdown';
+import { createPurchase } from '../../utils/requests';
+import SimpleTable from '../../components/SimpleTable';
+import Flatpickr from 'react-flatpickr';
 
 const MarkAllButtons = (props) => {
     return (
@@ -28,6 +31,7 @@ class Bank extends React.Component {
             showMultiSearchFilter: false,
             recordsLimit: props.isMobile ? GET_ORDERS_LIMIT / 5 : GET_ORDERS_LIMIT,
             rowIdsShowingDetails: [],
+            products: []
         }
 
         this.updateFilters = debounce(this.updateFilters, 500);
@@ -100,9 +104,10 @@ class Bank extends React.Component {
     }
 
     handleCategoryModalAddCost = () => {
+        this.handleSavePurchase()
         let transaction = this.state.transaction;
         transaction.category = this.state.category;
-
+        debugger
         this.props.handleAddTransactionToCost(transaction)
         this.setState({ showCategoryModal: !this.state.showCategoryModal })
     }
@@ -117,6 +122,48 @@ class Bank extends React.Component {
             this.setState({ category: category.text });
         }
     }
+
+    handleSavePurchase = () => {
+        let { date, to, products } = this.state;
+        let payload = {
+            date: date,
+            to: to,
+            products: products,
+        }
+
+        payload.user = this.props.user
+
+        createPurchase(payload)
+            .catch((err) => {
+                this.props.showGenericModalAction({
+                    header: "Failed to create purchase",
+                    err: err
+                })
+            })
+    }
+
+    handleSupplierDropdownOnChange = (e, m) => {
+        let found = m.options.find(x => x.key === m.value)
+        this.setState({ to: found.text });
+    }
+
+    handleFlatpickr = (event, m, c) => {
+        this.setState({ [c.element.className.split(" ")[0]]: moment(event[0]) });
+    }
+
+    removeProductFromPurchase = (index) => {
+        let products = this.state.products.slice();
+        products.splice(index, 1)
+
+        this.setState({ products });
+    }
+
+    handleProductDropdownOnChange = (i, product) => {
+        let products = this.state.products.slice();
+
+        products[i] = product;
+        this.setState({ products: products });
+    };
 
     render() {
         // in case of error
@@ -150,6 +197,182 @@ class Bank extends React.Component {
         }
 
         if (this.state.showCategoryModal) {
+            let purchaseSection;
+            if (this.state.category === "Products purchase") {
+
+                let { date, to, products } = this.state;
+
+                let productsTableColumnProperties = [
+                    {
+                        name: "#",
+                        width: 1,
+                    },
+                    {
+                        name: "Product Name",
+                        width: 7,
+                    },
+                    {
+                        name: "Product Count [Pcs]",
+                        width: 2,
+                    },
+                    {
+                        name: "Remove",
+                        width: 1,
+                    }
+                ];
+
+                var mappedAllProductsForDropdown = []
+                if (this.props.products.data) {
+                    mappedAllProductsForDropdown = this.props.products.data
+                        .filter(x => x.isActive)
+                        .map(x =>
+                            ({
+                                value: x.name,
+                                text: x.name + " | " + x.category
+                            })
+                        )
+                }
+
+                let productsTableRow = this.state.products.map((product, i) => {
+                    return (
+                        <Table.Row key={product.productId} >
+                            <Table.Cell collapsing>
+                                {i + 1}
+                            </Table.Cell>
+                            <Table.Cell>
+                                <Dropdown
+                                    selection
+                                    onChange={(e, m) => {
+                                        let found = this.props.products.data.find(x => x.name === m.value);
+
+                                        this.handleProductDropdownOnChange(
+                                            i,
+                                            {
+                                                productId: found.id,
+                                                productName: found.name,
+                                                count: product.count
+                                            })
+                                    }}
+                                    options={mappedAllProductsForDropdown}
+                                    defaultValue={product.productName}
+                                    fluid
+                                    selectOnBlur={false}
+                                    selectOnNavigation={false}
+                                    placeholder='Type to search...'
+                                    search
+                                />
+                            </Table.Cell>
+                            <Table.Cell collapsing>
+                                <Form.Input
+                                    fluid
+                                    value={product.count}
+                                    onChange={(e, m) => {
+                                        this.handleProductDropdownOnChange(
+                                            i,
+                                            {
+                                                productId: product.productId,
+                                                productName: product.productName,
+                                                count: m.value
+                                            })
+                                    }} />
+                            </Table.Cell>
+
+                            <Table.Cell textAlign='center'>
+                                <Button onClick={() => this.removeProductFromPurchase(i)} className="buttonIconPadding" icon="close"></Button>
+                            </Table.Cell>
+                        </Table.Row>
+                    )
+                })
+
+                // add new product
+                productsTableRow.push(
+                    <Table.Row key={-1}>
+                        <Table.Cell colSpan={6}>
+                            <Dropdown
+                                selection
+                                onChange={(e, m) => {
+                                    let found = this.props.products.data.find(x => x.name === m.value);
+
+                                    this.handleProductDropdownOnChange(
+                                        products.length,
+                                        {
+                                            productId: found.id,
+                                            productName: found.name,
+                                            count: 1
+                                        })
+                                }}
+                                options={mappedAllProductsForDropdown}
+                                fluid
+                                selectOnBlur={false}
+                                selectOnNavigation={false}
+                                placeholder='Type to search & add...'
+                                search
+                            />
+                        </Table.Cell>
+                    </Table.Row>
+                )
+
+                purchaseSection = (
+                    <Grid.Column>
+
+                        <Header block attached='top' as='h4'>
+                            Purchase record
+                </Header>
+                        <Segment attached='bottom' >
+                            <Grid>
+                                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                                    <Grid.Column width={5}>
+                                        <strong>
+                                            Date
+                            </strong>
+                                    </Grid.Column>
+                                    <Grid.Column width={11}>
+                                        <Form>
+                                            <Form.Field>
+                                                <Flatpickr
+                                                    defaultValue={date ? date : null}
+                                                    className="date"
+                                                    onChange={this.handleFlatpickr}
+                                                    options={{
+                                                        dateFormat: 'd.m.Y', disableMobile: true, locale: {
+                                                            "firstDayOfWeek": 1 // start week on Monday
+                                                        }
+                                                    }} />
+                                            </Form.Field>
+                                        </Form>
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                                    <Grid.Column width={5}>
+                                        <strong>
+                                            To
+                                        </strong>
+                                    </Grid.Column>
+                                    <Grid.Column width={11}>
+                                        <Dropdown
+                                            defaultValue={to && SUPPLIERS.findIndex(x => x.email === to)}
+                                            onChange={this.handleSupplierDropdownOnChange}
+                                            fluid
+                                            selection
+                                            options={SUPPLIERS.map((e, i) => ({ key: i, text: e.email, value: i }))} />
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
+                                    <Grid.Column width={5}>
+                                        <strong>
+                                            Products
+                                        </strong>
+                                    </Grid.Column>
+                                    <Grid.Column width={11}>
+                                        <SimpleTable columnProperties={productsTableColumnProperties} body={productsTableRow} showHeader={productsTableRow.length > 1 ? true : false} compact="very" />
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Segment>
+                    </Grid.Column>
+                )
+            }
+
             return (
                 <Modal
                     closeOnDimmerClick={false}
@@ -193,6 +416,9 @@ class Bank extends React.Component {
                                         selectOnNavigation={false} />
                                 </Grid.Column>
                             </Grid.Row>
+                            <Grid.Row>
+                                {purchaseSection}
+                            </Grid.Row>
                         </Grid>
                     </Modal.Content>
                     <Modal.Actions>
@@ -201,14 +427,14 @@ class Bank extends React.Component {
                             onClick={() => this.setState({ showCategoryModal: false })}
                         />
                         <Button
-                            primary
+                            className="primaryButton"
                             onClick={() => this.handleCategoryModalAddCost()}
                             labelPosition='right'
                             icon='checkmark'
                             content='Add to Cost'
                         />
                     </Modal.Actions>
-                </Modal>
+                </Modal >
             )
         }
 
@@ -251,7 +477,7 @@ class Bank extends React.Component {
                 })
 
                 if (!found) {
-                    actionButtons = <Button onClick={() => this.setState({ showCategoryModal: !this.state.showCategoryModal, transaction: transaction })} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
+                    actionButtons = <Button onClick={() => this.setState({ showCategoryModal: !this.state.showCategoryModal, transaction: transaction, date: moment(transaction.date, "DD.MM.YYYY").toISOString() })} className="buttonIconPadding" size={isMobile ? 'huge' : 'medium'} icon='dollar sign' />
                 }
             }
 

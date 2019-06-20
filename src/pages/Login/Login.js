@@ -108,8 +108,7 @@ class Login extends React.Component {
                                 onChange={this.handleChange} />
                             <Button
                                 onClick={() => this.auth()}
-                                className='loginButton'
-                                primary
+                                className="primaryButton"
                                 fluid
                                 size='large'
                                 content='Login' />

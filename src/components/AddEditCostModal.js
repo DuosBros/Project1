@@ -162,7 +162,7 @@ class AddEditCostModal extends React.PureComponent {
                     <Button
                         disabled={!(this.state.description && this.state.cost && this.state.category)}
                         onClick={this.handleSaveCost}
-                        positive
+                        className="primaryButton"
                         labelPosition='right'
                         icon='checkmark'
                         content='OK'

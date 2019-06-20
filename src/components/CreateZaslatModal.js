@@ -524,7 +524,7 @@ class CreateZaslatModal extends React.PureComponent {
                         <Button
                             onClick={() => this.orderDelivery()}
                             labelPosition='right'
-                            positive
+                            className="primaryButton"
                             icon='checkmark'
                             content='Export'
                         />
@@ -546,7 +546,7 @@ class CreateZaslatModal extends React.PureComponent {
                     <Button
                         onClick={() => this.orderDelivery()}
                         labelPosition='right'
-                        positive
+                        className="primaryButton"
                         icon='checkmark'
                         content='Export'
                     />
