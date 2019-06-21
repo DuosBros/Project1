@@ -39,7 +39,7 @@ class CreateZaslatModal extends React.PureComponent {
         getSenders()
             .then(res => {
                 this.props.getSendersAction({ success: true, data: res.data.map(e => ({ text: e.label, value: e.id, obj: e })) })
-                this.setState({ sender: res.data[2] });
+                this.setState({ sender: res.data[0] });
             })
             .catch(err => {
                 this.props.getSendersAction({ success: true, error: err })
@@ -55,11 +55,19 @@ class CreateZaslatModal extends React.PureComponent {
                 })
         }
 
+        let totalWeight = 0
+        temp.products.forEach(
+            x => totalWeight += this.props.products.data.find(y => y.id === x.id).weight * x.count
+        )
+
+        totalWeight += 500
+        totalWeight = totalWeight / 1000
+
         // setting default values and order specific values
         document.getElementById("width").value = 20
         document.getElementById("height").value = 20
         document.getElementById("length").value = 20
-        document.getElementById("weight").value = this.props.totalWeight
+        document.getElementById("weight").value = totalWeight
 
         document.getElementById("bankAccountPayment").value = temp.payment.cashOnDelivery ? "No" : "Yes"
         document.getElementById("totalPrice").value = temp.totalPrice

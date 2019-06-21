@@ -102,7 +102,11 @@ class Orders extends React.Component {
             let filtered = [];
 
             if (res.data) {
-                filtered = res.data.products.filter(x => x.available < this.props.productsStore.products.data.find(y => y.id === x.id).notificationThreshold)
+                filtered = res.data.products.filter(x => {
+                    let found = this.props.productsStore.products.data.find(y => y.id === x.id);
+
+                    return found.isActive === true && x.available < found.notificationThreshold
+                })
             }
 
             this.props.getWarehouseNotificationsAction({ data: filtered, success: true })
@@ -718,7 +722,7 @@ class Orders extends React.Component {
                     })
 
                     warehouseNotificationsMessage = (
-                        <Message className="textAlignCenter" warning>Some of the products are below treshold:<br />{message}
+                        <Message className="textAlignCenter" warning>Some of the products are below threshold:<br />{message}
                             <Link to="/warehouse">Go to Warehouse</Link></Message>
                     )
                 }
@@ -957,6 +961,7 @@ class Orders extends React.Component {
                 {
                     showCreateZaslatModal && (
                         <CreateZaslatModal
+                            products={this.props.productsStore.products}
                             isMobile={isMobile}
                             order={this.props.ordersStore.ordersDetails.data}
                             show={showCreateZaslatModal}

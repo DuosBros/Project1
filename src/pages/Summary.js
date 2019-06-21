@@ -228,7 +228,7 @@ class Summary extends React.PureComponent {
                         </Grid.Row>
                         <Grid.Row>
                             <GenericLineChart
-                                longNames={true}
+                                // longNames={true}
                                 data={data}
                                 xDataKey="_id"
                                 ydataKey1="totalCount"

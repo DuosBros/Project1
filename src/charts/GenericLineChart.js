@@ -3,15 +3,16 @@ import React from 'react';
 import { Legend, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { CHART_COLORS } from '../appConfig';
 
-const CustomizedAxisTick = (props) => {
-    const { x, y, payload } = props;
+// const CustomizedAxisTick = (props) => {
+//     const { x, y, payload } = props;
 
-    return (
-        <g transform={`translate(${x},${y})`}>
-            <text x={-5} y={-10} dy={16} textAnchor="end" fill="#666" transform="rotate(-90)">{payload.value}</text>
-        </g>
-    );
-};
+//     let t = 'translate(' + x + 'px, ' + y + 'px)';
+//     return (
+//         <g transform={t}>
+//             <text x={-5} y={-10} dy={16} textAnchor="end" fill="#666" transform="rotate(-90)">{payload.value}</text>
+//         </g>
+//     );
+// };
 
 const GenericLineChart = (props) => {
     let tooltip = <Tooltip />;
@@ -23,9 +24,6 @@ const GenericLineChart = (props) => {
             }} />
     }
     let data = props.data.slice()
-    if (props.longNames) {
-
-    }
 
     let line;
     if (props.ydataKey2) {
@@ -37,7 +35,7 @@ const GenericLineChart = (props) => {
             <LineChart data={data} margin={{ top: 5, right: 50, left: 50, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                    tick={props.longNames && <CustomizedAxisTick />}
+                    // tick={props.longNames && <CustomizedAxisTick />}
                     height={props.longNames && 200}
                     dy={props.longNames && 60}
                     padding={{ left: 20, right: 20 }}
