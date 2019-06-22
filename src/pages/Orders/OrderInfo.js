@@ -940,7 +940,7 @@ class OrderInfo extends React.Component {
                                                                         value: x.text,
                                                                         key: x.key,
                                                                         text: x.text,
-                                                                        content: <Header as='h4' icon={x.icon} content={x.text} />
+                                                                        content: <Header as='h5' icon={x.icon} content={x.text} />
                                                                     }
                                                                 )
                                                             }
@@ -950,7 +950,7 @@ class OrderInfo extends React.Component {
                                                                         value: x.text,
                                                                         key: x.key,
                                                                         text: x.text,
-                                                                        content: <Header as='h4' image={{
+                                                                        content: <Header as='h5' image={{
                                                                             avatar: true,
                                                                             src: (window.location.protocol + '//' + window.location.host + "/icons/" + x.image)
                                                                         }} content={x.text} />
