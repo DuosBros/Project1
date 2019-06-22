@@ -44,7 +44,7 @@ const OrderInlineDetails = (props) => {
                             <strong>Company:</strong> {props.order.address.company} <br />
                             <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
                             <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
-                            <strong>Contact type:</strong> {contactType} <br />
+                            {contactType}
                             <strong>Note:</strong> {props.order.note} <br />
                         </Grid.Column>
                     </Grid.Row>
