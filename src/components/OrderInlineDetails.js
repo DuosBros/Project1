@@ -16,7 +16,7 @@ const OrderInlineDetails = (props) => {
     }
 
     let contactType = (
-        Number.isInteger ? (
+        Number.isInteger(props.order.contactType) ? (
             CONTACT_TYPES[props.order.contactType].icon ? (
                 <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
             ) : (
