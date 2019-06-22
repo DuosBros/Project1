@@ -100,8 +100,9 @@ class AddEditPurchaseModal extends React.PureComponent {
 
     handleSavePurchase = () => {
         let { date, to, products } = this.state;
+
         let payload = {
-            date: date,
+            date: date.toISOString(),
             to: to,
             products: products,
         }
