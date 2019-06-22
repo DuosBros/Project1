@@ -569,6 +569,39 @@ class OrderInfo extends React.Component {
             </Grid.Column>
         )
 
+        let contactTypeDropdown = (
+            <Dropdown
+                value={this.state.contactType && CONTACT_TYPES[this.state.contactType].text}
+                onChange={this.handleContactTypeDropdownOnChange} selection fluid options={
+                    CONTACT_TYPES.map(x => {
+                        if (x.icon) {
+                            return (
+                                {
+                                    value: x.text,
+                                    key: x.key,
+                                    text: x.text,
+                                    content: <Header as='h5' icon={x.icon} content={x.text} />
+                                }
+                            )
+                        }
+                        else {
+                            return (
+                                {
+                                    value: x.text,
+                                    key: x.key,
+                                    text: x.text,
+                                    content: <Header as='h5' image={{
+                                        avatar: true,
+                                        src: (window.location.protocol + '//' + window.location.host + "/icons/" + x.image)
+                                    }} content={x.text} />
+                                }
+                            )
+                        }
+                    })
+                }>
+            </Dropdown>
+        )
+
         if (isMobile) {
             // mobile
             grid = (
@@ -613,7 +646,10 @@ class OrderInfo extends React.Component {
                                     <Form.Input id='lastName' label='Last Name' fluid name='nope' />
                                     <Form.Input id='phone' label='Phone Number' fluid name='nope' />
                                     <Form.Input id='company' label='Company' fluid name='nope' />
-                                    <Form.Input id='contactType' label='Contact Type' fluid name='nope' />
+                                    <Form.Field>
+                                        <label>Contact Type</label>
+                                        {contactTypeDropdown}
+                                    </Form.Field>
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -930,36 +966,7 @@ class OrderInfo extends React.Component {
                                                 </strong>
                                             </Grid.Column>
                                             <Grid.Column width={12}>
-                                                <Dropdown
-                                                    value={this.state.contactType && CONTACT_TYPES[this.state.contactType].text}
-                                                    onChange={this.handleContactTypeDropdownOnChange} selection fluid options={
-                                                        CONTACT_TYPES.map(x => {
-                                                            if (x.icon) {
-                                                                return (
-                                                                    {
-                                                                        value: x.text,
-                                                                        key: x.key,
-                                                                        text: x.text,
-                                                                        content: <Header as='h5' icon={x.icon} content={x.text} />
-                                                                    }
-                                                                )
-                                                            }
-                                                            else {
-                                                                return (
-                                                                    {
-                                                                        value: x.text,
-                                                                        key: x.key,
-                                                                        text: x.text,
-                                                                        content: <Header as='h5' image={{
-                                                                            avatar: true,
-                                                                            src: (window.location.protocol + '//' + window.location.host + "/icons/" + x.image)
-                                                                        }} content={x.text} />
-                                                                    }
-                                                                )
-                                                            }
-                                                        })
-                                                    }>
-                                                </Dropdown>
+                                                {contactTypeDropdown}
                                             </Grid.Column>
                                         </Grid.Row>
                                     </Grid>

@@ -15,6 +15,17 @@ const OrderInlineDetails = (props) => {
         })
     }
 
+    let contactType = (
+        Number.isInteger ? (
+            CONTACT_TYPES[props.order.contactType].icon ? (
+                <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
+            ) : (
+                    <>   <strong>Contact type:</strong> <Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[props.order.contactType].image} /> {CONTACT_TYPES[props.order.contactType].text} <br /> </>
+                )
+        ) : (
+                <>   <strong>Contact type:</strong> - </>
+            )
+    )
     if (props.isMobile) {
         result = (
             <Table.Cell>
@@ -33,6 +44,7 @@ const OrderInlineDetails = (props) => {
                             <strong>Company:</strong> {props.order.address.company} <br />
                             <strong>Bank payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
                             <strong>Delivery:</strong> {props.order.deliveryCompany ? props.order.deliveryType + " + " + props.order.deliveryCompany : props.order.deliveryType} <br />
+                            <strong>Contact type:</strong> {contactType} <br />
                             <strong>Note:</strong> {props.order.note} <br />
                         </Grid.Column>
                     </Grid.Row>
@@ -198,15 +210,7 @@ const OrderInlineDetails = (props) => {
                                 <strong>Phone:</strong> {props.order.address.phone} <br />
                                 <strong>Company:</strong> {props.order.address.company} <br />
                                 {
-                                    Number.isInteger ? (
-                                        CONTACT_TYPES[props.order.contactType].icon ? (
-                                            <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
-                                        ) : (
-                                                <>   <strong>Contact type:</strong> <Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[props.order.contactType].image} /> {CONTACT_TYPES[props.order.contactType].text} <br /> </>
-                                            )
-                                    ) : (
-                                            <>   <strong>Contact type:</strong> - </>
-                                        )
+                                    contactType
                                 }
                                 <Divider />
                                 <strong>Bank account payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
