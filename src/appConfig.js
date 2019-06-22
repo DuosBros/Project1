@@ -57,6 +57,7 @@ export const YEARS = [
 export const GMAIL = config.gmail;
 
 export const SUPPLIERS = config.suppliers;
+export const CONTACT_TYPES = config.contactTypes;
 // $files = gci "C:\Users\atran1\Desktop\work\MedpharmaOrdersV2\src" -Recurse -File | ?{$_.Fullname -notlike "*assets*"};$b = 0;foreach($file in $files){$a = Get-content $file.Fullname;$b = $b + $a.length;};$b | clip.exe
 
 // 14.11. 1627

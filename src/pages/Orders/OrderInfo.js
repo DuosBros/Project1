@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { Grid, Header, Button, Icon, Segment, Form, Dropdown, Divider, Table, Message, TextArea } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
-import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS, APP_TITLE } from '../../appConfig';
+import { deliveryTypes, deliveryCompanies, LOCALSTORAGE_NAME, DEFAULT_ORDER_LOCK_SECONDS, APP_TITLE, CONTACT_TYPES } from '../../appConfig';
 import { getProductsAction, openOrderDetailsAction } from '../../utils/actions';
 import { verifyLock, lockOrder, getOrder, getHighestVS, saveOrder, createOrder } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
@@ -156,6 +156,7 @@ class OrderInfo extends React.Component {
             isEdit: isEdit,
             isMobile: this.props.isMobile,
             user: localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : "",
+            contactType: null,
             order: isEdit ? this.props.ordersPageStore.orderToEdit.data : {
                 address: {},
                 state: "active",
@@ -208,6 +209,7 @@ class OrderInfo extends React.Component {
                 await this.getOrderDetails()
             }
             else {
+
                 // temp = this.props.ordersPageStore.orderToEdit.data
             }
 
@@ -235,6 +237,8 @@ class OrderInfo extends React.Component {
 
     componentDidUpdate() {
         if (this.state.isEdit && this.state.order && document.getElementById("streetAndNumber")) {
+            // if (temp.contactType)
+            //     this.setState({ conta:  });
             var temp = this.state.order
             document.getElementById("streetAndNumber").value = temp.address.street + " " + temp.address.streetNumber
             document.getElementById("city").value = temp.address.city ? temp.address.city : ""
@@ -252,6 +256,11 @@ class OrderInfo extends React.Component {
         try {
             var res = await getOrder(this.props.match.params.id)
             this.setState({ order: res.data });
+
+            if (Number.isInteger(res.data.contactType)) {
+                this.setState({ contactType: res.data.contactType });
+            }
+
             this.props.openOrderDetailsAction({ data: res.data, success: true })
             return res.data;
         }
@@ -464,6 +473,7 @@ class OrderInfo extends React.Component {
 
         order.payment.price = document.getElementById("deliveryPrice").value ? parseInt(document.getElementById("deliveryPrice").value) : null
         order.note = document.getElementById("note").value
+        order.contactType = this.state.contactType
 
         var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
 
@@ -506,6 +516,11 @@ class OrderInfo extends React.Component {
         if (this.state.isEdit) {
             this.handleStreetInput(e);
         }
+    }
+
+    handleContactTypeDropdownOnChange = (e, m) => {
+        let found = CONTACT_TYPES.find(x => x.text === m.value)
+        this.setState({ contactType: found.key });
     }
 
     render() {
@@ -598,6 +613,7 @@ class OrderInfo extends React.Component {
                                     <Form.Input id='lastName' label='Last Name' fluid name='nope' />
                                     <Form.Input id='phone' label='Phone Number' fluid name='nope' />
                                     <Form.Input id='company' label='Company' fluid name='nope' />
+                                    <Form.Input id='contactType' label='Contact Type' fluid name='nope' />
                                 </Form>
                             </Segment>
                         </Grid.Column>
@@ -905,6 +921,45 @@ class OrderInfo extends React.Component {
                                             </Grid.Column>
                                             <Grid.Column width={12}>
                                                 <Form.Input fluid id='company' name="nope" />
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row verticalAlign='middle' style={{ paddingTop: '0.25em', paddingBottom: '1em' }}>
+                                            <Grid.Column width={4}>
+                                                <strong>
+                                                    Contact Type
+                                                </strong>
+                                            </Grid.Column>
+                                            <Grid.Column width={12}>
+                                                <Dropdown
+                                                    value={this.state.contactType && CONTACT_TYPES[this.state.contactType].text}
+                                                    onChange={this.handleContactTypeDropdownOnChange} selection fluid options={
+                                                        CONTACT_TYPES.map(x => {
+                                                            if (x.icon) {
+                                                                return (
+                                                                    {
+                                                                        value: x.text,
+                                                                        key: x.key,
+                                                                        text: x.text,
+                                                                        content: <Header as='h4' icon={x.icon} content={x.text} />
+                                                                    }
+                                                                )
+                                                            }
+                                                            else {
+                                                                return (
+                                                                    {
+                                                                        value: x.text,
+                                                                        key: x.key,
+                                                                        text: x.text,
+                                                                        content: <Header as='h4' image={{
+                                                                            avatar: true,
+                                                                            src: (window.location.protocol + '//' + window.location.host + "/icons/" + x.image)
+                                                                        }} content={x.text} />
+                                                                    }
+                                                                )
+                                                            }
+                                                        })
+                                                    }>
+                                                </Dropdown>
                                             </Grid.Column>
                                         </Grid.Row>
                                     </Grid>

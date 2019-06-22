@@ -16,7 +16,7 @@ import {
     getProductsAction, getTrackingInfoAction
 } from '../../utils/actions';
 
-import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, deliveryCompanies } from '../../appConfig'
+import { GET_ORDERS_LIMIT, LOCALSTORAGE_NAME, APP_TITLE, deliveryCompanies, CONTACT_TYPES } from '../../appConfig'
 import { filterInArrayOfObjects, debounce, handleVerifyLockError, getOrderTableRowStyle, mapOrderToExcelExport, buildFilter, contains } from '../../utils/helpers';
 import logo from '../../assets/logo.png';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -33,6 +33,7 @@ class Orders extends React.Component {
         super(props);
 
         this.state = {
+            isSearchIconLoading: false,
             isTrackingInfoModalShowing: false,
             isMobile: props.isMobile,
             multiSearchInput: "",
@@ -203,12 +204,7 @@ class Orders extends React.Component {
     }
 
     showFilter = () => {
-        // for mobile shit
-        if (this.showTogglePaidOrdersButtonRef.current) {
-            this.setState({ inputWidth: this.showTogglePaidOrdersButtonRef.current.ref.offsetWidth });
-        }
-
-        this.setState({ showMultiSearchFilter: true })
+        this.setState({ isSearchIconLoading: !this.state.isSearchIconLoading });
 
         // fetch _all_ orders
         getAllOrders()
@@ -217,6 +213,16 @@ class Orders extends React.Component {
             })
             .catch(err => {
                 this.props.getOrdersAction({ error: err, success: false })
+            })
+            .finally(() => {
+
+                // for mobile shit
+                if (this.showTogglePaidOrdersButtonRef.current) {
+                    this.setState({ inputWidth: this.showTogglePaidOrdersButtonRef.current.ref.offsetWidth });
+                }
+
+                this.handleToggleShowPaidOrders();
+                this.setState({ showMultiSearchFilter: !this.state.showMultiSearchFilter })
             })
     }
 
@@ -343,6 +349,7 @@ class Orders extends React.Component {
     }
 
     toggleShowFunctionsMobile = () => {
+        this.handleToggleShowPaidOrders()
         this.setState({ showFunctionsMobile: !this.state.showFunctionsMobile })
 
         // fetch _all_ orders
@@ -594,7 +601,13 @@ class Orders extends React.Component {
                             style={getOrderTableRowStyle(order)}
                             textAlign='center'
                             key={order.id}>
-                            <Table.Cell>{rowCounter}</Table.Cell>
+                            <Table.Cell> {Number.isInteger(order.contactType) && (
+                                CONTACT_TYPES[order.contactType].icon ? (
+                                    <Popup trigger={<Icon name={CONTACT_TYPES[order.contactType].icon} />} content={CONTACT_TYPES[order.contactType].text} />
+                                ) : (
+                                        <Popup trigger={<Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[order.contactType].image} />} content={CONTACT_TYPES[order.contactType].text} />
+                                    )
+                            )}{rowCounter} </Table.Cell>
                             <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
                             <Table.Cell>{order.payment.vs}</Table.Cell>
                             <Table.Cell>{moment(order.payment.orderDate).local().format("DD.MM")}</Table.Cell>
@@ -841,7 +854,6 @@ class Orders extends React.Component {
                                     <Grid.Column>
                                         <Input
                                             style={{ width: document.getElementsByClassName("ui fluid input drop visible transition")[0] ? document.getElementsByClassName("ui fluid input drop visible transition")[0].clientWidth : null }}
-                                            ref={this.handleRef}
                                             fluid
                                             name="multiSearchInput"
                                             placeholder='Search...'
@@ -893,30 +905,36 @@ class Orders extends React.Component {
                         <Grid.Column width={5}>
                             {warehouseNotificationsMessage}
                         </Grid.Column>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={3}>
                             {notPaidNotificationsMessage}
                         </Grid.Column>
-                        <Grid.Column width={3} textAlign='left' floated='right'>
+                        <Grid.Column width={4} textAlign='left' floated='right'>
                             <>
-                                <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
+                                {/* <Transition animation='drop' duration={500} visible={this.state.showMultiSearchFilter}>
                                     <Input
-                                        style={{ width: this.state.inputWidth }}
-                                        ref={this.handleRef}
+                                        fluid
                                         name="multiSearchInput"
                                         placeholder='Search...'
                                         onChange={this.handleFilterChange} />
-                                </Transition>
+                                </Transition> */}
                                 {
-                                    this.state.showMultiSearchFilter || (
+                                    !this.state.showMultiSearchFilter ? (
                                         <div style={{ textAlign: 'right' }}>
                                             <Icon
+                                                loading={this.state.isSearchIconLoading}
                                                 name='search'
-                                                style={{ backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
+                                                style={{ cursor: 'pointer !important', backgroundColor: '#f20056', color: 'white', marginRight: '0.2em' }}
                                                 circular
                                                 link
                                                 onClick={this.showFilter} />
                                         </div>
-                                    )
+                                    ) : (
+                                            <Input
+                                                fluid
+                                                name="multiSearchInput"
+                                                placeholder='Search...'
+                                                onChange={this.handleFilterChange} />
+                                        )
                                 }
                                 <Button
                                     ref={this.showTogglePaidOrdersButtonRef}

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Grid, Table, Header, Divider, Popup } from 'semantic-ui-react'
+import { Grid, Table, Header, Divider, Popup, Image, Icon } from 'semantic-ui-react'
 import SimpleTable from './SimpleTable';
 import { getOrderTableRowStyle } from '../utils/helpers';
+import { CONTACT_TYPES } from '../appConfig';
 const OrderInlineDetails = (props) => {
     let result;
     let totalProductCount = 0
@@ -196,6 +197,17 @@ const OrderInlineDetails = (props) => {
                                 <strong>Last name:</strong> {props.order.address.lastName} <br />
                                 <strong>Phone:</strong> {props.order.address.phone} <br />
                                 <strong>Company:</strong> {props.order.address.company} <br />
+                                {
+                                    Number.isInteger ? (
+                                        CONTACT_TYPES[props.order.contactType].icon ? (
+                                            <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
+                                        ) : (
+                                                <>   <strong>Contact type:</strong> <Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[props.order.contactType].image} /> {CONTACT_TYPES[props.order.contactType].text} <br /> </>
+                                            )
+                                    ) : (
+                                            <>   <strong>Contact type:</strong> - </>
+                                        )
+                                }
                                 <Divider />
                                 <strong>Bank account payment:</strong> {props.order.payment.cashOnDelivery ? "no" : "yes"} <br />
                             </Grid.Column>

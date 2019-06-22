@@ -87,5 +87,37 @@ export default {
             "email": "obchody.milota@seznam.cz",
             "category": "Milota"
         }
+    ],
+    "contactTypes": [
+        {
+            "key": 0,
+            "icon": "ban",
+            "text": "empty"
+        },
+        {
+            "key": 1,
+            "icon": "phone",
+            "text": "phone call & SMS"
+        },
+        {
+            "key": 2,
+            "icon": "facebook",
+            "text": "facebook"
+        },
+        {
+            "key": 3,
+            "icon": "viber",
+            "text": "viber"
+        },
+        {
+            "key": 4,
+            "image": "zalo.png",
+            "text": "zalo"
+        },
+        {
+            "key": 5,
+            "icon": "discussions",
+            "text": "face to face talk"
+        }
     ]
 }
