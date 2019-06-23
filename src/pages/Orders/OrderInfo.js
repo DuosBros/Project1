@@ -977,18 +977,21 @@ class OrderInfo extends React.Component {
                             </Header>
                             <Segment attached='bottom'>
                                 <Grid>
-                                    <Grid.Row>
-                                        <Grid.Column width={5}>
-                                            <strong>
-                                                VS
+                                    {isEdit && (
+
+                                        <Grid.Row>
+                                            <Grid.Column width={5}>
+                                                <strong>
+                                                    VS
                                             </strong>
-                                        </Grid.Column>
-                                        <Grid.Column width={10}>
-                                            <Form>
-                                                <input readOnly id='vs' label='VS' name='vs' />
-                                            </Form>
-                                        </Grid.Column>
-                                    </Grid.Row>
+                                            </Grid.Column>
+                                            <Grid.Column width={10}>
+                                                <Form>
+                                                    <input readOnly id='vs' label='VS' name='vs' />
+                                                </Form>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    )}
                                     <Grid.Row verticalAlign='middle' className="paddingTopAndBottomMedium">
                                         <Grid.Column width={5}>
                                             <strong>
