@@ -186,13 +186,15 @@ class SummaryContainer extends React.PureComponent {
         let categoriesDaily = [];
 
         keys.forEach(x => {
+            let temp = Object.assign({}, grouped[x][0]);
             if (grouped[x].length > 1) {
-                grouped[x][0].totalAmount = grouped[x].reduce((a, b) => { return { totalAmount: (Number.isInteger(a.totalAmount) ? a.totalAmount : 0) + (Number.isInteger(b.totalAmount) ? b.totalAmount : 0) } }).totalAmount
-                grouped[x][0].totalCount = grouped[x].reduce((a, b) => { return { totalCount: (Number.isInteger(a.totalCount) ? a.totalCount : 0) + (Number.isInteger(b.totalCount) ? b.totalCount : 0) } }).totalCount
-                productsDaily.push(grouped[x][0])
+
+                temp.totalAmount = grouped[x].reduce((a, b) => { return { totalAmount: (Number.isInteger(a.totalAmount) ? a.totalAmount : 0) + (Number.isInteger(b.totalAmount) ? b.totalAmount : 0) } }).totalAmount
+                temp.totalCount = grouped[x].reduce((a, b) => { return { totalCount: (Number.isInteger(a.totalCount) ? a.totalCount : 0) + (Number.isInteger(b.totalCount) ? b.totalCount : 0) } }).totalCount
+                productsDaily.push(temp)
             }
             else {
-                productsDaily.push(grouped[x][0])
+                productsDaily.push(temp)
             }
         })
         productsDaily = _.sortBy(productsDaily, (i) => i.name)
