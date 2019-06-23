@@ -153,8 +153,9 @@ export default class Warehouse extends React.PureComponent {
             )
         }
 
+        let editProductCountModal;
         if (showEditProductCountModal) {
-            return (
+            editProductCountModal = (
                 <Modal
                     closeOnDimmerClick={false}
                     dimmer={true}
@@ -190,8 +191,9 @@ export default class Warehouse extends React.PureComponent {
             )
         }
 
+        let productHistoryModal;
         if (showProductHistoryModal) {
-            return (
+            productHistoryModal = (
                 <Modal
                     closeOnDimmerClick={false}
                     dimmer={true}
@@ -233,7 +235,9 @@ export default class Warehouse extends React.PureComponent {
 
             pageHeader = (
                 <Grid stackable>
+                    {productHistoryModal}
                     {modal}
+                    {editProductCountModal}
                     <Grid.Row>
                         <Grid.Column>
                             <Header as='h1'>
@@ -334,7 +338,9 @@ export default class Warehouse extends React.PureComponent {
         else {
             return (
                 <Grid stackable>
+                    {productHistoryModal}
                     {modal}
+                    {editProductCountModal}
                     <Grid.Row style={{ marginBottom: '1em' }}>
                         <Grid.Column width={2}>
                             <Header as='h1'>

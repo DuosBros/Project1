@@ -196,6 +196,7 @@ class Bank extends React.Component {
             )
         }
 
+        let categoryModal;
         if (this.state.showCategoryModal) {
             let purchaseSection;
             if (this.state.category === "Products purchase") {
@@ -373,7 +374,7 @@ class Bank extends React.Component {
                 )
             }
 
-            return (
+            categoryModal = (
                 <Modal
                     closeOnDimmerClick={false}
                     dimmer={true}
@@ -649,6 +650,7 @@ class Bank extends React.Component {
         // render page
         return (
             <>
+                {categoryModal}
                 {pageHeader}
                 {table}
                 {
