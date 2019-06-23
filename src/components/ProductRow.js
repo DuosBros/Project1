@@ -50,6 +50,7 @@ const ProductRow = (props) => {
                     })} />
             </Form.Field>
             <Form.Input
+                autoFocus
                 readOnly={props.product.category === 'Nonbillable' ? true : false}
                 label='Product Count [Pcs]'
                 fluid

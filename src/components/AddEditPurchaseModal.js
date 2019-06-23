@@ -47,6 +47,7 @@ class AddEditPurchaseModal extends React.PureComponent {
                         <Form.Group>
                             <label>Product Count</label>
                             <Form.Input
+                                autoFocus
                                 fluid
                                 value={product.count}
                                 onChange={(e, m) => {
@@ -297,6 +298,7 @@ class AddEditPurchaseModal extends React.PureComponent {
                         </Table.Cell>
                         <Table.Cell collapsing>
                             <Form.Input
+                                autoFocus
                                 fluid
                                 value={product.count}
                                 onChange={(e, m) => {

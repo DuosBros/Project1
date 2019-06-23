@@ -523,15 +523,29 @@ class Orders extends React.Component {
             if (orderIdsShowingDetails.indexOf(order.id) > -1) {
                 orderInlineDetails = <OrderInlineDetails products={this.props.productsStore.products} order={order} isMobile={isMobile} />
             }
-
+            let buttons;
             if (isMobile) {
                 // mobile return
-                return (
-                    <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
-                        textAlign='center'>
-                        <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
-                        <Table.Cell>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).local().format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
-                        <Table.Cell>
+
+                if (this.state.showPrintLabelsIcon) {
+                    if (order.zaslatDate) {
+                        buttons = (
+                            <Button loading={isFetchingTrackingInfoRunning} onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
+                                icon={
+                                    <>
+                                        <Icon name='barcode' />
+                                        {
+                                            orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                        }
+                                    </>
+                                } >
+                            </Button>
+                        )
+                    }
+                }
+                else {
+                    buttons = (
+                        <>
                             {
                                 moment().add(-30, 'days').isAfter(order.payment.paymentDate) ? null : (
                                     <>
@@ -567,23 +581,20 @@ class Orders extends React.Component {
                                             )
                                         }
                                         <Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />
-                                        {
-                                            this.state.showPrintLabelsIcon && order.zaslatDate && (
-                                                <Button loading={isFetchingTrackingInfoRunning} onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
-                                                    icon={
-                                                        <>
-                                                            <Icon name='barcode' />
-                                                            {
-                                                                orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
-                                                            }
-                                                        </>
-                                                    } >
-                                                </Button>
-                                            )
-                                        }
                                     </>
                                 )
                             }
+                        </>
+                    )
+                }
+
+                return (
+                    <Table.Row onClick={(e) => this.toggleInlineOrderDetails(order.id, e)} key={order.id} style={getOrderTableRowStyle(order)}
+                        textAlign='center'>
+                        <Table.Cell>{(order.address.lastName ? order.address.lastName : "") + " " + (order.address.firstName ? order.address.firstName : "")}</Table.Cell>
+                        <Table.Cell>{order.payment.vs ? order.payment.vs : "cash"} <strong>|</strong> {moment(order.payment.orderDate).local().format("DD.MM")} <strong>|</strong> <strong>{order.totalPrice} Kč</strong></Table.Cell>
+                        <Table.Cell>
+                            {buttons}
                         </Table.Cell>
                         {orderInlineDetails}
                     </Table.Row>
@@ -591,6 +602,73 @@ class Orders extends React.Component {
 
             }
             else {
+                if (this.state.showPrintLabelsIcon) {
+                    if (order.zaslatDate) {
+                        buttons = (
+                            <Popup trigger={<Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
+                                icon={
+                                    <>
+                                        <Icon name='barcode' />
+                                        {
+                                            orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                        }
+                                    </>
+                                } >
+                            </Button>} content="Print label" />
+                        )
+                    }
+                }
+                else {
+                    buttons = (
+                        <>
+                            {
+                                moment().add(-30, 'days').isAfter(order.payment.paymentDate) || (
+                                    <>
+                                        <Popup trigger={<Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />} content="Edit order" />
+                                        <Popup trigger={<Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
+                                            <>
+                                                <Icon name='dollar' />
+                                                {
+                                                    order.payment.paid ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
+                                                }
+                                            </>
+                                        } />} content="Mark as Paid" />
+                                    </>
+                                )
+                            }
+
+                            < Popup trigger={< Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)
+                            } />} content="Generate Invoice" />
+                            {
+                                !order.payment.paid && (
+                                    <>
+                                        {
+                                            order.deliveryCompany && contains(order.deliveryCompany, deliveryCompanies[0]) && (
+                                                <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
+                                            )
+                                        }
+                                        {
+                                            order.zaslatShipmentId && (
+                                                <Popup
+                                                    trigger={
+                                                        <Button
+                                                            loading={zaslatId === order.zaslatShipmentId && isFetchingTrackingInfoRunning}
+                                                            onClick={() => this.handleTrackingInfoButtonOnClick(order.zaslatShipmentId)}
+                                                            className="buttonIconPadding"
+                                                            size='huge'
+                                                            icon={
+                                                                <Icon name="history" />
+                                                            } />}
+                                                    content="Tracking history" />
+                                            )
+                                        }
+                                        <Popup trigger={<Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />} content="Delete order" />
+                                    </>
+                                )
+                            }
+                        </>
+                    )
+                }
                 rowCounter++;
                 // desktop return
                 return (
@@ -614,64 +692,7 @@ class Orders extends React.Component {
                             <Table.Cell><strong>{order.totalPrice} Kč</strong></Table.Cell>
                             <Table.Cell>{order.note}</Table.Cell>
                             <Table.Cell verticalAlign="bottom">
-                                {
-                                    moment().add(-30, 'days').isAfter(order.payment.paymentDate) || (
-                                        <>
-                                            <Popup trigger={<Button onClick={() => this.openOrderDetails(order)} className="buttonIconPadding" size='huge' icon='edit' />} content="Edit order" />
-                                            <Popup trigger={<Button onClick={() => this.handleTogglePaidOrder(order)} className="buttonIconPadding" size='huge' icon={
-                                                <>
-                                                    <Icon name='dollar' />
-                                                    {
-                                                        order.payment.paid ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
-                                                    }
-                                                </>
-                                            } />} content="Mark as Paid" />
-                                        </>
-                                    )
-                                }
-
-                                <Popup trigger={<Button className="buttonIconPadding" size='huge' icon='file pdf' onClick={() => this.generateInvoice(order)} />} content="Generate Invoice" />
-                                {
-                                    !order.payment.paid && (
-                                        <>
-                                            {
-                                                order.deliveryCompany && contains(order.deliveryCompany, deliveryCompanies[0]) && (
-                                                    <Popup trigger={<Button onClick={() => this.handleOpenCreateZaslatModal(order)} className="buttonIconPadding" size='huge' icon='shipping fast' />} content="Send to Zaslat" />
-                                                )
-                                            }
-                                            {
-                                                order.zaslatShipmentId && (
-                                                    <Popup
-                                                        trigger={
-                                                            <Button
-                                                                loading={zaslatId === order.zaslatShipmentId && isFetchingTrackingInfoRunning}
-                                                                onClick={() => this.handleTrackingInfoButtonOnClick(order.zaslatShipmentId)}
-                                                                className="buttonIconPadding"
-                                                                size='huge'
-                                                                icon={
-                                                                    <Icon name="history" />
-                                                                } />}
-                                                        content="Tracking history" />
-                                                )
-                                            }
-                                            <Popup trigger={<Button onClick={() => this.handleDeleteOrder(order.id)} className="buttonIconPadding" size='huge' icon={<Icon name='close' color='red' />} />} content="Delete order" />
-                                            {
-                                                this.state.showPrintLabelsIcon && order.zaslatDate && (
-                                                    <Popup trigger={<Button onClick={() => this.togglePrintLabelIcon(order.id)} className="buttonIconPadding" size='huge'
-                                                        icon={
-                                                            <>
-                                                                <Icon name='barcode' />
-                                                                {
-                                                                    orderLabelsToPrint.indexOf(order.id) > -1 ? (<Icon color="red" corner name='minus' />) : (<Icon color="green" corner name='add' />)
-                                                                }
-                                                            </>
-                                                        } >
-                                                    </Button>} content="Print label" />
-                                                )
-                                            }
-                                        </>
-                                    )
-                                }
+                                {buttons}
                             </Table.Cell>
                         </Table.Row>
                         {orderInlineDetails}
@@ -817,7 +838,7 @@ class Orders extends React.Component {
                                         this.props.zaslatStore.zaslatOrders.success ? (
                                             <Button
                                                 onClick={this.handlePrintLabelButtonOnClick}
-                                                style={{ marginTop: '0.5em' }} id={this.state.orderLabelsToPrint.length > 0 || this.state.showPrintLabelsIcon || "secondaryButton"}
+                                                style={{ marginTop: '0.5em' }}
                                                 fluid
                                                 size='small'
                                                 compact

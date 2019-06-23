@@ -799,6 +799,7 @@ class OrderInfo extends React.Component {
                         </Table.Cell>
                         <Table.Cell collapsing>
                             <Form.Input
+                                autoFocus
                                 readOnly={product.category === 'Nonbillable' ? true : false}
                                 fluid
                                 value={product.category === 'Nonbillable' ? 1 : product.count}
