@@ -74,7 +74,8 @@ export default {
                         "height": null,
                         "length": null
                     }
-                ]
+                ],
+                "note": null
             }
         ]
     },

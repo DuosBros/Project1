@@ -111,11 +111,12 @@ class CreateZaslatModal extends React.PureComponent {
         parsed.shipments[0].packages[0].height = parseInt(document.getElementById("height").value)
         parsed.shipments[0].packages[0].length = parseInt(document.getElementById("length").value)
 
+        parsed.shipments[0].note = document.getElementById("note").value
+
         var payload = {
             shipment: parsed,
             orderId: this.props.order.id,
-            shipmentType: parsed.shipments[0].type,
-            note: document.getElementById("note").value
+            shipmentType: parsed.shipments[0].type
         }
 
 
