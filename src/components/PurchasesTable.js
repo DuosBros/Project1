@@ -8,6 +8,7 @@ class PurchasesTable extends React.PureComponent {
         {
             name: "Date",
             prop: "date",
+            display: "dateFormat",
             width: 2,
         },
         {
@@ -39,7 +40,7 @@ class PurchasesTable extends React.PureComponent {
     ]
 
     transformDataRow(data) {
-        data.date = moment(data.date).local().format("DD.MM.YYYY HH:mm:ss")
+        data.dateFormat = moment(data.date).local().format("DD.MM.YYYY HH:mm:ss")
         data.productsList = <ul>{data.products.map(x => {
             return (
                 <li key={x.productId}>

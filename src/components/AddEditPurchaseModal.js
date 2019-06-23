@@ -109,7 +109,6 @@ class AddEditPurchaseModal extends React.PureComponent {
 
         payload.user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
         if (this.props.purchase) {
-            payload.date = moment(payload.date, "DD.MM.YYYY HH:mm:ss").toISOString()
             payload.id = this.props.purchase.id
             editPurchase(payload)
                 .then(() => {
