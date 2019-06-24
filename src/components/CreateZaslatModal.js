@@ -3,7 +3,7 @@ import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, TextA
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getSenders, getOrder, orderDelivery } from '../utils/requests';
-import { getProductsAction, getSendersAction, showGenericModalAction, getOrderAction, updateOrderAction } from '../utils/actions';
+import { getProductsAction, getSendersAction, showGenericModalAction, getOrderAction } from '../utils/actions';
 import { ORDER_DELIVERY_JSON } from '../appConfig';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
 import OrderProductsWeightTablePopup from './OrderProductsWeightTablePopup';
@@ -132,7 +132,7 @@ class CreateZaslatModal extends React.PureComponent {
 
         try {
             let res = await getOrder(payload.orderId)
-            this.props.updateOrderAction({ success: true, data: res.data })
+            this.props.getOrderAction({ success: true, data: res.data })
             this.props.closeCreateZaslatModal()
         }
         catch (err) {
@@ -590,7 +590,6 @@ function mapDispatchToProps(dispatch) {
         getSendersAction,
         showGenericModalAction,
         getOrderAction,
-        updateOrderAction
     }, dispatch);
 }
 

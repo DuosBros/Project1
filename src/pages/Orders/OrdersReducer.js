@@ -10,16 +10,16 @@ const ordersPageInitialState = {
 
 const OrdersReducer = (state = ordersPageInitialState, action) => {
     switch (action.type) {
-        case 'UPDATE_ORDER':
-            let temp = Object.assign({}, state.orders.data)
-            if (action.payload.success && action.payload.data) {
-                let index = temp.findIndex(x => x.id === action.payload.data.id)
-                if (index >= 0) {
-                    temp[index] = action.payload.data
-                }
-            }
+        // case 'UPDATE_ORDER':
+        //     let temp = Object.assign({}, state.orders.data)
+        //     if (action.payload.success && action.payload.data) {
+        //         let index = temp.findIndex(x => x.id === action.payload.data.id)
+        //         if (index >= 0) {
+        //             temp[index] = action.payload.data
+        //         }
+        //     }
 
-            return Object.assign({}, state, { orders: { success: state.orderToEdit.success, data: temp } })
+        //     return Object.assign({}, state, { orders: { success: state.orderToEdit.success, data: temp } })
         case 'GET_NOT_PAID_ORDERS':
             return Object.assign({}, state, { notPaidOrders: action.payload })
         case 'GET_ORDER':
