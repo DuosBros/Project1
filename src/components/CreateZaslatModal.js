@@ -3,7 +3,7 @@ import { Button, Modal, Grid, Segment, Header, Form, Popup, Icon, Divider, TextA
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { getSenders, getOrder, orderDelivery } from '../utils/requests';
-import { getProductsAction, getSendersAction, showGenericModalAction, getOrderAction } from '../utils/actions';
+import { getProductsAction, getSendersAction, showGenericModalAction, getOrderAction, updateOrderAction } from '../utils/actions';
 import { ORDER_DELIVERY_JSON } from '../appConfig';
 import { fetchAndHandleProducts } from '../handlers/productHandler';
 import OrderProductsWeightTablePopup from './OrderProductsWeightTablePopup';
@@ -33,7 +33,8 @@ class CreateZaslatModal extends React.PureComponent {
 
     state = {
         isMobile: this.props.isMobile,
-        sender: null
+        sender: null,
+        hasOrderDeliveryStarted: false
     }
     async componentDidMount() {
         getSenders()
@@ -92,7 +93,7 @@ class CreateZaslatModal extends React.PureComponent {
     }
 
     orderDelivery = async () => {
-
+        this.setState({ hasOrderDeliveryStarted: true });
         var parsed = ORDER_DELIVERY_JSON
         parsed.shipments[0].reference = this.props.order.payment.vs
         parsed.shipments[0].to.firstname = this.props.order.address.firstName
@@ -119,7 +120,6 @@ class CreateZaslatModal extends React.PureComponent {
             shipmentType: parsed.shipments[0].type
         }
 
-
         try {
             await orderDelivery(payload)
         }
@@ -131,7 +131,8 @@ class CreateZaslatModal extends React.PureComponent {
         }
 
         try {
-            await getOrder(payload.orderId)
+            let res = await getOrder(payload.orderId)
+            this.props.updateOrderAction({ success: true, data: res.data })
             this.props.closeCreateZaslatModal()
         }
         catch (err) {
@@ -139,6 +140,9 @@ class CreateZaslatModal extends React.PureComponent {
                 err: err,
                 header: "Failed to get order after sending to Zaslat"
             })
+        }
+        finally {
+            this.setState({ hasOrderDeliveryStarted: false });
         }
     }
 
@@ -531,6 +535,7 @@ class CreateZaslatModal extends React.PureComponent {
                 {isMobile ? (
                     <Modal.Actions className={isMobile ? "zaslatActions" : null}>
                         <Button
+                            loading={this.state.hasOrderDeliveryStarted}
                             onClick={() => this.orderDelivery()}
                             labelPosition='right'
                             className="primaryButton"
@@ -584,7 +589,8 @@ function mapDispatchToProps(dispatch) {
         getProductsAction,
         getSendersAction,
         showGenericModalAction,
-        getOrderAction
+        getOrderAction,
+        updateOrderAction
     }, dispatch);
 }
 

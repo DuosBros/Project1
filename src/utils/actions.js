@@ -1,3 +1,10 @@
+export function updateOrderAction(payload) {
+    return {
+        payload,
+        type: 'UPDATE_ORDER'
+    }
+}
+
 export function getPurchasesAction(payload) {
     return {
         payload,

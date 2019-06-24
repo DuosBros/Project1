@@ -447,10 +447,6 @@ class OrderInfo extends React.Component {
             delete order.payment.vs
             delete order.payment.price
         }
-        else {
-            let res = await getHighestVS();
-            order.payment.vs = res.data
-        }
 
         order.products.forEach(x => {
             delete x.product
@@ -459,10 +455,16 @@ class OrderInfo extends React.Component {
         // TODO: add branch picker
         order.branch = order.branch ? order.branch : "VN"
 
-        order.address.street = document.getElementById("hiddenStreet").value
+        // TODO: error is here
+        if (document.getElementById("hiddenStreet").value) {
+            order.address.street = document.getElementById("hiddenStreet").value
+        }
+        if (document.getElementById("hiddenStreetNumber").value) {
+            order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+        }
+
         order.address.city = document.getElementById("city").value
         order.address.psc = document.getElementById("zip").value
-        order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
 
         order.totalPrice = this.getTotalPriceHelper(order);
 
@@ -478,6 +480,13 @@ class OrderInfo extends React.Component {
         var user = localStorage.getItem(LOCALSTORAGE_NAME) ? JSON.parse(atob(localStorage.getItem(LOCALSTORAGE_NAME).split('.')[1])).username : ""
 
         if (this.state.isEdit) {
+            if (document.getElementById("hiddenStreet").value) {
+                order.address.street = document.getElementById("hiddenStreet").value
+            }
+            if (document.getElementById("hiddenStreetNumber").value) {
+                order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+            }
+
             saveOrder(order, user)
                 .then(() => {
                     props.history.push('/orders')
@@ -491,6 +500,14 @@ class OrderInfo extends React.Component {
                 })
         }
         else {
+            if (contains(order.deliveryType, deliveryTypes[0])) {
+                let res = await getHighestVS();
+                order.payment.vs = res.data
+            }
+
+            order.address.street = document.getElementById("hiddenStreet").value
+            order.address.streetNumber = document.getElementById("hiddenStreetNumber").value
+
             order.payment.orderDate = moment().toISOString()
 
             createOrder(order, user)
