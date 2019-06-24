@@ -23,7 +23,7 @@ const OrdersReducer = (state = ordersPageInitialState, action) => {
         case 'GET_NOT_PAID_ORDERS':
             return Object.assign({}, state, { notPaidOrders: action.payload })
         case 'GET_ORDER':
-            temp = Object.assign({}, state.orders)
+            let temp = Object.assign({}, state.orders)
 
             if (temp.data && action.payload.success && action.payload.data) {
                 let index = temp.data.findIndex(x => x.id === action.payload.data.id)
