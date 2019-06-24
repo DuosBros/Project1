@@ -1044,7 +1044,13 @@ class OrderInfo extends React.Component {
                                                     </Grid.Column>
                                                 </Grid.Row>
                                             </>
-                                        ) : null
+                                        ) : (
+                                                <>
+                                                    <Grid.Row></Grid.Row>
+                                                    <Grid.Row></Grid.Row>
+                                                    <Grid.Row></Grid.Row>
+                                                </>
+                                            )
                                     }
                                 </Grid>
                             </Segment>

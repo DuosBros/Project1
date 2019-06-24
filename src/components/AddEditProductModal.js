@@ -71,10 +71,9 @@ class AddEditProductModal extends React.PureComponent {
 
     render() {
 
-        let productObj = this.props.product && this.props.product;
         let content;
 
-        let { name, price, weight, tax, isActive, notificationThreshold } = this.state;
+        let { name, price, weight, tax, isActive, notificationThreshold, isEdit, category } = this.state;
         content = (
             <Grid>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -86,7 +85,7 @@ class AddEditProductModal extends React.PureComponent {
                     <Grid.Column width={11}>
                         <Form>
                             <Form.Field>
-                                <Form.Input fluid onChange={this.setInput} value={name ? name : productObj && productObj.name} id="name" />
+                                <Form.Input fluid onChange={this.setInput} value={name} id="name" />
                             </Form.Field>
                         </Form>
                     </Grid.Column>
@@ -100,7 +99,7 @@ class AddEditProductModal extends React.PureComponent {
                     <Grid.Column width={11}>
                         <Form>
                             <Form.Field>
-                                <Form.Input fluid onChange={this.setInput} value={price ? price : productObj && productObj.price} id="price" />
+                                <Form.Input fluid onChange={this.setInput} value={price} id="price" />
                             </Form.Field>
                         </Form>
                     </Grid.Column>
@@ -112,7 +111,7 @@ class AddEditProductModal extends React.PureComponent {
                             </strong>
                     </Grid.Column>
                     <Grid.Column width={11}>
-                        <Form.Input onChange={this.setInput} fluid id="weight" value={weight ? weight : productObj && productObj.weight} />
+                        <Form.Input onChange={this.setInput} fluid id="weight" value={weight} />
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -122,7 +121,7 @@ class AddEditProductModal extends React.PureComponent {
                             </strong>
                     </Grid.Column>
                     <Grid.Column width={11}>
-                        <Form.Input onChange={this.setInput} fluid id="tax" value={tax ? tax : productObj && productObj.tax} />
+                        <Form.Input onChange={this.setInput} fluid id="tax" value={tax} />
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -140,7 +139,7 @@ class AddEditProductModal extends React.PureComponent {
                             selection
                             onChange={this.handleCategoryDropdownOnChange}
                             options={this.props.categories}
-                            text={this.state.category ? this.state.category : productObj ? productObj.category && productObj.category : ""}
+                            text={this.state.category}
                             selectOnBlur={false}
                             selectOnNavigation={false} />
                     </Grid.Column>
@@ -152,7 +151,7 @@ class AddEditProductModal extends React.PureComponent {
                         </strong>
                     </Grid.Column>
                     <Grid.Column width={11}>
-                        <Form.Input onChange={this.setInput} fluid id="notificationThreshold" value={notificationThreshold ? notificationThreshold : productObj && productObj.notificationThreshold} />
+                        <Form.Input onChange={this.setInput} fluid id="notificationThreshold" value={notificationThreshold} />
                     </Grid.Column>
                 </Grid.Row>
                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
@@ -177,13 +176,13 @@ class AddEditProductModal extends React.PureComponent {
                 closeIcon={true}
                 onClose={this.props.handleToggleProductModal}
             >
-                <Modal.Header>{productObj ? 'Edit product' : 'Add product'}</Modal.Header>
+                <Modal.Header>{isEdit ? 'Edit product' : 'Add product'}</Modal.Header>
                 <Modal.Content>
                     {content}
                 </Modal.Content>
                 <Modal.Actions>
                     <Button
-                        disabled={!(this.state.name && this.state.price && this.state.category)}
+                        disabled={!(name && price && category)}
                         onClick={this.handleSaveProduct}
                         className="primaryButton"
                         labelPosition='right'

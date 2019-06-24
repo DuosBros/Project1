@@ -1,12 +1,12 @@
 import React from 'react';
-import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown, Form, Segment } from 'semantic-ui-react';
+import { Icon, Message, Grid, Header, Table, Input, Button, Transition, Popup, Modal, Dropdown, Form, Segment, Checkbox } from 'semantic-ui-react';
 import moment from 'moment';
 import ErrorMessage from '../../components/ErrorMessage';
 import { APP_TITLE, GET_ORDERS_LIMIT, SUPPLIERS } from '../../appConfig';
 import { filterInArrayOfObjects, debounce, contains, pick, buildFilter } from '../../utils/helpers';
 import OrderInlineDetails from '../../components/OrderInlineDetails';
 import ExportDropdown from '../../components/ExportDropdown';
-import { createPurchase } from '../../utils/requests';
+import { createPurchase, editWarehouseProduct } from '../../utils/requests';
 import SimpleTable from '../../components/SimpleTable';
 import Flatpickr from 'react-flatpickr';
 
@@ -23,6 +23,7 @@ class Bank extends React.Component {
         super(props);
 
         this.state = {
+            isAddToWarehouseChecked: true,
             showCategoryModal: false,
             multiSearchInput: "",
             isMobile: props.isMobile,
@@ -104,11 +105,25 @@ class Bank extends React.Component {
     }
 
     handleCategoryModalAddCost = () => {
-        this.handleSavePurchase()
+        this.setState({ hasAddToCostStarted: true });
+        if (this.state.category === "Products purchase") {
+            this.handleSavePurchase()
+            debugger
+            if (this.state.isAddToWarehouseChecked) {
+                this.state.products.forEach(async product => {
+                    let payload = {
+                        difference: product.count,
+                        user: this.props.user
+                    }
+                    await editWarehouseProduct(product.productId, payload)
+                })
+            }
+        }
         let transaction = this.state.transaction;
         transaction.category = this.state.category;
         debugger
         this.props.handleAddTransactionToCost(transaction)
+        this.setState({ hasAddToCostStarted: false });
         this.setState({ showCategoryModal: !this.state.showCategoryModal })
     }
 
@@ -164,6 +179,10 @@ class Bank extends React.Component {
         products[i] = product;
         this.setState({ products: products });
     };
+
+    handleOnChangeCheckbox = (e, { name, checked }) => {
+        this.setState({ [name]: checked });
+    }
 
     render() {
         // in case of error
@@ -265,6 +284,7 @@ class Bank extends React.Component {
                             </Table.Cell>
                             <Table.Cell collapsing>
                                 <Form.Input
+                                    autoFocus
                                     fluid
                                     value={product.count}
                                     onChange={(e, m) => {
@@ -315,17 +335,21 @@ class Bank extends React.Component {
 
                 purchaseSection = (
                     <Grid.Column>
-
                         <Header block attached='top' as='h4'>
                             Purchase record
-                </Header>
+                        </Header>
                         <Segment attached='bottom' >
                             <Grid>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Checkbox name="isAddToWarehouseChecked" onChange={this.handleOnChangeCheckbox} label="Add products to warehouse" checked={this.state.isAddToWarehouseChecked} />
+                                    </Grid.Column>
+                                </Grid.Row>
                                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                     <Grid.Column width={5}>
                                         <strong>
                                             Date
-                            </strong>
+                                        </strong>
                                     </Grid.Column>
                                     <Grid.Column width={11}>
                                         <Form>
@@ -428,6 +452,7 @@ class Bank extends React.Component {
                             onClick={() => this.setState({ showCategoryModal: false })}
                         />
                         <Button
+                            loading={this.state.hasAddToCostStarted}
                             className="primaryButton"
                             onClick={() => this.handleCategoryModalAddCost()}
                             labelPosition='right'
