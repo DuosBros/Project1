@@ -351,13 +351,13 @@ export const getGLSDeliveryPrice = (weight) => {
     // weight of the box
     weight += 500
     if (weight < 3000)
-        return 111
-    if (weight < 5000)
         return 116
-    if (weight < 10000)
-        return 127
-    if (weight < 15000)
-        return 139
+    if (weight < 5000)
+        return 121
+    if (weight < 6000)
+        return 133
+    if (weight < 11000)
+        return 146
 }
 
 const REGEX_DIGITS = /^\d+$/;
