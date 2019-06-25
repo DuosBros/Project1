@@ -592,14 +592,34 @@ class OrderInfo extends React.Component {
                 onChange={this.handleContactTypeDropdownOnChange} selection fluid options={
                     CONTACT_TYPES.map(x => {
                         if (x.icon) {
-                            return (
-                                {
-                                    value: x.text,
-                                    key: x.key,
-                                    text: x.text,
-                                    content: <Header as='h5' icon={x.icon} content={x.text} />
-                                }
-                            )
+                            if (x.corner) {
+                                return (
+                                    {
+                                        value: x.text,
+                                        key: x.key,
+                                        text: x.text,
+                                        content: <Header as='h5' icon={(
+                                            <>
+                                                <Icon name={x.icon} />
+                                                <Icon name={x.corner} />
+                                            </>
+                                        )} content={x.text} />
+                                    }
+                                )
+
+                            }
+                            else {
+                                return (
+                                    {
+                                        value: x.text,
+                                        key: x.key,
+                                        text: x.text,
+                                        content: <Header as='h5' icon={(
+                                            <Icon name={x.icon} />
+                                        )} content={x.text} />
+                                    }
+                                )
+                            }
                         }
                         else {
                             return (

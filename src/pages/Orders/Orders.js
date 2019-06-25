@@ -681,7 +681,16 @@ class Orders extends React.Component {
                             key={order.id}>
                             <Table.Cell> {Number.isInteger(order.contactType) && (
                                 CONTACT_TYPES[order.contactType].icon ? (
-                                    <Popup trigger={<Icon name={CONTACT_TYPES[order.contactType].icon} />} content={CONTACT_TYPES[order.contactType].text} />
+                                    CONTACT_TYPES[order.contactType].corner ? (
+                                        <Popup trigger={
+                                            <>
+                                                <Icon name={CONTACT_TYPES[order.contactType].icon} />
+                                                <Icon name={CONTACT_TYPES[order.contactType].corner} />
+                                            </>
+                                        } content={CONTACT_TYPES[order.contactType].text} />
+                                    ) : (
+                                            <Popup trigger={<Icon name={CONTACT_TYPES[order.contactType].icon} />} content={CONTACT_TYPES[order.contactType].text} />
+                                        )
                                 ) : (
                                         <Popup trigger={<Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[order.contactType].image} />} content={CONTACT_TYPES[order.contactType].text} />
                                     )
@@ -838,7 +847,7 @@ class Orders extends React.Component {
                                         this.props.zaslatStore.zaslatOrders.success ? (
                                             <Button
                                                 onClick={this.handlePrintLabelButtonOnClick}
-                                                style={{ marginTop: '0.5em' }}
+                                                style={{ marginTop: '0.5em' }} id={this.state.showPrintLabelsIcon || "secondaryButton"}
                                                 fluid
                                                 size='small'
                                                 compact

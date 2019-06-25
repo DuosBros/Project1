@@ -18,7 +18,15 @@ const OrderInlineDetails = (props) => {
     let contactType = (
         Number.isInteger(props.order.contactType) ? (
             CONTACT_TYPES[props.order.contactType].icon ? (
-                <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
+                CONTACT_TYPES[props.order.contactType].corner ? (
+                    <><strong>Contact type: </strong>
+                        <>
+                            <Icon name={CONTACT_TYPES[props.order.contactType].icon} />
+                            <Icon name={CONTACT_TYPES[props.order.contactType].corner} />
+                        </> {CONTACT_TYPES[props.order.contactType].text} <br /></>
+                ) : (
+                        <><strong>Contact type:</strong> <Icon name={CONTACT_TYPES[props.order.contactType].icon} /> {CONTACT_TYPES[props.order.contactType].text} <br /></>
+                    )
             ) : (
                     <>   <strong>Contact type:</strong> <Image avatar inline src={window.location.protocol + '//' + window.location.host + "/icons/" + CONTACT_TYPES[props.order.contactType].image} /> {CONTACT_TYPES[props.order.contactType].text} <br /> </>
                 )

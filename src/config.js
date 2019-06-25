@@ -103,20 +103,27 @@ export default {
         {
             "key": 2,
             "icon": "facebook",
-            "text": "facebook"
+            "corner": "comment",
+            "text": "facebook & comment"
         },
         {
             "key": 3,
+            "icon": "facebook",
+            "corner": "inbox",
+            "text": "facebook & inbox"
+        },
+        {
+            "key": 4,
             "icon": "viber",
             "text": "viber"
         },
         {
-            "key": 4,
+            "key": 5,
             "image": "zalo.png",
             "text": "zalo"
         },
         {
-            "key": 5,
+            "key": 6,
             "icon": "discussions",
             "text": "face to face talk"
         }
