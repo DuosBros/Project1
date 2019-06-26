@@ -682,12 +682,14 @@ class Orders extends React.Component {
                             <Table.Cell> {Number.isInteger(order.contactType) && (
                                 CONTACT_TYPES[order.contactType].icon ? (
                                     CONTACT_TYPES[order.contactType].corner ? (
-                                        <Popup trigger={
-                                            <>
+                                        <>
+                                            <Popup trigger={
                                                 <Icon name={CONTACT_TYPES[order.contactType].icon} />
+                                            } content={CONTACT_TYPES[order.contactType].text} />
+                                            <Popup trigger={
                                                 <Icon name={CONTACT_TYPES[order.contactType].corner} />
-                                            </>
-                                        } content={CONTACT_TYPES[order.contactType].text} />
+                                            } content={CONTACT_TYPES[order.contactType].text} />
+                                        </>
                                     ) : (
                                             <Popup trigger={<Icon name={CONTACT_TYPES[order.contactType].icon} />} content={CONTACT_TYPES[order.contactType].text} />
                                         )
