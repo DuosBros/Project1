@@ -104,8 +104,13 @@ class CreateZaslatModal extends React.PureComponent {
         parsed.shipments[0].to.phone = this.props.order.address.phone
         parsed.shipments[0].to.company = this.props.order.address.company
 
-        parsed.shipments[0].services[1].data.bank_variable = this.props.order.payment.vs
-        parsed.shipments[0].services[1].data.value.value = this.props.order.totalPrice
+        if (this.props.order.payment.cashOnDelivery) {
+            parsed.shipments[0].services[1].data.bank_variable = this.props.order.payment.vs
+            parsed.shipments[0].services[1].data.value.value = this.props.order.totalPrice
+        }
+        else {
+            delete parsed.shipments[0].services
+        }
 
         parsed.shipments[0].packages[0].weight = parseFloat(document.getElementById("weight").value)
         parsed.shipments[0].packages[0].width = parseInt(document.getElementById("width").value)
