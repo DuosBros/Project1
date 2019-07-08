@@ -9,7 +9,7 @@ export default {
         }
     },
     "styles": {
-        "warningColor": "#f2711c3d",
+        "warningColor": "#f2711c26",
         "successColor": "#32ba4530",
         "errorColor": "#f2005645",
         "notActiveColor": "#bfbfbf"
