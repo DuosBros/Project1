@@ -9,9 +9,9 @@ export default {
         }
     },
     "styles": {
-        "warningColor": "#f7ead89c",
+        "warningColor": "#f2711c54",
         "successColor": "#32ba4530",
-        "errorColor": "#f2005614",
+        "errorColor": "#f2005645",
         "notActiveColor": "#bfbfbf"
     },
     "config":
