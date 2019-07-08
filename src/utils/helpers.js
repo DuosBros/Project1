@@ -347,17 +347,32 @@ export const getOrderTableRowStyle = (order) => {
 /**
  * @param {number} weight
  */
-export const getGLSDeliveryPrice = (weight) => {
+export const getGLSDeliveryPrice = (weight, cashOnDelivery) => {
+    if (!weight)
+        return 0
     // weight of the box
     weight += 500
-    if (weight < 3000)
-        return 116
-    if (weight < 5000)
-        return 121
-    if (weight < 6000)
-        return 133
-    if (weight < 11000)
-        return 146
+    if (cashOnDelivery) { // cashOnDelivery is false
+
+        if (weight < 3000)
+            return 116
+        if (weight < 5000)
+            return 121
+        if (weight < 6000)
+            return 133
+        if (weight < 11000)
+            return 146
+    }
+    else {
+        if (weight < 3000)
+            return 90
+        if (weight < 5000)
+            return 94
+        if (weight < 6000)
+            return 106
+        if (weight < 11000)
+            return 120
+    }
 }
 
 const REGEX_DIGITS = /^\d+$/;

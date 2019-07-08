@@ -303,7 +303,7 @@ class OrderInfo extends React.Component {
             weight += this.props.productsStore.products.data.find(y => y.id === x.id).weight * x.count
         })
         if (stateOrder.deliveryType === deliveryTypes[0]) {
-            o.payment.price = getGLSDeliveryPrice(weight)
+            o.payment.price = getGLSDeliveryPrice(weight, stateOrder.payment.cashOnDelivery)
         }
 
         return o;
@@ -401,7 +401,7 @@ class OrderInfo extends React.Component {
     handleToggleDeliveryButtonsHelper = (prop, type, stateOrder) => {
         var o = Object.assign({}, stateOrder)
         if ((prop === "deliveryType" && type === deliveryTypes[0]) || (prop === "deliveryCompany" && type === deliveryCompanies[0])) {
-            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0))
+            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0), o.payment.cashOnDelivery)
         }
         else {
             o.payment.price = 0
@@ -419,6 +419,13 @@ class OrderInfo extends React.Component {
     handleToggleBankAccountPaymentButtons = (type) => {
         var o = Object.assign({}, this.state.order)
         o.payment.cashOnDelivery = type
+
+        if (o.deliveryType === deliveryTypes[0] && o.deliveryCompany === deliveryCompanies[0]) {
+            o.payment.price = getGLSDeliveryPrice(o.products.map(x => x.product.weight).reduce((a, b) => a + b, 0), type)
+        }
+        else {
+            o.payment.price = 0
+        }
 
         this.setState({ order: o });
     }
