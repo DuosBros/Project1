@@ -176,6 +176,8 @@ class Bank extends React.Component {
     handleProductDropdownOnChange = (i, product) => {
         let products = this.state.products.slice();
 
+        product.count = Number.parseInt(product.count)
+
         products[i] = product;
         this.setState({ products: products });
     };
