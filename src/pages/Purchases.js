@@ -33,7 +33,7 @@ class Purchases extends React.PureComponent {
     handleTogglePurchaseModal = (purchaseToEdit, isMobile) => {
         if (purchaseToEdit) {
             if (!isMobile) {
-                purchaseToEdit.products = JSON.parse(purchaseToEdit.products)
+                purchaseToEdit.products = typeof purchaseToEdit.products === "string" ? JSON.parse(purchaseToEdit.products) : purchaseToEdit.products
             }
         }
 

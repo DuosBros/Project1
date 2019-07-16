@@ -342,11 +342,6 @@ class Bank extends React.Component {
                         </Header>
                         <Segment attached='bottom' >
                             <Grid>
-                                <Grid.Row>
-                                    <Grid.Column>
-                                        <Checkbox name="isAddToWarehouseChecked" onChange={this.handleOnChangeCheckbox} label="Add products to warehouse" checked={this.state.isAddToWarehouseChecked} />
-                                    </Grid.Column>
-                                </Grid.Row>
                                 <Grid.Row verticalAlign='middle' className="paddingTopAndBottomSmall">
                                     <Grid.Column width={5}>
                                         <strong>
@@ -392,6 +387,11 @@ class Bank extends React.Component {
                                     </Grid.Column>
                                     <Grid.Column width={11}>
                                         <SimpleTable columnProperties={productsTableColumnProperties} body={productsTableRow} showHeader={productsTableRow.length > 1 ? true : false} compact="very" />
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                        <Checkbox name="isAddToWarehouseChecked" onChange={this.handleOnChangeCheckbox} label="Add products to warehouse" checked={this.state.isAddToWarehouseChecked} />
                                     </Grid.Column>
                                 </Grid.Row>
                             </Grid>
@@ -454,6 +454,7 @@ class Bank extends React.Component {
                             onClick={() => this.setState({ showCategoryModal: false })}
                         />
                         <Button
+                            disabled={this.state.products.length <= 0 && this.state.category === "Products purchase"}
                             loading={this.state.hasAddToCostStarted}
                             className="primaryButton"
                             onClick={() => this.handleCategoryModalAddCost()}

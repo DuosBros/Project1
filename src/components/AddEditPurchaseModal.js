@@ -8,6 +8,7 @@ import Flatpickr from 'react-flatpickr';
 import moment from 'moment';
 import { SUPPLIERS, LOCALSTORAGE_NAME } from '../appConfig';
 import SimpleTable from './SimpleTable';
+import { isISOString } from '../utils/helpers';
 
 class AddEditPurchaseModal extends React.PureComponent {
 
@@ -103,7 +104,7 @@ class AddEditPurchaseModal extends React.PureComponent {
         let { date, to, products } = this.state;
 
         let payload = {
-            date: date.toISOString(),
+            date: !isISOString(date) ? date.toISOString() : date,
             to: to,
             products: products,
         }

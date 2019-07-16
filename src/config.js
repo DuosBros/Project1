@@ -87,7 +87,11 @@ export default {
         {
             "email": "obchody.milota@seznam.cz",
             "category": "Milota"
-        }
+        },
+        {
+            "email": "pixelwebdesign44@gmail.com",
+            "category": "Bee"
+        },
     ],
     "contactTypes": [
         {
