@@ -4,8 +4,8 @@ export default {
         "api":
         {
             "local": "http://localhost:3000/rest/",
-            "dev": "https://medpharmavn-test.herokuapp.com/rest/",
-            "prod": "https://medpharmavn.herokuapp.com/rest/"
+            "dev": "",
+            "prod": ""
         }
     },
     "styles": {
@@ -16,10 +16,10 @@ export default {
     },
     "config":
     {
-        "localStorageName": "showBubsAndVagena",
+        "localStorageName": "",
         "defaultSmartformLimit": 10,
         "ordersPerPageAndRequestLimit": 100,
-        "deliveryCompanies": ["GLS", "CP", "None"],
+        "deliveryCompanies": ["A", "B", "None"],
         "deliveryTypes": ["VS", "CASH"],
         "defaultLockSeconds": 10,
         "appTitle": "MedpharmaVN - "
@@ -30,11 +30,11 @@ export default {
         "shipments": [
             {
                 "type": "ONDEMAND",
-                "carrier": "GLS",
+                "carrier": "A",
                 "reference": null,
                 "pickup_branch": "1",
                 "from": {
-                    "id": 50470
+                    "id": 0
                 },
                 "to": {
                     "firstname": null,
@@ -51,14 +51,14 @@ export default {
                         "code": "ins",
                         "data": {
                             "currency": "CZK",
-                            "value": 6000
+                            "value": 0
                         }
                     },
                     {
                         "code": "cod",
                         "data": {
-                            "bank_account": "2401089228",
-                            "bank_code": "2010",
+                            "bank_account": "",
+                            "bank_code": "",
                             "bank_variable": null,
                             "value": {
                                 "currency": "CZK",
@@ -81,17 +81,13 @@ export default {
     },
     "suppliers": [
         {
-            "email": "hlasenska@medpharma.cz",
-            "category": "Medpharma"
+            "email": "a@a.a",
+            "category": "a"
         },
         {
-            "email": "obchody.milota@seznam.cz",
-            "category": "Milota"
-        },
-        {
-            "email": "pixelwebdesign44@gmail.com",
-            "category": "Bee"
-        },
+            "email": "b.b@b.cz",
+            "category": "b"
+        }
     ],
     "contactTypes": [
         {
